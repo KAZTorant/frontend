@@ -1,19 +1,15 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png">
-  <!-- <HelloWorld msg="Welcome to Your Vue.js App"/> -->
-  <!-- <LoginView/> -->
+  <!-- <img alt="Vue logo" src="./assets/logo.png"> -->
   <RouterView /> 
 </template>
 
 <script>
-// import HelloWorld from './components/HelloWorld.vue'
-// import LoginView from './components/LoginView.vue'
+import MainView from './components/MainRestorantView/MainView.vue'
 
 export default {
   name: 'App',
   components: {
-    // HelloWorld,
-    // LoginView
+    MainView
   }
 }
 </script>

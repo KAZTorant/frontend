@@ -8,7 +8,7 @@ const routes = [
   },
   {
     path: "/home",
-    component: () => import('../components/WelcomeView.vue'),
+    component: () => import('../components/MainRestorantView/MainView.vue'),
     meta: { requiresAuth: true } // Add meta field to specify authentication requirement
   },
 ];
