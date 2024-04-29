@@ -17,7 +17,6 @@
 </template>
 
 <script>
-import { SET_AUTHENTICATION, SET_USERNAME } from "../store/storeconstants";
 import { mapGetters } from 'vuex';
 
 export default {
@@ -50,8 +49,8 @@ export default {
 
         this.output = "Authentication complete";
         // Dummy authentication logic, replace with actual logic
-        this.$store.commit(`auth/${SET_AUTHENTICATION}`, true);
-        this.$store.commit(`auth/${SET_USERNAME}`, this.input.username); // Assuming you are using username for username here
+        this.$store.commit(`auth/SET_AUTHENTICATION`, true);
+        this.$store.commit(`auth/SET_USERNAME`, this.input.username); // Assuming you are using username for username here
         this.$router.push('/home');
       } else {
         this.output = "username cannot be empty";

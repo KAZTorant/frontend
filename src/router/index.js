@@ -1,7 +1,7 @@
 import { createWebHistory, createRouter } from "vue-router";
-import store from '../store'
+import store from '../store';
 
-const routes =  [
+const routes = [
   {
     path: "/",
     component: () => import('../components/LoginView.vue'),
@@ -21,8 +21,8 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   if (to.meta.requiresAuth) { // Check if the route requires authentication
-    // Check if user is authenticated directly from Vuex state
-    if (!store.state.auth.authenticated) {
+    // Check if user is authenticated using Vuex getter
+    if (!store.getters['auth/IS_USER_AUTHENTICATED']) {
       // If user is not authenticated, redirect to login page
       next('/');
     } else {

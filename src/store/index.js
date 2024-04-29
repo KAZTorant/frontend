@@ -1,16 +1,13 @@
-import { createStore } from 'vuex'
-import auth from './auth/index'
+// store/index.js
+import { createStore } from 'vuex';
+import localStoragePlugin from './localStoragePlugin';
+import auth from './auth/index';
 
-export default createStore({
-  state: {
-  },
-  getters: {
-  },
-  mutations: {
-  },
-  actions: {
-  },
+const store = createStore({
+  plugins: [localStoragePlugin], // Apply the LocalStorage plugin
   modules: {
     auth
   }
-})
+});
+
+export default store;

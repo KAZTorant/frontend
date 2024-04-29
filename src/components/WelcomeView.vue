@@ -4,7 +4,6 @@
   </template>
   
   <script>
-  import {  GET_USERNAME } from "../store/storeconstants";
   export default {
     name: 'WelcomeVIew',
     data() {
@@ -13,7 +12,7 @@
     },
     methods:{
       getUsername() {
-      return this.$store.getters[`auth/${GET_USERNAME}`]
+      return this.$store.getters[`auth/GET_USERNAME`]
     }, 
     }
    
