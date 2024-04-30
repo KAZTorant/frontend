@@ -11,6 +11,11 @@ const routes = [
     component: () => import('../components/MainRestorantView/MainView.vue'),
     meta: { requiresAuth: true } // Add meta field to specify authentication requirement
   },
+  {
+    path: "/home/main-order-view",
+    component: () => import('../components/MainOrderView/MainOrderView.vue'),
+    meta: { requiresAuth: true } // Add meta field to specify authentication requirement
+  },
 ];
 
 const router = createRouter({
