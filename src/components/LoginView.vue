@@ -17,18 +17,10 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex';
 import backendServices from '../backend-services/backend-services'; // Update the path accordingly
 
 export default {
   name: 'LoginView',
-  computed: {
-    ...mapGetters(['IS_USER_AUTHENTICATED'])
-  },
-  mounted() {
-    console.log('state is user authenticated')
-    console.log(this.IS_USER_AUTHENTICATED); // This should now display the correct value
-  },
   data() {
     return {
       input: {

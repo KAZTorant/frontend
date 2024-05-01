@@ -1,10 +1,9 @@
 <!-- App.vue -->
 <template>
   <div id="MainOrderView">
-    <OrderItems class="column" :tableId="tableId" />
-    <Menu class="column" :tableId="tableId" />
+    <OrderItems class="column" :tableId="parseInt(tableId)" />
+    <Menu class="column" :tableId="parseInt(tableId)" />
     <Actions class="column" />
-    {{ this.tableId }}
   </div>
 </template>
 

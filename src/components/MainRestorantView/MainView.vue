@@ -53,6 +53,10 @@ export default {
         // Call fetchRooms method from backendServices and update data
         const rooms = await backendServices.fetchRooms();
         this.halls = rooms; // Assuming rooms is an array of table objects
+
+        if(this.halls !== null && this.halls.length > 0) {
+          this.fetchTablesByHallId(this.halls[0].id)
+        }
       } catch (error) {
         console.error('Error fetching rooms:', error);
       }

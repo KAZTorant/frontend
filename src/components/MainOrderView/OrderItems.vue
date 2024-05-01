@@ -2,6 +2,7 @@
   <div class="order-items-container">
     <div class="order-item-menu sticky">
       <div class="order-items-header">
+        <span class="tables-view" @click="goToTablesView()">Stollar</span>
         <span>Name</span>
         <span>Count</span>
         <span>Price</span>
@@ -32,6 +33,7 @@
 import backendServices from '../../backend-services/backend-services';
 import { EventBus } from '../../EventBus';
 import store from '../../store';
+import router  from '../../router/'; // Import the router instance
 
 export default {
   name: 'OrderItems',
@@ -57,6 +59,10 @@ export default {
   methods: {
     checkViewPermissionForAdmin(){
       return store.getters['auth/GET_ROLE'] === 'admin';//this.GET_ROLE() === 'admin'
+    },
+
+    goToTablesView(){
+      router.push(`/home`);
     },
 
     async decrementQuantity(item) {
@@ -106,6 +112,12 @@ export default {
 </script>
 
 <style scoped>
+.tables-view{
+  background-color: orange;
+  font-weight: bold;
+}
+
+
 .quantity-container {
   display: flex;
   align-items: center;
