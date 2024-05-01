@@ -51,12 +51,12 @@ export default {
         try {
           // Call the login method from backendServices
           const userData = await backendServices.login(this.input.username);
-          console.log(userData); // Handle the response accordingly
 
           this.output = "Authentication complete";
           // Dummy authentication logic, replace with actual logic
           this.$store.commit(`auth/SET_AUTHENTICATION`, true);
-          this.$store.commit(`auth/SET_USERNAME`, this.input.username); // Assuming you are using username for username here
+          this.$store.commit(`auth/SET_ROLE`, userData.role); // Assuming you are using username for username here
+          this.$store.commit(`auth/SET_USERNAME`, userData.username); // Assuming you are using username for username here
           this.$router.push('/home');
         } catch (error) {
           console.error('Error during login:', error);

@@ -6,7 +6,8 @@ export default {
     state() {
         return {
             authenticated: false,
-            username: ""
+            username: "",
+            role: ""
         }
     },
     mutations,

@@ -6,4 +6,7 @@ export default {
     SET_USERNAME(state, username) {
         state.username = username
     },
+    SET_ROLE(state, role) {
+        state.role = role
+    },
 }

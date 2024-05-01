@@ -19,7 +19,13 @@
                 </span>             
             </div>
         </div>
-        <div class="menu-item" v-for="item in menuItems" :key="item.id" @click="addOrderItem(tableId, item.id, 1)">
+        <div 
+            class="menu-item" 
+            v-for="item in menuItems" 
+            :key="item.id" 
+            @click="addOrderItem(tableId, item.id, 1)"
+            :class="{ 'disabled': loading }"
+        >
             <!-- Display the menu item name here -->
             <div class="menu-item-name">{{ item.name }}</div>
             <div class="menu-item-price">{{ item.price }}</div>azn
@@ -34,16 +40,17 @@ import { EventBus } from '../../EventBus';
 export default {
     name: 'Menu',
     props: {
-    tableId: {
-      type: Number,
-      required: true
-    }
-  },
+        tableId: {
+            type: Number,
+            required: true
+        }
+    },
     data() {
         return {
             mealCategories: [],
             menuItems: [],
-            selectedCategory: null
+            selectedCategory: null,
+            loading: false // Add loading state
         };
     },
     created() {
@@ -61,28 +68,38 @@ export default {
         },
         async fetchMenuItems(categoryId) {
             try {
+                this.loading = true; // Set loading to true
                 const items = await backendServices.fetchMealsByCategoryId(categoryId);
                 this.menuItems = items;
                 this.selectedCategory = categoryId;
             } catch (error) {
                 console.error('Error fetching menu items:', error);
+            } finally {
+                this.loading = false; // Set loading back to false regardless of success or failure
             }
         },
         async addOrderItem(categoryId, mealId, quantity) {
             try {
+                this.loading = true; // Set loading to true
                 await backendServices.addOrderItem(categoryId, mealId, quantity);
                 EventBus.emit('orderItemAdded');
             } catch (error) {
                 console.error('Error while adding meal to order:', error);
+            } finally {
+                this.loading = false; // Set loading back to false regardless of success or failure
             }
         }
-
     }
 }
 </script>
 
-
 <style scoped>
+/* Add styling for disabled menu items */
+.disabled {
+    pointer-events: none; /* Disable click events */
+    opacity: 0.5; /* Optionally reduce opacity to visually indicate it's disabled */
+}
+
 .active {
     font-weight: bold;
 }

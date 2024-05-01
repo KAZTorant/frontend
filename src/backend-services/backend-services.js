@@ -153,6 +153,28 @@ const backendServices = {
     }
 },
 
+async deleteOrderItem(tableId, mealId, quantity) {
+  try {
+    const response = await axiosInstance.delete(`/api/orders/${tableId}/delete-order-item/`, {
+      headers: {
+        'accept': 'application/json',
+        'X-PIN': store.getters['auth/GET_USERNAME'],
+        'Content-Type': 'application/json',
+      },
+      data: {
+        meal_id: mealId,
+        quantity: quantity
+      }
+    });
+    return response.data;
+  } catch (error) {
+    // Handle error
+    console.error(`Error deleting order item for order ID ${orderId}:`, error);
+    throw error;
+  }
+},
+
+
   // Define other API functions here
 };
 

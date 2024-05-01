@@ -4,6 +4,9 @@ export default {
     },
     GET_USERNAME(state) {
       return state.username;
+    },
+    GET_ROLE(state) {
+      return state.role;
     }
   }
   
