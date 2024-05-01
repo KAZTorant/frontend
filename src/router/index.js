@@ -12,7 +12,7 @@ const routes = [
     meta: { requiresAuth: true } // Add meta field to specify authentication requirement
   },
   {
-    path: "/home/main-order-view",
+    path: "/home/main-order-view/:id",
     component: () => import('../components/MainOrderView/MainOrderView.vue'),
     meta: { requiresAuth: true } // Add meta field to specify authentication requirement
   },

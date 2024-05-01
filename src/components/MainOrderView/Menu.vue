@@ -2,183 +2,94 @@
     <div class="menu">
         <div class="menu-category-item-menu sticky">
             <div class="menu-category-items-header">
-                <span>isti yemek</span>
-                <span>shorba</span>
-                <span>duyuler</span>
-                <span>kabablar</span>
-                <span>isti yemek</span>
-                <span>shorba</span>
-                <span>duyuler</span>
-                <span>kabablar</span>   <span>isti yemek</span>
-                <span>shorba</span>
-                <span>duyuler</span>
-                <span>kabablar</span>   <span>isti yemek</span>
-                <span>shorba</span>
-                <span>duyuler</span>
-                <span>kabablar</span>   <span>isti yemek</span>
-                <span>shorba</span>
-                <span>duyuler</span>
-                <span>kabablar</span>
+                <span 
+                    :key="0"
+                    @click="fetchMenuItems()"
+                    class="active-green"
+                >
+                    Əsas yeməklər
+                </span>
+                <span 
+                    v-for="category in mealCategories" 
+                    :key="category.id"
+                    @click="fetchMenuItems(category.id)"
+                    :class="{ active: selectedCategory === category.id }"
+                >
+                    {{ category.name }}
+                </span>             
             </div>
         </div>
-        <div class="menu-item" v-for="item in menuItems" :key="item.id">
+        <div class="menu-item" v-for="item in menuItems" :key="item.id" @click="addOrderItem(tableId, item.id, 1)">
             <!-- Display the menu item name here -->
             <div class="menu-item-name">{{ item.name }}</div>
+            <div class="menu-item-price">{{ item.price }}</div>azn
         </div>
-      
     </div>
 </template>
 
 <script>
+import backendServices from '../../backend-services/backend-services';
+import { EventBus } from '../../EventBus';
+
 export default {
     name: 'Menu',
+    props: {
+    tableId: {
+      type: Number,
+      required: true
+    }
+  },
     data() {
         return {
-            // Sample data structure, you will need to fill this with actual data
-            menuItems: [
-                { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' },
-                { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' }, { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' }, { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' }, { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' }, { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' }, { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' }, { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' }, { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' }, { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' }, { id: 1, name: 'Item 1' },
-                { id: 2, name: 'Item 2' },
-                // ... more items
-            ]
+            mealCategories: [],
+            menuItems: [],
+            selectedCategory: null
         };
+    },
+    created() {
+        this.fetchMealCategories();
+        this.fetchMenuItems();
+    },
+    methods: {
+        async fetchMealCategories() {
+            try {
+                const categories = await backendServices.fetchMealCategories();
+                this.mealCategories = categories;
+            } catch (error) {
+                console.error('Error fetching meal categories:', error);
+            }
+        },
+        async fetchMenuItems(categoryId) {
+            try {
+                const items = await backendServices.fetchMealsByCategoryId(categoryId);
+                this.menuItems = items;
+                this.selectedCategory = categoryId;
+            } catch (error) {
+                console.error('Error fetching menu items:', error);
+            }
+        },
+        async addOrderItem(categoryId, mealId, quantity) {
+            try {
+                await backendServices.addOrderItem(categoryId, mealId, quantity);
+                EventBus.emit('orderItemAdded');
+            } catch (error) {
+                console.error('Error while adding meal to order:', error);
+            }
+        }
+
     }
 }
 </script>
 
+
 <style scoped>
+.active {
+    font-weight: bold;
+}
+.active-green {
+    font-weight: bold;
+    background-color: greenyellow;
+}
 .menu {
     display: grid;
     grid-template-columns: repeat(3, 1fr);

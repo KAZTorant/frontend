@@ -2,7 +2,7 @@
 <!-- MainComponent.vue -->
 <template>
   <div class="layout">
-    <div v-for="table in tables" :key="table.id" :class="['table', { 'occupied': table.waitress.name }]">
+    <div v-for="table in tables" :key="table.id" :class="['table', { 'occupied': table.waitress.name }]" @click="goToMainOrderView(table.id)">
       <div>Stol Nomre: {{ table.number }}</div>
       <div v-if="table.waitress.name">Ofsiant: {{ table.waitress.name }}</div>
       <div v-if="table.total_price">Cemi Hesab: {{ table.total_price }}azn</div>
@@ -24,6 +24,7 @@
 import TableComponent from './TableComponent.vue';
 import HallListComponent from './HallListComponent.vue';
 import backendServices from '../../backend-services/backend-services'; // Import your backendServices object
+import router  from '../../router/'; // Import the router instance
 
 export default {
   components: {
@@ -65,6 +66,10 @@ export default {
         throw error;
       }
     },
+    goToMainOrderView(tableId) {
+      // Navigate to main-order-view page with tableId
+      router.push(`/home/main-order-view/${tableId}`);
+    }
   }
 }
 </script>
