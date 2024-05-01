@@ -18,6 +18,7 @@
 
 <script>
 import { mapGetters } from 'vuex';
+import backendServices from '../backend-services/backend-services'; // Update the path accordingly
 
 export default {
   name: 'LoginView',
@@ -25,7 +26,7 @@ export default {
     ...mapGetters(['IS_USER_AUTHENTICATED'])
   },
   mounted() {
-    console.log('state is user uathenticated')
+    console.log('state is user authenticated')
     console.log(this.IS_USER_AUTHENTICATED); // This should now display the correct value
   },
   data() {
@@ -43,15 +44,24 @@ export default {
     clearusername() {
       this.input.username = "";
     },
-    login() {
+    async login() {
       if (this.input.username != "") {
-        console.log(this.input.username)
+        console.log(this.input.username);
 
-        this.output = "Authentication complete";
-        // Dummy authentication logic, replace with actual logic
-        this.$store.commit(`auth/SET_AUTHENTICATION`, true);
-        this.$store.commit(`auth/SET_USERNAME`, this.input.username); // Assuming you are using username for username here
-        this.$router.push('/home');
+        try {
+          // Call the login method from backendServices
+          const userData = await backendServices.login(this.input.username);
+          console.log(userData); // Handle the response accordingly
+
+          this.output = "Authentication complete";
+          // Dummy authentication logic, replace with actual logic
+          this.$store.commit(`auth/SET_AUTHENTICATION`, true);
+          this.$store.commit(`auth/SET_USERNAME`, this.input.username); // Assuming you are using username for username here
+          this.$router.push('/home');
+        } catch (error) {
+          console.error('Error during login:', error);
+          this.output = "Error during login";
+        }
       } else {
         this.output = "username cannot be empty";
       }

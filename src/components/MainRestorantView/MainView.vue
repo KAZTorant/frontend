@@ -2,19 +2,19 @@
 <!-- MainComponent.vue -->
 <template>
   <div class="layout">
-    <div v-for="table in tables" :key="table.id" :class="['table', { 'occupied': table.occupant }]">
-      <div>{{ table.number }}</div>
-      <div v-if="table.occupant">{{ table.occupant }}</div>
-      <div v-if="table.orderSum">{{ table.orderSum }}</div>
-      <div v-if="table.serviceTax">{{ table.serviceTax }}</div>
+    <div v-for="table in tables" :key="table.id" :class="['table', { 'occupied': table.waitress.name }]">
+      <div>Stol Nomre: {{ table.number }}</div>
+      <div v-if="table.waitress.name">Ofsiant: {{ table.waitress.name }}</div>
+      <div v-if="table.total_price">Cemi Hesab: {{ table.total_price }}azn</div>
+      <div v-if="table.serviceTax">Servis: {{ 0 }}azn</div>
     </div>
   </div>
   <!-- Container for the fixed halls menu -->
   <div class="halls-container">
     <div class="halls">
-      <div v-for="hall in halls" :key="hall.id" class="hall">
-        <div>{{ hall.number }}</div>
-        <div>{{ hall.tableRange }}</div>
+      <div v-for="hall in halls" :key="hall.id" class="hall"  @click="fetchTablesByHallId(hall.id)">
+        <div>{{ hall.name }}</div>
+        <div>{{ hall.description }}</div>
       </div>
     </div>
   </div>
@@ -23,6 +23,7 @@
 <script>
 import TableComponent from './TableComponent.vue';
 import HallListComponent from './HallListComponent.vue';
+import backendServices from '../../backend-services/backend-services'; // Import your backendServices object
 
 export default {
   components: {
@@ -32,320 +33,38 @@ export default {
   data() {
     return {
       tables: [
-        {
-          id: 1,
-          number: 'Стол 1',
-          occupant: 'Окупант: Togrul',
-          orderSum: 'Сумма заказа: 12.00',
-          serviceTax: 'Сервис. нал.: 0%'
-        },
-        {
-          id: 2,
-          number: 'Стол 2',
-          occupant: '',
-          orderSum: '',
-          serviceTax: ''
-        },
-        // ... Add more tables as necessary
-        {
-          id: 11,
-          number: 'Стол 11',
-          occupant: 'Окупант: sadig',
-          orderSum: 'Сумма заказа: 17.00',
-          serviceTax: 'Сервис. нал.: 0%'
-        },
-        {
-          id: 1,
-          number: 'Стол 1',
-          occupant: 'Окупант: Togrul',
-          orderSum: 'Сумма заказа: 12.00',
-          serviceTax: 'Сервис. нал.: 0%'
-        },
-        {
-          id: 2,
-          number: 'Стол 2',
-          occupant: '',
-          orderSum: '',
-          serviceTax: ''
-        },
-        // ... Add more tables as necessary
-        {
-          id: 11,
-          number: 'Стол 11',
-          occupant: 'Окупант: sadig',
-          orderSum: 'Сумма заказа: 17.00',
-          serviceTax: 'Сервис. нал.: 0%'
-        },{
-          id: 1,
-          number: 'Стол 1',
-          occupant: 'Окупант: Togrul',
-          orderSum: 'Сумма заказа: 12.00',
-          serviceTax: 'Сервис. нал.: 0%'
-        },
-        {
-          id: 2,
-          number: 'Стол 2',
-          occupant: '',
-          orderSum: '',
-          serviceTax: ''
-        },
-        // ... Add more tables as necessary
-        {
-          id: 11,
-          number: 'Стол 11',
-          occupant: 'Окупант: sadig',
-          orderSum: 'Сумма заказа: 17.00',
-          serviceTax: 'Сервис. нал.: 0%'
-        },{
-          id: 1,
-          number: 'Стол 1',
-          occupant: 'Окупант: Togrul',
-          orderSum: 'Сумма заказа: 12.00',
-          serviceTax: 'Сервис. нал.: 0%'
-        },
-        {
-          id: 2,
-          number: 'Стол 2',
-          occupant: '',
-          orderSum: '',
-          serviceTax: ''
-        },
-        // ... Add more tables as necessary
-        {
-          id: 11,
-          number: 'Стол 11',
-          occupant: 'Окупант: sadig',
-          orderSum: 'Сумма заказа: 17.00',
-          serviceTax: 'Сервис. нал.: 0%'
-        },{
-          id: 1,
-          number: 'Стол 1',
-          occupant: 'Окупант: Togrul',
-          orderSum: 'Сумма заказа: 12.00',
-          serviceTax: 'Сервис. нал.: 0%'
-        },
-        {
-          id: 2,
-          number: 'Стол 2',
-          occupant: '',
-          orderSum: '',
-          serviceTax: ''
-        },
-        // ... Add more tables as necessary
-        {
-          id: 11,
-          number: 'Стол 11',
-          occupant: 'Окупант: sadig',
-          orderSum: 'Сумма заказа: 17.00',
-          serviceTax: 'Сервис. нал.: 0%'
-        },{
-          id: 1,
-          number: 'Стол 1',
-          occupant: 'Окупант: Togrul',
-          orderSum: 'Сумма заказа: 12.00',
-          serviceTax: 'Сервис. нал.: 0%'
-        },
-        {
-          id: 2,
-          number: 'Стол 2',
-          occupant: '',
-          orderSum: '',
-          serviceTax: ''
-        },
-        // ... Add more tables as necessary
-        {
-          id: 11,
-          number: 'Стол 11',
-          occupant: 'Окупант: sadig',
-          orderSum: 'Сумма заказа: 17.00',
-          serviceTax: 'Сервис. нал.: 0%'
-        },{
-          id: 1,
-          number: 'Стол 1',
-          occupant: 'Окупант: Togrul',
-          orderSum: 'Сумма заказа: 12.00',
-          serviceTax: 'Сервис. нал.: 0%'
-        },
-        {
-          id: 2,
-          number: 'Стол 2',
-          occupant: '',
-          orderSum: '',
-          serviceTax: ''
-        },
-        // ... Add more tables as necessary
-        {
-          id: 11,
-          number: 'Стол 11',
-          occupant: 'Окупант: sadig',
-          orderSum: 'Сумма заказа: 17.00',
-          serviceTax: 'Сервис. нал.: 0%'
-        },{
-          id: 1,
-          number: 'Стол 1',
-          occupant: 'Окупант: Togrul',
-          orderSum: 'Сумма заказа: 12.00',
-          serviceTax: 'Сервис. нал.: 0%'
-        },
-        {
-          id: 2,
-          number: 'Стол 2',
-          occupant: '',
-          orderSum: '',
-          serviceTax: ''
-        },
-        // ... Add more tables as necessary
-        {
-          id: 11,
-          number: 'Стол 11',
-          occupant: 'Окупант: sadig',
-          orderSum: 'Сумма заказа: 17.00',
-          serviceTax: 'Сервис. нал.: 0%'
-        },{
-          id: 1,
-          number: 'Стол 1',
-          occupant: 'Окупант: Togrul',
-          orderSum: 'Сумма заказа: 12.00',
-          serviceTax: 'Сервис. нал.: 0%'
-        },
-        {
-          id: 2,
-          number: 'Стол 2',
-          occupant: '',
-          orderSum: '',
-          serviceTax: ''
-        },
-        // ... Add more tables as necessary
-        {
-          id: 11,
-          number: 'Стол 11',
-          occupant: 'Окупант: sadig',
-          orderSum: 'Сумма заказа: 17.00',
-          serviceTax: 'Сервис. нал.: 0%'
-        },{
-          id: 1,
-          number: 'Стол 1',
-          occupant: 'Окупант: Togrul',
-          orderSum: 'Сумма заказа: 12.00',
-          serviceTax: 'Сервис. нал.: 0%'
-        },
-        {
-          id: 2,
-          number: 'Стол 2',
-          occupant: '',
-          orderSum: '',
-          serviceTax: ''
-        },
-        // ... Add more tables as necessary
-        {
-          id: 11,
-          number: 'Стол 11',
-          occupant: 'Окупант: sadig',
-          orderSum: 'Сумма заказа: 17.00',
-          serviceTax: 'Сервис. нал.: 0%'
-        },{
-          id: 1,
-          number: 'Стол 1',
-          occupant: 'Окупант: Togrul',
-          orderSum: 'Сумма заказа: 12.00',
-          serviceTax: 'Сервис. нал.: 0%'
-        },
-        {
-          id: 2,
-          number: 'Стол 2',
-          occupant: '',
-          orderSum: '',
-          serviceTax: ''
-        },
-        // ... Add more tables as necessary
-        {
-          id: 11,
-          number: 'Стол 11',
-          occupant: 'Окупант: sadig',
-          orderSum: 'Сумма заказа: 17.00',
-          serviceTax: 'Сервис. нал.: 0%'
-        },
+      
       ],
       halls: [
-        {
-          id: 1,
-          number: 'Зал 1',
-          tableRange: '1-20'
-        },
-        {
-          id: 2,
-          number: 'Зал 2',
-          tableRange: '21-40'
-        },
-        {
-          id: 3,
-          number: 'Зал 3',
-          tableRange: '41-42'
-        },
-        {
-          id: 1,
-          number: 'Зал 1',
-          tableRange: '1-20'
-        },
-        {
-          id: 2,
-          number: 'Зал 2',
-          tableRange: '21-40'
-        },
-        {
-          id: 3,
-          number: 'Зал 3',
-          tableRange: '41-42'
-        }, {
-          id: 1,
-          number: 'Зал 1',
-          tableRange: '1-20'
-        },
-        {
-          id: 2,
-          number: 'Зал 2',
-          tableRange: '21-40'
-        },
-        {
-          id: 3,
-          number: 'Зал 3',
-          tableRange: '41-42'
-        },
-        {
-          id: 1,
-          number: 'Зал 1',
-          tableRange: '1-20'
-        },
-        {
-          id: 2,
-          number: 'Зал 2',
-          tableRange: '21-40'
-        },
-        {
-          id: 3,
-          number: 'Зал 3',
-          tableRange: '41-42'
-        }, {
-          id: 1,
-          number: 'Зал 1',
-          tableRange: '1-20'
-        },
-        {
-          id: 2,
-          number: 'Зал 2',
-          tableRange: '21-40'
-        },
-        {
-          id: 3,
-          number: 'Зал 3',
-          tableRange: '41-42'
-        },
+       
         // Array of hall objects
       ]
     }
   },
+  created() {
+    // Call fetchRooms method from backendServices during component creation
+    this.fetchRooms();
+  },
   methods: {
     // Methods to manage the state
+    async fetchRooms() {
+      try {
+        // Call fetchRooms method from backendServices and update data
+        const rooms = await backendServices.fetchRooms();
+        this.halls = rooms; // Assuming rooms is an array of table objects
+      } catch (error) {
+        console.error('Error fetching rooms:', error);
+      }
+    },
+    async fetchTablesByHallId(id) {
+      try {
+        const tables = await backendServices.fetchTablesByHallId(id); 
+        this.tables = tables;
+      } catch (error) {
+        console.error(`Error fetching tables for ID ${id}:`, error);
+        throw error;
+      }
+    },
   }
 }
 </script>

@@ -1,8 +1,8 @@
 // HallComponent.vue
 <template>
   <div class="hall">
-    <div>{{ hallDetails.number }}</div>
-    <div>{{ hallDetails.tableRange }}</div>
+    <div>{{ hallDetails.name }}</div>
+    <div>{{ hallDetails.description }}</div>
   </div>
 </template>
 

@@ -2,8 +2,8 @@
 <template>
   <div class="table">
     <div>{{ tableDetails.number }}</div>
-    <div>{{ tableDetails.occupant }}</div>
-    <div>{{ tableDetails.orderSum }}</div>
+    <div>{{ tableDetails.waitress.name }}</div>
+    <div>{{ tableDetails.total_price }}</div>
     <div>{{ tableDetails.serviceTax }}</div>
   </div>
 </template>
