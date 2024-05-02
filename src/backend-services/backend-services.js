@@ -40,7 +40,7 @@ const backendServices = {
           'accept': 'application/json',
           'X-PIN': store.getters['auth/GET_USERNAME']
         }
-      }); 
+      });
       return response.data;
     } catch (error) {
       // Handle error
@@ -56,7 +56,7 @@ const backendServices = {
           'accept': 'application/json',
           'X-PIN': store.getters['auth/GET_USERNAME']
         }
-      }); 
+      });
       return response.data;
     } catch (error) {
       // Handle error
@@ -116,7 +116,7 @@ const backendServices = {
   async fetchMealsByCategoryId(categoryId) {
     try {
       let url = `/api/meals/meals/`;
-      if(categoryId !== undefined)
+      if (categoryId !== undefined)
         url = `/api/meals/meals/?meal_category_id=${categoryId}`;
 
       const response = await axiosInstance.get(url, {
@@ -135,80 +135,115 @@ const backendServices = {
 
   async addOrderItem(tableId, mealId, quantity) {
     try {
-        const response = await axiosInstance.post(`/api/orders/${tableId}/add-order-item/`, {
-            meal_id: mealId,
-            quantity: quantity
-        }, {
-            headers: {
-                'accept': 'application/json',
-                'X-PIN': store.getters['auth/GET_USERNAME'],
-                'Content-Type': 'application/json',
-            }
-        });
-        return response.data;
-    } catch (error) {
-        // Handle error
-        console.error(`Error adding order item for order ID ${orderId}:`, error);
-        throw error;
-    }
-},
-
-async deleteOrderItem(tableId, mealId, quantity) {
-  try {
-    const response = await axiosInstance.delete(`/api/orders/${tableId}/delete-order-item/`, {
-      headers: {
-        'accept': 'application/json',
-        'X-PIN': store.getters['auth/GET_USERNAME'],
-        'Content-Type': 'application/json',
-      },
-      data: {
+      const response = await axiosInstance.post(`/api/orders/${tableId}/add-order-item/`, {
         meal_id: mealId,
         quantity: quantity
-      }
-    });
-    return response.data;
-  } catch (error) {
-    // Handle error
-    console.error(`Error deleting order item for order ID ${orderId}:`, error);
-    throw error;
-  }
-},
+      }, {
+        headers: {
+          'accept': 'application/json',
+          'X-PIN': store.getters['auth/GET_USERNAME'],
+          'Content-Type': 'application/json',
+        }
+      });
+      return response.data;
+    } catch (error) {
+      // Handle error
+      console.error(`Error adding order item for order ID ${orderId}:`, error);
+      throw error;
+    }
+  },
 
-async changeTableForOrder(oldTableId, newTableId) {
-  try {
-    const response = await axiosInstance.post(`/api/orders/${oldTableId}/change-table-for-order/`, {
-      new_table_id: newTableId
-    }, {
-      headers: {
-        'accept': 'application/json',
-        'Content-Type': 'application/json',
-        'X-PIN': store.getters['auth/GET_USERNAME']
-      }
-    });
-    return response.data;
-  } catch (error) {
-    // Handle error
-    console.error(`Error changing table for order ID ${orderId}:`, error);
-    throw error;
-  }
-},
+  async deleteOrderItem(tableId, mealId, quantity) {
+    try {
+      const response = await axiosInstance.delete(`/api/orders/${tableId}/delete-order-item/`, {
+        headers: {
+          'accept': 'application/json',
+          'X-PIN': store.getters['auth/GET_USERNAME'],
+          'Content-Type': 'application/json',
+        },
+        data: {
+          meal_id: mealId,
+          quantity: quantity
+        }
+      });
+      return response.data;
+    } catch (error) {
+      // Handle error
+      console.error(`Error deleting order item for order ID ${orderId}:`, error);
+      throw error;
+    }
+  },
 
-async closeTableForOrder(tableId) {
-  try {
-    const response = await axiosInstance.delete(`/api/orders/${tableId}/close-table-for-order/`, {
-      headers: {
-        'accept': 'application/json',
-        'X-PIN': store.getters['auth/GET_USERNAME'],
-        'Content-Type': 'application/json',
-      }
-    });
-    return response.data;
-  } catch (error) {
-    // Handle error
-    console.error(`Error closing table for order ID ${orderId}:`, error);
-    throw error;
-  }
-},
+  async changeTableForOrder(oldTableId, newTableId) {
+    try {
+      const response = await axiosInstance.post(`/api/orders/${oldTableId}/change-table-for-order/`, {
+        new_table_id: newTableId
+      }, {
+        headers: {
+          'accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-PIN': store.getters['auth/GET_USERNAME']
+        }
+      });
+      return response.data;
+    } catch (error) {
+      // Handle error
+      console.error(`Error changing table for order ID ${orderId}:`, error);
+      throw error;
+    }
+  },
+
+  async closeTableForOrder(tableId) {
+    try {
+      const response = await axiosInstance.delete(`/api/orders/${tableId}/close-table-for-order/`, {
+        headers: {
+          'accept': 'application/json',
+          'X-PIN': store.getters['auth/GET_USERNAME'],
+          'Content-Type': 'application/json',
+        }
+      });
+      return response.data;
+    } catch (error) {
+      // Handle error
+      console.error(`Error closing table for order ID ${orderId}:`, error);
+      throw error;
+    }
+  },
+
+  async changeWaitressForOrder(tableId, newWaitressId) {
+    try {
+      const response = await axiosInstance.post(`/api/orders/${tableId}/change-waitress/`, {
+        new_waitress_id: newWaitressId
+      }, {
+        headers: {
+          'accept': 'application/json',
+          'X-PIN': store.getters['auth/GET_USERNAME'],
+          'Content-Type': 'application/json',
+        }
+      });
+      return response.data;
+    } catch (error) {
+      // Handle error
+      console.error(`Error changing waitress for the order with ID ${tableId}:`, error);
+      throw error;
+    }
+  },
+
+  async fetchWaitresses() {
+    try {
+      const response = await axiosInstance.get('/api/orders/list-waitress/', {
+        headers: {
+          'accept': 'application/json',
+          'X-PIN': store.getters['auth/GET_USERNAME']
+        }
+      });
+      return response.data;
+    } catch (error) {
+      // Handle error
+      console.error('Error listing waitresses:', error);
+      throw error;
+    }
+  },
 
   // Define other API functions here
 };
