@@ -7,7 +7,8 @@ export default {
         return {
             authenticated: false,
             username: "",
-            role: ""
+            role: "",
+            full_name: ""
         }
     },
     mutations,

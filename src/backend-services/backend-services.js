@@ -245,6 +245,38 @@ const backendServices = {
     }
   },
 
+  async printCheck(tableId) {
+    try {
+      const response = await axiosInstance.post(`/api/orders/${tableId}/print-check/`, null, {
+        headers: {
+          'accept': 'application/json',
+          'X-PIN': store.getters['auth/GET_USERNAME']
+        }
+      });
+      return response.data;
+    } catch (error) {
+      // Handle error
+      console.error(`Error printing check for order ID ${tableId}:`, error);
+      throw error;
+    }
+  },
+
+  async deleteCheck(tableId) {
+    try {
+      const response = await axiosInstance.delete(`/api/orders/${tableId}/print-check/`, {
+        headers: {
+          'accept': 'application/json',
+          'X-PIN': store.getters['auth/GET_USERNAME']
+        }
+      });
+      return response.data;
+    } catch (error) {
+      // Handle error
+      console.error(`Error deleting check for order ID ${tableId}:`, error);
+      throw error;
+    }
+  },
+
   // Define other API functions here
 };
 

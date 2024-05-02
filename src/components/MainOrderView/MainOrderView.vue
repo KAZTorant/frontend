@@ -1,5 +1,6 @@
 <!-- App.vue -->
 <template>
+  <div class="waiterssName">Ofsiant: {{waitressName}}</div>
   <div id="MainOrderView">
     <OrderItems class="column" :tableId="parseInt(tableId)" />
     <Menu class="column" :tableId="parseInt(tableId)" />
@@ -24,12 +25,14 @@ export default {
   data() {
     return {
       tableId: null,
-      role: null
+      role: null,
+      waitressName: ""
     }
   },
   async created() {
     this.tableId = this.$route.params.id;
     this.role = store.getters['auth/GET_ROLE'];
+    this.waitressName = store.getters['auth/GET_FULL_NAME'];
     // Call the API to create an order
     try {
       await backendServices.createOrder(this.tableId);
@@ -51,6 +54,11 @@ export default {
 </script>
 
 <style>
+.waiterssName{
+  size: 20px;
+  background-color:bisque;
+}
+
 #MainOrderView {
   display: grid;
   grid-template-columns: 55% 30% 15%;

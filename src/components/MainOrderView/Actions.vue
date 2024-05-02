@@ -73,7 +73,8 @@ export default {
   data() {
     return {
       actions: [
-        { id: 1, label: 'Print', method: 'printOrder' },
+        { id: 1, label: 'Print Çek', method: 'printOrder' },
+        { id: 5, label: 'Çeki ləğv et', method: 'cancelPrintOrder' },
         { id: 2, label: 'Ofsianti deyiş', method: 'changeWaitress' },
         { id: 3, label: 'Masanı bağla', method: 'cancelOrder' },
         { id: 4, label: 'Masanı köçürt', method: 'openTransferModal' },
@@ -147,11 +148,35 @@ export default {
       } else if (methodName === 'changeWaitress') {
         // Show confirmation pop-up for canceling order
         this.openWaitressChangeModal();
+      } else if (methodName === 'printOrder') {
+        // Show confirmation pop-up for canceling order
+        await this.callPrintOrder(this.tableId);
+      } else if (methodName === 'cancelPrintOrder') {
+        // Show confirmation pop-up for canceling order
+        await this.callCanelPrintOrder(this.tableId);
       }
       else {
         this.performAction(methodName);
       }
     },
+    async callPrintOrder(tableId){
+      try {
+        await backendServices.printCheck(tableId);
+        console.log('Check printed successfully');
+      } catch (error) {
+        console.error('Error printing check:', error);
+        this.showError('Error printing check. Please try again later.');
+      }
+    },
+    async callCanelPrintOrder(tableId){
+      try {
+        await backendServices.deleteCheck(tableId);
+        console.log('Check cancelled successfully');
+      } catch (error) {
+        console.error('Error cancelling check:', error);
+        this.showError('Error cancelling check. Please try again later.');
+      }
+},
     performAction(methodName) {
       // Implementation for other actions
     },

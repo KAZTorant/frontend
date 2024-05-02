@@ -9,4 +9,7 @@ export default {
     SET_ROLE(state, role) {
         state.role = role
     },
+    SET_FULL_NAME(state, full_name) {
+        state.full_name = full_name;
+      }
 }

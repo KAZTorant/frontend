@@ -2,6 +2,7 @@
 <!-- MainComponent.vue -->
 <template>
   <!-- Logout button -->
+  <div class="waiterssName">Ofsiant: {{waitressName}}</div>
   <button @click="logout" class="logout-button">Logout</button>
   <div class="layout">
     <div v-for="table in tables" :key="table.id" :class="['table', { 'occupied': table.waitress.name }]" @click="goToMainOrderView(table.id)">
@@ -27,6 +28,7 @@ import TableComponent from './TableComponent.vue';
 import HallListComponent from './HallListComponent.vue';
 import backendServices from '../../backend-services/backend-services'; // Import your backendServices object
 import router  from '../../router/'; // Import the router instance
+import store from '../../store';
 
 export default {
   components: {
@@ -41,11 +43,13 @@ export default {
       halls: [
        
         // Array of hall objects
-      ]
+      ],
+      waitressName: ""
     }
   },
   created() {
-    // Call fetchRooms method from backendServices during component creation
+    // Call fetchRooms method from backendServices during c
+    this.waitressName = store.getters['auth/GET_FULL_NAME'];
     this.fetchRooms();
   },
   methods: {
@@ -90,6 +94,10 @@ export default {
 </script>
 
 <style>
+.waiterssName{
+  size: 20px;
+  background-color:bisque;
+}
 
 .logout-button {
   /* Add styles for your logout button */

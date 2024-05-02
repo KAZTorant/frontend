@@ -7,6 +7,9 @@ export default {
     },
     GET_ROLE(state) {
       return state.role;
+    },
+    GET_FULL_NAME(state) {
+      return state.full_name;
     }
   }
   
