@@ -277,6 +277,25 @@ const backendServices = {
     }
   },
 
+
+// Define a function to make the API call
+async fetchTableDetails(tableId) {
+  try {
+    const response = await axiosInstance.get(`/api/tables/${tableId}/details`, {
+      headers: {
+        'accept': 'application/json',
+        'X-PIN': store.getters['auth/GET_USERNAME']
+      }
+    });
+    return response.data;
+  } catch (error) {
+    // Handle error
+    console.error('Error fetching table details:', error);
+    throw error;
+  }
+}
+
+
   // Define other API functions here
 };
 

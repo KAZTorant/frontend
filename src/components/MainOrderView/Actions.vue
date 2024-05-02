@@ -51,17 +51,20 @@
     </div>
     <!-- Error popup -->
     <error-popup :error-message="error" v-if="error" @close="clearError" />
+    <success-popup :success-message="successMessage" v-if="successMessage" @close="clearSuccess" />
   </div>
 </template>
 
 <script>
 import ErrorPopup from '@/components/ErrorPopup.vue';
+import SuccessPopup from '@/components/SuccessPopup.vue';
 import backendServices from '@/backend-services/backend-services';
 import router from '@/router/'; // Import the router instance
 
 export default {
   components: {
-    ErrorPopup
+    ErrorPopup,
+    SuccessPopup
   },
   name: 'Actions',
   props: {
@@ -86,6 +89,7 @@ export default {
       halls: [], // Populate with halls data from backend
       tables: [], // Populate with tables data from backend based on selected hall
       error: null,
+      successMessage: null,
       showConfirmationPopup: false, // Flag to show confirmation pop-up
       waitresses: [], // Populate with waitresses data from backend
       selectedWaitress: null, // Track the selected waitress
@@ -163,18 +167,20 @@ export default {
       try {
         await backendServices.printCheck(tableId);
         console.log('Check printed successfully');
+        this.showSuccess('Çek print olundu.'); // Show error popup
       } catch (error) {
         console.error('Error printing check:', error);
-        this.showError('Error printing check. Please try again later.');
+        this.showError('Çek print olunub artıq.');
       }
     },
     async callCanelPrintOrder(tableId){
       try {
         await backendServices.deleteCheck(tableId);
         console.log('Check cancelled successfully');
+        this.showSuccess('Çek leğv olundu.'); // Show error popup
       } catch (error) {
         console.error('Error cancelling check:', error);
-        this.showError('Error cancelling check. Please try again later.');
+        this.showError('Çeki ləğv etmədə problem yarandı.');
       }
 },
     performAction(methodName) {
@@ -230,6 +236,12 @@ export default {
     },
     clearError() {
       this.error = null;
+    },
+    showSuccess(successMessage) {
+      this.successMessage = successMessage;
+    },
+    clearSuccess() {
+      this.successMessage = null;
     },
     confirmCloseOrder() {
       // Call closeTableForOrder method and handle the response

@@ -1,6 +1,7 @@
 <!-- App.vue -->
 <template>
   <div class="waiterssName">Ofsiant: {{waitressName}}</div>
+  <div class="tableName">Masa: {{tableName}}</div>
   <div id="MainOrderView">
     <OrderItems class="column" :tableId="parseInt(tableId)" />
     <Menu class="column" :tableId="parseInt(tableId)" />
@@ -26,26 +27,21 @@ export default {
     return {
       tableId: null,
       role: null,
-      waitressName: ""
+      waitressName: "",
+      tableName: ""
     }
   },
   async created() {
     this.tableId = this.$route.params.id;
     this.role = store.getters['auth/GET_ROLE'];
-    this.waitressName = store.getters['auth/GET_FULL_NAME'];
-    // Call the API to create an order
+
     try {
-      await backendServices.createOrder(this.tableId);
-      console.log('Order created successfully for table ID:', this.tableId);
+      // Fetch waitress details from the API
+      const tableResponse = await backendServices.fetchTableDetails(this.tableId);
+      this.waitressName = tableResponse.waitress.name;
+      this.tableName = tableResponse.number
     } catch (error) {
-      if (error.response && error.response.status === 400) {
-        console.log(error.response);
-        console.error(`Bad Request: ${error.response.data.error}`);
-        // Handle 400 Bad Request error
-      } else {
-        console.error('Error creating order:', error);
-        // Handle other errors
-      }
+      console.error('Error fetching waitress details:', error);
     }
 
     // Access the ID from route params
@@ -54,7 +50,7 @@ export default {
 </script>
 
 <style>
-.waiterssName{
+.waiterssName, .tableName{
   size: 20px;
   background-color:bisque;
 }
