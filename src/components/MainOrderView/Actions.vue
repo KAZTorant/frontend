@@ -7,21 +7,29 @@
     <!-- Modal for transfer action -->
     <div v-if="showTransferModal" class="modal">
       <div class="modal-content">
-        <h2>Transfer Dish</h2>
-        <label for="hall">Select Hall:</label>
+        <h2>Masanı köçürt</h2>
+        <label for="hall">Zal Seç:</label>
         <select id="hall" v-model="selectedHall"  @change="fetchTablesForHall(selectedHall)">
           <!-- Options for halls -->
           <option v-for="(hall, index) in halls" :key="index" :value="hall.id">{{ hall.name }}</option>
         </select>
-        <label for="table">Select Table:</label>
+        <label for="table">Stol seç:</label>
         <select id="table" v-model="selectedTable">
           <!-- Options for tables -->
           <option v-for="(table, index) in tables" :key="index" :value="table.id">{{ table.number }}</option>
         </select>
         <div>
-          <button @click="confirmTransfer">Confirm</button>
-          <button @click="cancelTransfer">Cancel</button> <!-- Added Cancel button -->
+          <button @click="confirmTransfer">Təsdiqlə</button>
+          <button @click="cancelTransfer">Ləğv et</button> <!-- Added Cancel button -->
         </div>
+      </div>
+    </div>
+    <!-- Confirmation pop-up -->
+    <div v-if="showConfirmationPopup" class="confirmation-popup">
+      <div class="popup-content">
+        <p>Masanı bağlamaga əminsiniz?</p>
+        <button @click="cancelCloseOrder">Yox</button>
+        <button @click="confirmCloseOrder">Hə</button>
       </div>
     </div>
     <!-- Error popup -->
@@ -50,8 +58,8 @@ export default {
       actions: [
         { id: 1, label: 'Print', method: 'printOrder' },
         { id: 2, label: 'Combine', method: 'combineTables' },
-        { id: 3, label: 'Cancel', method: 'cancelOrder' },
-        { id: 4, label: 'Stolu köçürt', method: 'openTransferModal' },
+        { id: 3, label: 'Masanı bağla', method: 'cancelOrder' },
+        { id: 4, label: 'Masanı köçürt', method: 'openTransferModal' },
         // Add more actions as needed
       ],
       showTransferModal: false,
@@ -59,7 +67,8 @@ export default {
       selectedTable: null,
       halls: [], // Populate with halls data from backend
       tables: [], // Populate with tables data from backend based on selected hall
-      error: null
+      error: null,
+      showConfirmationPopup: false // Flag to show confirmation pop-up
     };
   },
   async created() {
@@ -74,6 +83,9 @@ export default {
       if (methodName === 'openTransferModal') {
         this.showTransferModal = true;
         await this.fetchHalls();
+      } else if (methodName === 'cancelOrder') {
+        // Show confirmation pop-up for canceling order
+        this.showConfirmationPopup = true;
       } else {
         this.performAction(methodName);
       }
@@ -131,6 +143,22 @@ export default {
     },
     clearError() {
       this.error = null;
+    },
+    confirmCloseOrder() {
+      // Call closeTableForOrder method and handle the response
+      backendServices.closeTableForOrder(this.tableId)
+        .then(data => {
+          console.log('Table closed successfully:', data);
+          router.push(`/home`);
+        })
+        .catch(error => {
+          console.error('Error closing table:', error);
+          this.showError('Error closing table. Please try again later.'); // Show error popup
+        });
+      this.showConfirmationPopup = false; // Close confirmation pop-up
+    },
+    cancelCloseOrder() {
+      this.showConfirmationPopup = false; // Close confirmation pop-up
     }
   }
 };
@@ -158,5 +186,27 @@ export default {
 .action-button:hover {
   /* Hover state for buttons */
   background-color: #e2e2e2;
+}
+
+/* Styles for confirmation pop-up */
+.confirmation-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+.popup-content {
+  text-align: center;
+}
+
+.confirmation-popup button {
+  margin: 5px;
 }
 </style>
