@@ -3,7 +3,7 @@
   <div id="MainOrderView">
     <OrderItems class="column" :tableId="parseInt(tableId)" />
     <Menu class="column" :tableId="parseInt(tableId)" />
-    <Actions class="column" />
+    <Actions v-if="role === 'admin'" class="column" :tableId="parseInt(tableId)"/>
   </div>
 </template>
 
@@ -12,6 +12,7 @@ import OrderItems from './OrderItems.vue';
 import Menu from './Menu.vue';
 import Actions from './Actions.vue';
 import backendServices from '../../backend-services/backend-services';
+import store from '../../store';
 
 export default {
   name: 'MainOrderView',
@@ -22,12 +23,13 @@ export default {
   },
   data() {
     return {
-      tableId: null
+      tableId: null,
+      role: null
     }
   },
   async created() {
     this.tableId = this.$route.params.id;
-
+    this.role = store.getters['auth/GET_ROLE'];
     // Call the API to create an order
     try {
       await backendServices.createOrder(this.tableId);

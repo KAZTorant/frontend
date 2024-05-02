@@ -174,6 +174,41 @@ async deleteOrderItem(tableId, mealId, quantity) {
   }
 },
 
+async changeTableForOrder(oldTableId, newTableId) {
+  try {
+    const response = await axiosInstance.post(`/api/orders/${oldTableId}/change-table-for-order/`, {
+      new_table_id: newTableId
+    }, {
+      headers: {
+        'accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-PIN': store.getters['auth/GET_USERNAME']
+      }
+    });
+    return response.data;
+  } catch (error) {
+    // Handle error
+    console.error(`Error changing table for order ID ${orderId}:`, error);
+    throw error;
+  }
+},
+
+async closeTableForOrder(tableId) {
+  try {
+    const response = await axiosInstance.delete(`/api/orders/${tableId}/close-table-for-order/`, {
+      headers: {
+        'accept': 'application/json',
+        'X-PIN': store.getters['auth/GET_USERNAME'],
+        'Content-Type': 'application/json',
+      }
+    });
+    return response.data;
+  } catch (error) {
+    // Handle error
+    console.error(`Error closing table for order ID ${orderId}:`, error);
+    throw error;
+  }
+},
 
   // Define other API functions here
 };

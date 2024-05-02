@@ -1,6 +1,8 @@
 // MainComponent.vue
 <!-- MainComponent.vue -->
 <template>
+  <!-- Logout button -->
+  <button @click="logout" class="logout-button">Logout</button>
   <div class="layout">
     <div v-for="table in tables" :key="table.id" :class="['table', { 'occupied': table.waitress.name }]" @click="goToMainOrderView(table.id)">
       <div>Stol Nomre: {{ table.number }}</div>
@@ -47,6 +49,15 @@ export default {
     this.fetchRooms();
   },
   methods: {
+    logout() {
+          this.$store.commit(`auth/SET_AUTHENTICATION`, null);
+          this.$store.commit(`auth/SET_ROLE`, null); // Assuming you are using username for username here
+          this.$store.commit(`auth/SET_USERNAME`, null); 
+          router.push(`/`);
+
+
+    },
+
     // Methods to manage the state
     async fetchRooms() {
       try {
@@ -79,6 +90,17 @@ export default {
 </script>
 
 <style>
+
+.logout-button {
+  /* Add styles for your logout button */
+  margin: 10px; /* Adjust margin as needed */
+  padding: 5px 10px; /* Adjust padding as needed */
+  background-color: red; /* Example background color */
+  color: white; /* Example text color */
+  border: none; /* Remove border if needed */
+  cursor: pointer; /* Change cursor to pointer on hover */
+}
+
 /* Ensure the body and html are set up correctly */
 html, body {
   margin: 0;
