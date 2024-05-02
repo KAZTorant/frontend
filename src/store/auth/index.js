@@ -8,7 +8,8 @@ export default {
             authenticated: false,
             username: "",
             role: "",
-            full_name: ""
+            full_name: "",
+            ip_address: ""
         }
     },
     mutations,

@@ -1,7 +1,8 @@
 import axios from 'axios';
+import store from '../store';
 
 const axiosInstance = axios.create({
-  baseURL: 'http://192.168.1.71:8000', // Set your base URL
+  baseURL: store.getters['auth/GET_IP_ADDRESS'], // Set your base URL
   timeout: 5000, // Set a timeout
   headers: {
     'Content-Type': 'application/json',

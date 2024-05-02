@@ -1,6 +1,11 @@
 <template>
   <div class="login-container">
-    <div name="login-form" class="login-form">
+    <div class="mb-3 ip-address-input">
+        <label for="ipAddress">IP Address: </label>
+        <input type="text" id="ipAddress" v-model="ipAddress" />
+        <button @click="setIpAddress()">Set</button>
+      </div>
+    <div name="login-form" class="login-form">     
       <div class="mb-3 username-input">
         <label for="username">username: </label>
         <input type="text" id="username" v-model="input.username" disabled />
@@ -18,6 +23,7 @@
 
 <script>
 import backendServices from '../backend-services/backend-services'; // Update the path accordingly
+import router from '@/router/'; // Import the router instance
 
 export default {
   name: 'LoginView',
@@ -26,10 +32,15 @@ export default {
       input: {
         username: ""
       },
-      output: ""
+      output: "",
+      ipAddress: ""
     }
   },
   methods: {
+    setIpAddress(){
+      this.$store.commit(`auth/SET_IP_ADDRESS`, this.ipAddress);
+      window.location.reload(true);
+    },
     pressKey(n) {
       this.input.username += n.toString();
     },

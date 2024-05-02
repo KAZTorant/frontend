@@ -11,5 +11,8 @@ export default {
     },
     SET_FULL_NAME(state, full_name) {
         state.full_name = full_name;
+      },
+      SET_IP_ADDRESS(state, ip_address) {
+         state.ip_address = ip_address;
       }
 }

@@ -10,6 +10,9 @@ export default {
     },
     GET_FULL_NAME(state) {
       return state.full_name;
+    },
+    GET_IP_ADDRESS(state) {
+      return state.ip_address;
     }
   }
   
