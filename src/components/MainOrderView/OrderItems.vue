@@ -58,7 +58,7 @@ export default {
   },
   methods: {
     checkViewPermissionForAdmin(){
-      return store.getters['auth/GET_ROLE'] === 'admin';//this.GET_ROLE() === 'admin'
+      return store.getters['auth/GET_ROLE'] === 'restaurant';
     },
 
     goToTablesView(){

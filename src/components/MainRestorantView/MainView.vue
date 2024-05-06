@@ -12,7 +12,7 @@
                  'waitress-id-not-zero': table.waitress.id !== 0 && !table.print_check,
                  'check-printed': table.print_check
                }]" 
-     @click="goToMainOrderView(table.id)">      <div>Stol Nomre: {{ table.number }}</div>
+     @click="goToMainOrderView(table.id)">      <div>{{ table.number }}</div>
       <div v-if="table.waitress.name">Ofsiant: {{ table.waitress.name }}</div>
       <div v-if="table.total_price">Cemi Hesab: {{ table.total_price }}azn</div>
       <div v-if="table.serviceTax">Servis: {{ 0 }}azn</div>
@@ -59,7 +59,15 @@ export default {
   created() {
     // Call fetchRooms method from backendServices during c
     this.waitressName = store.getters['auth/GET_FULL_NAME'];
-    this.roleDisplayName = store.getters['auth/GET_ROLE'] === "admin" ? "Adminstrator" : "Ofsiant";
+    this.role = store.getters['auth/GET_ROLE'];
+    
+    if(this.role === "admin"){
+      this.roleDisplayName = "Adminstrator";
+    }else if(this.role === "waitress"){
+      this.roleDisplayName = "Ofsiant";
+    }else if(this.role === "restaurant"){
+      this.roleDisplayName = "Restorant sahibi";
+    }
 
     this.fetchRooms();
   },

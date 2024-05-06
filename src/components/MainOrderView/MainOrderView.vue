@@ -1,11 +1,11 @@
 <!-- App.vue -->
 <template>
   <div class="waiterssName">{{roleDisplayName}}: {{waitressName}}</div>
-  <div class="tableName">Masa: {{tableName}}</div>
+  <div class="tableName">{{tableName}}</div>
   <div id="MainOrderView">
     <OrderItems class="column" :tableId="parseInt(tableId)" />
     <Menu class="column" :tableId="parseInt(tableId)" />
-    <Actions v-if="role === 'admin'" class="column" :tableId="parseInt(tableId)"/>
+    <Actions v-if="role === ('admin' || 'restaurant') " class="column" :tableId="parseInt(tableId)"/>
   </div>
 </template>
 
@@ -36,7 +36,15 @@ export default {
   async created() {
     this.tableId = this.$route.params.id;
     this.role = store.getters['auth/GET_ROLE'];
-    this.roleDisplayName = this.role === "admin" ? "Adminstrator" : "Ofsiant";
+
+    if(this.role === "admin"){
+      this.roleDisplayName = "Adminstrator";
+    }else if(this.role === "waitress"){
+      this.roleDisplayName = "Ofsiant";
+    }else if(this.role === "restaurant"){
+      this.roleDisplayName = "Restorant sahibi";
+    }
+
 
     try {
       // Fetch waitress details from the API
