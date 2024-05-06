@@ -16,6 +16,7 @@ import Menu from './Menu.vue';
 import Actions from './Actions.vue';
 import backendServices from '../../backend-services/backend-services';
 import store from '../../store';
+import router  from '../../router'; // Import the router instance
 
 export default {
   name: 'MainOrderView',
