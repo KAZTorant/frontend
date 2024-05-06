@@ -1,7 +1,7 @@
 <template>
   <div class="actions">
     <!-- Dynamically create buttons for actions -->
-    <button class="action-button" v-for="action in actions" :key="action.id" @click="handleAction(action.method)">
+    <button class="action-button" v-for="action in actions" :key="action.id" @click="handleAction(action.method)" :data-method="action.method" :class="{ 'green-button': action.method === 'printOrder' && buttonColor === '#74E291' }">
       {{ action.label }}
     </button>
     <!-- Modal for transfer action -->
@@ -71,7 +71,7 @@ export default {
     tableId: {
       type: Number,
       required: true
-    }
+    },
   },
   data() {
     return {
@@ -93,12 +93,28 @@ export default {
       showConfirmationPopup: false, // Flag to show confirmation pop-up
       waitresses: [], // Populate with waitresses data from backend
       selectedWaitress: null, // Track the selected waitress
-      showWaitressChangeModal: false
+      showWaitressChangeModal: false,
+      buttonColor: ''
+
     };
   },
-  async created() {
-  },
+  async mounted() {
+  await this.fetchTableDetailsAndUpdateButtonColor();
+},
   methods: {
+    async fetchTableDetailsAndUpdateButtonColor() {
+    try {
+      const tableResponse = await backendServices.fetchTableDetails(this.tableId);
+      this.print_check = tableResponse.print_check;
+      console.log(this.print_check)
+      // Set button color based on print_check value
+      this.buttonColor = this.print_check ? '#74E291' : '';
+
+    } catch (error) {
+      console.error('Error fetching table details:', error);
+      this.showError('Error fetching table details. Please try again later.');
+    }
+  },
     openWaitressChangeModal() {
       this.showWaitressChangeModal = true;
       // Fetch waitresses data when modal opens
@@ -168,6 +184,9 @@ export default {
         await backendServices.printCheck(tableId);
         console.log('Check printed successfully');
         this.showSuccess('Çek print olundu.'); // Show error popup
+
+        await this.fetchTableDetailsAndUpdateButtonColor();
+      // Update data property to keep track of the color
       } catch (error) {
         console.error('Error printing check:', error);
         this.showError('Çek print olunub artıq.');
@@ -178,11 +197,20 @@ export default {
         await backendServices.deleteCheck(tableId);
         console.log('Check cancelled successfully');
         this.showSuccess('Çek leğv olundu.'); // Show error popup
+
+        await this.fetchTableDetailsAndUpdateButtonColor();
+
       } catch (error) {
         console.error('Error cancelling check:', error);
         this.showError('Çeki ləğv etmədə problem yarandı.');
       }
 },
+changeButtonColor(methodName, color) {
+      const button = this.$el.querySelector(`.action-button[data-method="${methodName}"]`);
+      if (button) {
+        button.style.backgroundColor = color;
+      }
+    },
     performAction(methodName) {
       // Implementation for other actions
     },
@@ -264,6 +292,9 @@ export default {
 </script>
 
 <style scoped>
+.green-button {
+  background-color: #74E291 !important;
+}
 .actions {
   display: flex;
   flex-direction: column;

@@ -2,11 +2,17 @@
 <!-- MainComponent.vue -->
 <template>
   <!-- Logout button -->
-  <div class="waiterssName">Ofsiant: {{waitressName}}</div>
+  <div class="waiterssName">{{roleDisplayName}}: {{waitressName}}</div>
   <button @click="logout" class="logout-button">Logout</button>
   <div class="layout">
-    <div v-for="table in tables" :key="table.id" :class="['table', { 'occupied': table.waitress.name }]" @click="goToMainOrderView(table.id)">
-      <div>Stol Nomre: {{ table.number }}</div>
+    <div v-for="table in tables" :key="table.id" 
+     :class="['table', { 
+                 'occupied': table.waitress.name,
+                 'waitress-id-zero': table.waitress.id === 0,
+                 'waitress-id-not-zero': table.waitress.id !== 0 && !table.print_check,
+                 'check-printed': table.print_check
+               }]" 
+     @click="goToMainOrderView(table.id)">      <div>Stol Nomre: {{ table.number }}</div>
       <div v-if="table.waitress.name">Ofsiant: {{ table.waitress.name }}</div>
       <div v-if="table.total_price">Cemi Hesab: {{ table.total_price }}azn</div>
       <div v-if="table.serviceTax">Servis: {{ 0 }}azn</div>
@@ -15,7 +21,8 @@
   <!-- Container for the fixed halls menu -->
   <div class="halls-container">
     <div class="halls">
-      <div v-for="hall in halls" :key="hall.id" class="hall"  @click="fetchTablesByHallId(hall.id)">
+      <div v-for="hall in halls" :key="hall.id"      :class="['hall', { 'clicked': hall.id === clickedHallId }]"  
+ @click="fetchTablesByHallId(hall.id)">
         <div>{{ hall.name }}</div>
         <div>{{ hall.description }}</div>
       </div>
@@ -44,12 +51,16 @@ export default {
        
         // Array of hall objects
       ],
-      waitressName: ""
+      waitressName: "",
+      clickedHallId: null, // Add a property to track the clicked hall,
+      roleDisplayName: ""
     }
   },
   created() {
     // Call fetchRooms method from backendServices during c
     this.waitressName = store.getters['auth/GET_FULL_NAME'];
+    this.roleDisplayName = store.getters['auth/GET_ROLE'] === "admin" ? "Adminstrator" : "Ofsiant";
+
     this.fetchRooms();
   },
   methods: {
@@ -70,6 +81,8 @@ export default {
         this.halls = rooms; // Assuming rooms is an array of table objects
 
         if(this.halls !== null && this.halls.length > 0) {
+          this.clickedHallId = this.halls[0].id; // Set the clicked hall id
+
           this.fetchTablesByHallId(this.halls[0].id)
         }
       } catch (error) {
@@ -80,6 +93,7 @@ export default {
       try {
         const tables = await backendServices.fetchTablesByHallId(id); 
         this.tables = tables;
+        this.clickedHallId = id; // Set the clicked hall id
       } catch (error) {
         console.error(`Error fetching tables for ID ${id}:`, error);
         throw error;
@@ -94,9 +108,27 @@ export default {
 </script>
 
 <style>
+.check-printed{
+  background-color: greenyellow;
+}
+
+.waitress-id-zero {
+  background-color: white;
+}
+
+.waitress-id-not-zero {
+  background-color: #FFDB5C;
+}
+
+.hall.clicked {
+  background-color: gray !important;
+}
+
+
 .waiterssName{
-  size: 20px;
-  background-color:bisque;
+  size: 40px !important;
+  color: black;
+  font-weight: 700;
 }
 
 .logout-button {
@@ -127,7 +159,6 @@ html, body {
 
 .table {
   border: 2px solid #000;
-  background-color: #fff;
   padding: 10px;
   display: flex;
   flex-direction: column;

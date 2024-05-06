@@ -1,6 +1,6 @@
 <!-- App.vue -->
 <template>
-  <div class="waiterssName">Ofsiant: {{waitressName}}</div>
+  <div class="waiterssName">{{roleDisplayName}}: {{waitressName}}</div>
   <div class="tableName">Masa: {{tableName}}</div>
   <div id="MainOrderView">
     <OrderItems class="column" :tableId="parseInt(tableId)" />
@@ -28,18 +28,22 @@ export default {
       tableId: null,
       role: null,
       waitressName: "",
-      tableName: ""
+      tableName: "",
+      print_check: false,
+      roleDisplayName: ""
     }
   },
   async created() {
     this.tableId = this.$route.params.id;
     this.role = store.getters['auth/GET_ROLE'];
+    this.roleDisplayName = this.role === "admin" ? "Adminstrator" : "Ofsiant";
 
     try {
       // Fetch waitress details from the API
       const tableResponse = await backendServices.fetchTableDetails(this.tableId);
       this.waitressName = tableResponse.waitress.name;
-      this.tableName = tableResponse.number
+      this.tableName = tableResponse.number;
+      this.print_check = tableResponse.print_check;
     } catch (error) {
       console.error('Error fetching waitress details:', error);
     }

@@ -108,6 +108,10 @@ export default {
 </script>
 
 <style scoped>
+.menu-category-item-menu {
+    max-height: 300px;
+}
+
 /* Add styling for disabled menu items */
 .disabled {
     pointer-events: none;
@@ -139,14 +143,18 @@ export default {
 
 .menu-item {
     /* Styling for each menu item, adjust as needed */
-    border: 1px solid #ccc;
+    border: 2px solid black;
     padding: 8px;
     cursor: pointer;
     display: flex;
-    align-items: center;
+    align-items:center;
     /* This centers the item name vertically */
-    justify-content: center;
+    justify-content:flex-start;
     /* This centers the item name horizontally */
+    max-height: 150px;
+    max-width: 200px;
+    background-color: cadetblue;
+    color: white;
 }
 
 .menu-category-item-menu.sticky {
