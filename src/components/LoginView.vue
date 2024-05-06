@@ -3,21 +3,21 @@
     <div class="mb-3 ip-address-input">
         <label for="ipAddress">IP Address: </label>
         <input type="text" id="ipAddress" v-model="ipAddress" />
-        <button @click="setIpAddress()">Set</button>
+        <button @click="setIpAddress()">Daxil et</button>
       </div>
     <div name="login-form" class="login-form">     
       <div class="mb-3 username-input">
-        <label for="username">username: </label>
-        <input type="text" id="username" v-model="input.username" disabled />
+        <label for="username">PIN: </label>
+        <input type="password" id="username" v-model="input.username" />
       </div>
       <div class="keypad">
         <button v-for="n in 9" :key="n" class="btn number" @click="pressKey(n)">{{ n }}</button>
         <button class="btn number zero" @click="pressKey(0)">0</button>
-        <button class="btn control clear" @click="clearusername">Clear</button>
-        <button class="btn control enter" type="submit" @click="login()">Enter</button>
+        <button class="btn control clear" @click="clearusername">Təmizlə</button>
+        <button class="btn control enter" type="submit" @click="login()">Daxil ol</button>
       </div>
     </div>
-    <h3 class="output">Output: {{ output }}</h3>
+    <h3 class="output">{{ output }}</h3>
   </div>
 </template>
 
@@ -64,10 +64,10 @@ export default {
           this.$router.push('/home');
         } catch (error) {
           console.error('Error during login:', error);
-          this.output = "Error during login";
+          this.output = "Yanlış PİN!";
         }
       } else {
-        this.output = "username cannot be empty";
+        this.output = "Boş qeyd edilə bilməz!";
       }
     }
   }

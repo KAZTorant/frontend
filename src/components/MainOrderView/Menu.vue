@@ -131,7 +131,7 @@ export default {
 
 .menu {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     /* Creates three columns */
     grid-gap: 10px;
     /* Space between items */
@@ -139,6 +139,8 @@ export default {
     /* Maximum height */
     overflow-y: auto;
     /* Enable vertical scrolling */
+    margin: 8px;
+
 }
 
 .menu-item {
@@ -155,6 +157,7 @@ export default {
     max-width: 200px;
     background-color: cadetblue;
     color: white;
+    overflow-wrap: break-word;
 }
 
 .menu-category-item-menu.sticky {

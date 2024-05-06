@@ -1,9 +1,8 @@
 // MainComponent.vue
 <!-- MainComponent.vue -->
 <template>
-  <!-- Logout button -->
+  <button @click="logout" class="logout-button">Çıxış</button>
   <div class="waiterssName">{{roleDisplayName}}: {{waitressName}}</div>
-  <button @click="logout" class="logout-button">Logout</button>
   <div class="layout">
     <div v-for="table in tables" :key="table.id" 
      :class="['table', { 
@@ -21,7 +20,7 @@
   <!-- Container for the fixed halls menu -->
   <div class="halls-container">
     <div class="halls">
-      <div v-for="hall in halls" :key="hall.id"      :class="['hall', { 'clicked': hall.id === clickedHallId }]"  
+      <div v-for="hall in halls" :key="hall.id" :class="['hall', { 'clicked': hall.id === clickedHallId }]"  
  @click="fetchTablesByHallId(hall.id)">
         <div>{{ hall.name }}</div>
         <div>{{ hall.description }}</div>

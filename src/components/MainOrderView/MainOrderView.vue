@@ -1,11 +1,12 @@
 <!-- App.vue -->
 <template>
+  <button @click="logout" class="logout-button">Çıxış</button>
   <div class="waiterssName">{{roleDisplayName}}: {{waitressName}}</div>
   <div class="tableName">{{tableName}}</div>
   <div id="MainOrderView">
     <OrderItems class="column" :tableId="parseInt(tableId)" />
     <Menu class="column" :tableId="parseInt(tableId)" />
-    <Actions v-if="role === ('admin' || 'restaurant') " class="column" :tableId="parseInt(tableId)"/>
+    <Actions v-if="role === 'admin' || role === 'restaurant'" class="column" :tableId="parseInt(tableId)"/>
   </div>
 </template>
 
@@ -32,6 +33,14 @@ export default {
       print_check: false,
       roleDisplayName: ""
     }
+  },
+  methods: {
+    logout() {
+          this.$store.commit(`auth/SET_AUTHENTICATION`, null);
+          this.$store.commit(`auth/SET_ROLE`, null); // Assuming you are using username for username here
+          this.$store.commit(`auth/SET_USERNAME`, null); 
+          router.push(`/`);
+    },
   },
   async created() {
     this.tableId = this.$route.params.id;
