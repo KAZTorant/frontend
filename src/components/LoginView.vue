@@ -1,10 +1,13 @@
 <template>
   <div class="login-container">
     <div class="mb-3 ip-address-input">
-        <label for="ipAddress">IP Address: </label>
+      <label for="ipAddress">IP Address: </label>
+      <div class="ip">
         <input type="text" id="ipAddress" v-model="ipAddress" />
         <button @click="setIpAddress()">Daxil et</button>
       </div>
+     
+    </div>
     <div name="login-form" class="login-form">     
       <div class="mb-3 username-input">
         <label for="username">PIN: </label>
@@ -17,7 +20,7 @@
         <button class="btn control enter" type="submit" @click="login()">Daxil ol</button>
       </div>
     </div>
-    <h3 class="output">{{ output }}</h3>
+    <h3 class="output">{{ output }}</h3>  
   </div>
 </template>
 
@@ -91,16 +94,31 @@ export default {
   margin-bottom: 16px;
 }
 
-.user-input label,
+.ip-address-input label,
 .username-input label {
   display: block;
   margin-bottom: 8px;
 }
 
-.user-input input,
+.ip {
+  display: flex;
+}
+
+.ip input {
+  flex: 1;
+  padding: 8px;
+}
+
+.ip button {
+  width: 150px;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
 .username-input input {
   width: 100%;
   padding: 8px;
+  margin-bottom: 8px;
 }
 
 .keypad {
@@ -123,7 +141,7 @@ export default {
 }
 
 .number.zero {
-  grid-column: 1 / 3; /* Make the 0 button wide */
+  grid-column: span 2; /* Make the 0 button wide */
 }
 
 .control {
@@ -144,4 +162,5 @@ export default {
   text-align: center;
   margin-top: 20px;
 }
+
 </style>

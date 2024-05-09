@@ -2,9 +2,9 @@
     <div class="menu">
         <div class="menu-category-item-menu sticky">
             <div class="menu-category-items-header">
-                <span :key="0" @click="fetchMenuItems()" class="active-green">
+                <span :class="{ active: selectedCategory === undefind }" @click="fetchMenuItems()">
                     Əsas yeməklər
-                </span>
+                </span> 
                 <span v-for="category in mealCategories" :key="category.id" @click="fetchMenuItems(category.id)"
                     :class="{ active: selectedCategory === category.id }">
                     {{ category.name }}
@@ -15,7 +15,7 @@
             :class="{ 'disabled': loading }">
             <!-- Display the menu item name here -->
             <div class="menu-item-name">{{ item.name }}</div>
-            <div class="menu-item-price">{{ item.price }}</div>azn
+            <div class="menu-item-price">{{ item.price }} azn</div>
         </div>
     </div>
 </template>
@@ -88,6 +88,9 @@ export default {
                 console.error('Error fetching menu items:', error);
             } finally {
                 this.loading = false; // Set loading back to false regardless of success or failure
+                if (!categoryId) {
+                    document.querySelector('.active-green').classList.remove('active-green');
+                }
             }
         },
         async addOrderItem(categoryId, mealId, quantity) {
@@ -122,42 +125,46 @@ export default {
 
 .active {
     font-weight: bold;
+    background-color: greenyellow;
+    transition: all 0.3ms ease-in-out;
 }
 
-.active-green {
-    font-weight: bold;
-    background-color: greenyellow;
+.active:hover{
+    background-color: rgb(145, 223, 27);
 }
 
 .menu {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(15, 1fr);
     /* Creates three columns */
-    grid-gap: 10px;
-    /* Space between items */
-    max-height: 100vh;
-    /* Maximum height */
+    gap: 10px;
+    padding: 0 5px;
     overflow-y: auto;
     /* Enable vertical scrolling */
-    margin: 8px;
+    
 
 }
 
 .menu-item {
     /* Styling for each menu item, adjust as needed */
     border: 2px solid black;
-    padding: 8px;
+    padding: 5px;
     cursor: pointer;
     display: flex;
     align-items:center;
     /* This centers the item name vertically */
-    justify-content:flex-start;
+    justify-content: space-between;
     /* This centers the item name horizontally */
-    max-height: 150px;
+    height: 60px;
     max-width: 200px;
     background-color: cadetblue;
     color: white;
     overflow-wrap: break-word;
+}
+.menu-item-name,
+.menu-item-price{
+    font-size: 14px
 }
 
 .menu-category-item-menu.sticky {
@@ -168,26 +175,31 @@ export default {
     background: white;
     /* Optional: Background color for visibility */
     z-index: 1000;
-    /* Ensures it stays on top */
-    border-top: 1px solid #ccc;
-    /* Stylistic choice to separate from items */
-}
-
-.menu-item-name {
-    /* Additional styling for the menu item name */
 }
 
 .menu-category-items-header {
     display: flex;
-    /* Aligns children horizontally */
-    overflow-x: auto;
-    /* Enables horizontal scrolling */
+    gap: 5px;
+    flex-wrap: wrap;
     white-space: nowrap;
-    /* Prevents wrapping of items to ensure horizontal scrolling */
-    padding: 10px 0;
-    /* Optional padding for aesthetic spacing */
-    border-bottom: 1px solid #ccc;
-    /* Optional stylistic choice */
+    cursor:pointer;
+    background-color: cadetblue;
+    border-left: 4px solid cadetblue;
+    border-right: 4px solid cadetblue;
+}
+.menu-category-items-header span:not(.active) {
+  background-color: #fff; 
+}
+
+.menu-category-items-header::-webkit-scrollbar {
+    display: none;
+} 
+.menu-category-items-header span {
+    border-left: 2px solid cadetblue;
+    border-right: 2px solid cadetblue;
+    border-top: 6px solid cadetblue;   
+    border-bottom: 6px solid cadetblue;
+    padding: 4px 10px;
 }
 
 .menu-category-item-menu.sticky {
@@ -199,11 +211,25 @@ export default {
     background: white;
     z-index: 1000;
 }
+@media (max-width: 1034px) {
+  .menu {
+    grid-template-columns: repeat(2, 1fr);
+  }
+ 
+}
 
-span {
-    padding: 0 15px;
-    /* Spacing between category items */
-    cursor: pointer;
-    /* Suggests interactivity */
+@media (max-width: 768px) {
+  .menu {
+    grid-template-columns: repeat(3, 1fr); 
+    }
+  .menu-category-items-header{
+    overflow-x: auto;
+    flex-wrap: nowrap;
+  }
+}
+@media (max-width: 530px) {
+  .menu {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 </style>

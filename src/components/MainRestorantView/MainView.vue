@@ -21,7 +21,7 @@
   <div class="halls-container">
     <div class="halls">
       <div v-for="hall in halls" :key="hall.id" :class="['hall', { 'clicked': hall.id === clickedHallId }]"  
- @click="fetchTablesByHallId(hall.id)">
+        @click="fetchTablesByHallId(hall.id)">
         <div>{{ hall.name }}</div>
         <div>{{ hall.description }}</div>
       </div>
@@ -136,16 +136,23 @@ export default {
   size: 40px !important;
   color: black;
   font-weight: 700;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  background-color:bisque;
 }
 
-.logout-button {
+.logout-button, .tables-view {
   /* Add styles for your logout button */
+  width: 140px;
   margin: 10px; /* Adjust margin as needed */
-  padding: 5px 10px; /* Adjust padding as needed */
+  padding: 28px 40px; /* Adjust padding as needed */
   background-color: red; /* Example background color */
   color: white; /* Example text color */
   border: none; /* Remove border if needed */
   cursor: pointer; /* Change cursor to pointer on hover */
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 16px;
 }
 
 /* Ensure the body and html are set up correctly */
@@ -160,8 +167,8 @@ html, body {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 15px;
-  margin: 20px;
-  min-height: 100vh; /* Ensures there is enough content to scroll */
+  margin: 20px 20px 100px;
+  
 }
 
 .table {
@@ -172,6 +179,7 @@ html, body {
   justify-content: space-around;
   align-items: center;
   height: 150px;
+  cursor: pointer;
 }
 
 .halls {
@@ -202,10 +210,23 @@ html, body {
   width: 100%; /* Ensures the menu stretches across the viewport */
   z-index: 1000; /* Ensures the menu appears above other content */
 }
-
+@media (max-width: 1008px) {
+  .layout {
+    grid-template-columns: repeat(4, 1fr);
+    padding: 20px;
+  }
+}
 @media (max-width: 768px) {
   .layout {
     grid-template-columns: repeat(3, 1fr);
+    padding: 20px;
   }
 }
+@media (max-width: 558px) {
+  .layout {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 20px;
+  }
+}
+
 </style>
