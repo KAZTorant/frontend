@@ -1,17 +1,10 @@
 <template>
   <div class="login-container">
-    <div class="mb-3 ip-address-input">
-      <label for="ipAddress">IP Address: </label>
-      <div class="ip">
-        <input type="text" id="ipAddress" v-model="ipAddress" />
-        <button @click="setIpAddress()">Daxil et</button>
-      </div>
-    
-    </div>
+  
     <div name="login-form" class="login-form">     
       <div class="mb-3 username-input">
         <label for="username">PIN: </label>
-        <input type="password" id="username" v-model="input.username" />
+        <input disabled type="password" id="username" v-model="input.username" />
       </div>
       <div class="keypad">
         <button v-for="n in 9" :key="n" class="btn number" @click="pressKey(n)">{{ n }}</button>
@@ -36,14 +29,9 @@ export default {
         username: ""
       },
       output: "",
-      ipAddress: ""
     }
   },
   methods: {
-    setIpAddress(){
-      this.$store.commit(`auth/SET_IP_ADDRESS`, this.ipAddress);
-      window.location.reload(true);
-    },
     pressKey(n) {
       this.input.username += n.toString();
     },
