@@ -13,6 +13,9 @@
       
     </div>
     <div class="order-items-list">
+      <div v-if="orderItems.length === 0" class="empty-message">
+        <p>Yemək əlavə etməmisiniz.</p>
+      </div>
       <div class="order-item" v-for="item in orderItems" :key="item.meal.id">
         <span>{{ item.meal.name }}</span>
         <span class="quantity-container">
@@ -109,6 +112,10 @@ export default {
 .tables-view{
   background-color: orange;
   font-weight: bold;
+  transition: all 0.3s ease-in-out
+}
+.tables-view:hover{
+  background-color: #f7b845;
 }
 
 
@@ -142,6 +149,16 @@ export default {
 
 .order-items-list {
   overflow-y: auto;
+}
+.empty-message {
+  display:flex;
+  justify-content: center;
+  align-items: center;
+  padding: 100px 0;
+  font-size: 18px;
+  color: #333;
+  font-weight: 700;
+  background-color: #f0f0f0;
 }
 
 .order-items-header,
@@ -193,5 +210,14 @@ export default {
 
 .order-total {
   font-weight: bold;
+}
+@media (max-width: 768px) {
+  .order-items-container{
+    height: 310px;
+  }
+  .empty-message{
+    height: 235px;
+    padding: 0;
+  }
 }
 </style>

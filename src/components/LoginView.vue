@@ -6,7 +6,7 @@
         <input type="text" id="ipAddress" v-model="ipAddress" />
         <button @click="setIpAddress()">Daxil et</button>
       </div>
-     
+    
     </div>
     <div name="login-form" class="login-form">     
       <div class="mb-3 username-input">

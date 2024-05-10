@@ -1,14 +1,14 @@
 <template>
   <div class="actions">
     <!-- Dynamically create buttons for actions -->
-    <button class="action-button" v-for="action in actions" :key="action.id" @click="handleAction(action.method)" :data-method="action.method" :class="{ 'green-button': action.method === 'printOrder' && buttonColor === '#74E291' }">
+    <button class="action-button" v-for="action in actions" :key="action.id" @click="handleAction(action.method)" :data-method="action.method" :data-id="action.id" :class="{ 'green-button': action.method === 'printOrder' && buttonColor === '#74E291' } ">
       {{ action.label }}
     </button>
     <!-- Modal for transfer action -->
     <div v-if="showTransferModal" class="modal">
       <div class="modal-content">
-        <h2>Masanı köçürt</h2>
-        <div class="modal-content-main">
+        <h2>Masanı köçür</h2>
+        <div class="modal-content-main hall">
           <div>
             <label for="hall">Zal Seç:</label>
             <select id="hall" v-model="selectedHall" @change="fetchTablesForHall(selectedHall)">
@@ -17,7 +17,7 @@
             </select>
           </div>
           <div>
-            <label for="table">Stol seç:</label>
+            <label for="table">Masa seç:</label>
             <select id="table" v-model="selectedTable">
               <!-- Options for tables -->
               <option v-for="(table, index) in tables" :key="index" :value="table.id">{{ table.number }}</option>
@@ -25,8 +25,8 @@
           </div>
         </div>
         <div class="modal-content-button">
-          <button @click="confirmTransfer">Təsdiqlə</button>
-          <button @click="cancelTransfer">Ləğv et</button> <!-- Added Cancel button -->
+          <button class="confirm-button" @click="confirmTransfer">Təsdiqlə</button>
+          <button class="cancel-button" @click="cancelTransfer">Ləğv et</button> <!-- Added Cancel button -->
         </div>
       </div>
     </div>
@@ -36,15 +36,15 @@
         <h2>Ofsianti dəyiş</h2>
         <div class="modal-content-main">
           <label for="waitress">Ofsiant seç:</label>
-          <select id="waitress" v-model="selectedWaitress">
+          <select id="waitress" class="waitress" v-model="selectedWaitress">
             <!-- Options for waitresses -->
             <option v-for="waitress in waitresses" :key="waitress.id" :value="waitress.id">{{ waitress.full_name }}
             </option>
           </select>
         </div>
         <div class="modal-content-button">
-          <button @click="confirmWaitressChange">Təsdiqlə</button>
-          <button @click="cancelWaitressChange">Ləğv et</button>
+          <button class="confirm-button" @click="confirmWaitressChange">Təsdiqlə</button>
+          <button class="cancel-button" @click="cancelWaitressChange">Ləğv et</button>
         </div>
       </div>
       
@@ -55,8 +55,8 @@
       <div class="popup-content">
         <h2>Masanı bağlamaga əminsiniz?</h2>
         <div class="popup-content-button">
-          <button @click="cancelCloseOrder">Yox</button>
-          <button @click="confirmCloseOrder">Hə</button>
+          <button class="cancel-button" @click="cancelCloseOrder">Yox</button>
+          <button class="confirm-button" @click="confirmCloseOrder">Hə</button>
         </div>
       </div>
     </div>
@@ -318,7 +318,6 @@ changeButtonColor(methodName, color) {
 .action-button, 
 .modal-content-button button,
 .popup-content-button button {
-  background-color: #f0f0f0;
   border: none;
   border-radius: 4px;
   cursor: pointer;
@@ -335,10 +334,32 @@ changeButtonColor(methodName, color) {
   margin-top: 10px;
   padding: 20px;
 }
+.actions button[data-id="3"],
+.actions button[data-id="5"]{
+  background-color: #fd5c63;
+  color: #fff;
+  font-weight: 600;
+  transition: all 0.3s ease-in-out
+}
+.actions button[data-id="3"]:hover,
+.actions button[data-id="5"]:hover{
+  background-color: #e6313a;
+  color: #fff;
+  font-weight: 600
+}
+.actions button[data-id="2"],
+.actions button[data-id="4"]{
+  background-color: #ffa500;
+  color: #fff;
+  font-weight: 600;
+  transition: all 0.3s ease-in-out
+}
+.actions button[data-id="2"]:hover,
+.actions button[data-id="4"]:hover{
+  background-color: #f7b845;
+}
 
-.action-button:hover, 
-.modal-content-button button:hover,
-.popup-content-button button:hover {
+.action-button:hover{
   /* Hover state for buttons */
   background-color: #e2e2e2;
 }
@@ -361,7 +382,7 @@ changeButtonColor(methodName, color) {
 }
 .modal .modal-content{
   width: 300px;
-  height: 150px;
+  height: 200px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -369,17 +390,47 @@ changeButtonColor(methodName, color) {
 .modal-content-main{
   display: flex;
   justify-content: center;
+  align-items: center;
   gap: 20px;
 }
 .modal-content-main div{
   display: flex;
+  align-items: center;
   gap: 5px;
 }
+.modal-content-main select{
+  padding: 5px 8px;
+}
+.hall{
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+
+}
+
 .modal-content-button,
 .popup-content-button{
   display: flex;
   justify-content: center;
   gap: 40px;
+}
+.cancel-button {
+  background-color: #fd5c63;
+  color: #fff;
+  font-weight: 600;
+  transition: all 0.3s ease-in-out;
+}
+.cancel-button:hover{
+  background-color: #e6313a;
+}
+.confirm-button{
+  background-color: rgb(121, 194, 12);
+  color: #fafafa;
+  font-weight: 600;
+  transition: all 0.3s ease-in-out;
+}
+.confirm-button:hover{
+  background-color: rgb(145, 223, 27);
 }
 
 .popup-content {

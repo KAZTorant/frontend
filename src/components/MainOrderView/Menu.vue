@@ -142,7 +142,7 @@ export default {
     padding: 0 5px;
     overflow-y: auto;
     /* Enable vertical scrolling */
-    
+
 
 }
 

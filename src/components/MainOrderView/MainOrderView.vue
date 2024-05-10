@@ -103,6 +103,10 @@ export default {
 .tables-view{
   background-color: orange;
   font-weight: bold;
+  transition: all 0.3s ease-in-out
+}
+.tables-view:hover{
+  background-color: #f7b845;
 }
 
 /* Responsive layout for tablets */

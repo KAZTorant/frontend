@@ -146,7 +146,7 @@ export default {
   width: 140px;
   margin: 10px; /* Adjust margin as needed */
   padding: 28px 40px; /* Adjust padding as needed */
-  background-color: red; /* Example background color */
+   /* Example background color */
   color: white; /* Example text color */
   border: none; /* Remove border if needed */
   cursor: pointer; /* Change cursor to pointer on hover */
@@ -154,7 +154,13 @@ export default {
   font-weight: 600;
   font-size: 16px;
 }
-
+.logout-button{
+  background-color: #fd5c63;
+  transition: all 0.3s ease-in-out;
+}
+.logout-button:hover{
+  background-color: #e6313a;
+}
 /* Ensure the body and html are set up correctly */
 html, body {
   margin: 0;
