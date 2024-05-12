@@ -1,17 +1,19 @@
 // MainComponent.vue
 <!-- MainComponent.vue -->
 <template>
-  <button @click="logout" class="logout-button">Çıxış</button>
-  <div class="waiterssName">{{roleDisplayName}}: {{waitressName}}</div>
+  <div class="logout-head">
+    <div class="waiterssName">{{roleDisplayName}}: {{waitressName}}</div>
+    <button @click="logout" class="logout-button">Çıxış</button>
+  </div>
   <div class="layout">
     <div v-for="table in tables" :key="table.id" 
      :class="['table', { 
-                 'occupied': table.waitress.name,
-                 'waitress-id-zero': table.waitress.id === 0,
-                 'waitress-id-not-zero': table.waitress.id !== 0 && !table.print_check,
-                 'check-printed': table.print_check
-               }]" 
-     @click="goToMainOrderView(table.id)">      <div>{{ table.number }}</div>
+                'occupied': table.waitress.name,
+                'waitress-id-zero': table.waitress.id === 0,
+                'waitress-id-not-zero': table.waitress.id !== 0 && !table.print_check,
+                'check-printed': table.print_check
+              }]" 
+      @click="goToMainOrderView(table.id)"> <div>{{ table.number }}</div>
       <div v-if="table.waitress.name">Ofsiant: {{ table.waitress.name }}</div>
       <div v-if="table.total_price">Cemi Hesab: {{ table.total_price }}azn</div>
       <div v-if="table.serviceTax">Servis: {{ 0 }}azn</div>
@@ -131,21 +133,29 @@ export default {
   background-color: gray !important;
 }
 
+.logout-head{
+  display: flex;
+  justify-content: center;
+  overflow-x: auto;
+}
 
 .waiterssName{
+  white-space: nowrap;
   size: 40px !important;
   color: black;
   font-weight: 700;
-  padding-top: 10px;
+  padding: 20px;
+  margin: 10px;
   padding-bottom: 10px;
   background-color:bisque;
+  border-radius: 4px 4px 0 0;
 }
 
 .logout-button, .tables-view {
   /* Add styles for your logout button */
   width: 140px;
   margin: 10px; /* Adjust margin as needed */
-  padding: 28px 40px; /* Adjust padding as needed */
+  padding: 20px 28px; /* Adjust padding as needed */
    /* Example background color */
   color: white; /* Example text color */
   border: none; /* Remove border if needed */

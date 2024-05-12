@@ -329,10 +329,10 @@ changeButtonColor(methodName, color) {
 }
 .action-button{
   width: 120px;
-  height: 65px;
+  height: 58px;
   margin-bottom: 10px;
   margin-top: 10px;
-  padding: 20px;
+  padding: 16px;
 }
 .actions button[data-id="3"],
 .actions button[data-id="5"]{
