@@ -1,29 +1,30 @@
 <template>
   <div class="order-items-container">
+    <div class="order-total">
+        <span>Cəmi:<span>{{ totalPrice }} azn</span></span>
+      </div>
     <div class="order-item-menu sticky">
       <div class="order-items-header">
-        <span class="tables-view" @click="goToTablesView()">Stollar</span>
-        <span>Name</span>
-        <span>Count</span>
-        <span>Price</span>
-        <span>Total</span>
+        <span>Adı</span>
+        <span>Sayı</span>
+        <span>Qiyməti</span>
+        <span>Cəmi</span>
       </div>
-      <div class="order-total">
-        <span>Total:</span>
-        <span>{{ totalPrice }} azn</span>
-      </div>
+      
     </div>
     <div class="order-items-list">
+      <div v-if="orderItems.length === 0" class="empty-message">
+        <p>Yemək əlavə etməmisiniz.</p>
+      </div>
       <div class="order-item" v-for="item in orderItems" :key="item.meal.id">
         <span>{{ item.meal.name }}</span>
         <span class="quantity-container">
       <button v-if=checkViewPermissionForAdmin() @click="decrementQuantity(item)">-</button>
-      <span class="quantity">{{ item.quantity }}</span>
+      <div class="quantity">{{ item.quantity }}</div>
       <button @click="incrementQuantity(item)">+</button>
     </span>
-        <span>{{ item.quantity }}</span>
-        <span>{{ item.meal.price }} | azn</span>
-        <span>{{ (item.quantity * item.meal.price) }} | azn</span>
+        <span>{{ item.meal.price }} azn</span>
+        <span>{{ (item.quantity * item.meal.price) }} azn</span>
       </div>
     </div>
   </div>
@@ -59,10 +60,6 @@ export default {
   methods: {
     checkViewPermissionForAdmin(){
       return store.getters['auth/GET_ROLE'] === 'restaurant';
-    },
-
-    goToTablesView(){
-      router.push(`/home`);
     },
 
     async decrementQuantity(item) {
@@ -115,6 +112,10 @@ export default {
 .tables-view{
   background-color: orange;
   font-weight: bold;
+  transition: all 0.3s ease-in-out
+}
+.tables-view:hover{
+  background-color: #f7b845;
 }
 
 
@@ -123,18 +124,12 @@ export default {
   align-items: center;
 }
 
-.quantity {
-  padding: 0 10px; /* Adjust padding as needed */
-  font-size: 1.2em; /* Adjust font size as needed */
-  border: 1px solid #ccc; /* Add border for better visibility */
-  border-radius: 5px; /* Add border radius for rounded corners */
-  min-width: 30px; /* Adjust minimum width as needed */
-  text-align: center; /* Center the quantity text */
-}
+
 
 .order-item button {
-  font-size: 1.5em; /* Adjust the font size as needed */
-  padding: 10px; /* Adjust the padding for button size */
+  width: 17px;
+  font-size: 16px; /* Adjust the font size as needed */
+  padding: 2px; /* Adjust the padding for button size */
 }
 
 .order-items-container {
@@ -155,14 +150,31 @@ export default {
 .order-items-list {
   overflow-y: auto;
 }
+.empty-message {
+  display:flex;
+  justify-content: center;
+  align-items: center;
+  padding: 100px 0;
+  font-size: 18px;
+  color: #333;
+  font-weight: 700;
+  background-color: #f0f0f0;
+}
 
 .order-items-header,
-.order-item,
-.order-total {
+.order-item{
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 10px;
+  grid-template-columns: 150px repeat(3, minmax(50px, 1fr));
   align-items: center;
+  gap: 4px;
+}
+
+.order-total {
+  border-bottom: 1px solid #ccc;
+  padding: 10px;
+}
+.order-total span {
+  gap: 5px
 }
 
 .order-items-header span,
@@ -170,20 +182,42 @@ export default {
 .order-total span {
   display: flex;
   justify-content: center;
-  padding: 10px;
+  align-items: center;
+  font-size: 14px;
+}
+.order-items-header span,
+.order-item span{
   border-bottom: 1px solid #ccc;
+  padding: 10px;
+}
+.order-item span{
+  min-height: 60px;
+  height: 60px;
 }
 
+.quantity {
+  padding: 4px 8px !important; /* Adjust padding as needed */
+  font-size: 1.2em; /* Adjust font size as needed */
+  border: 1px solid #ccc; /* Add border for better visibility */
+  border-radius: 5px; /* Add border radius for rounded corners */
+  min-width: 20px; /* Adjust minimum width as needed */
+  text-align: center; /* Center the quantity text */
+}
 .order-items-header {
   font-weight: bold;
-  border-bottom: 2px solid #ccc;
   /* Makes the header border thicker */
 }
 
 .order-total {
-  border-top: 2px solid #ccc;
   font-weight: bold;
-  margin-top: 10px;
-  padding-top: 10px;
+}
+@media (max-width: 768px) {
+  .order-items-container{
+    height: 310px;
+  }
+  .empty-message{
+    height: 235px;
+    padding: 0;
+  }
 }
 </style>

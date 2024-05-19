@@ -1,26 +1,32 @@
 <template>
   <div class="actions">
     <!-- Dynamically create buttons for actions -->
-    <button class="action-button" v-for="action in actions" :key="action.id" @click="handleAction(action.method)" :data-method="action.method" :class="{ 'green-button': action.method === 'printOrder' && buttonColor === '#74E291' }">
+    <button class="action-button" v-for="action in actions" :key="action.id" @click="handleAction(action.method)" :data-method="action.method" :data-id="action.id" :class="{ 'green-button': action.method === 'printOrder' && buttonColor === '#74E291' } ">
       {{ action.label }}
     </button>
     <!-- Modal for transfer action -->
     <div v-if="showTransferModal" class="modal">
       <div class="modal-content">
-        <h2>Masanı köçürt</h2>
-        <label for="hall">Zal Seç:</label>
-        <select id="hall" v-model="selectedHall" @change="fetchTablesForHall(selectedHall)">
-          <!-- Options for halls -->
-          <option v-for="(hall, index) in halls" :key="index" :value="hall.id">{{ hall.name }}</option>
-        </select>
-        <label for="table">Stol seç:</label>
-        <select id="table" v-model="selectedTable">
-          <!-- Options for tables -->
-          <option v-for="(table, index) in tables" :key="index" :value="table.id">{{ table.number }}</option>
-        </select>
-        <div>
-          <button @click="confirmTransfer">Təsdiqlə</button>
-          <button @click="cancelTransfer">Ləğv et</button> <!-- Added Cancel button -->
+        <h2>Masanı köçür</h2>
+        <div class="modal-content-main hall">
+          <div>
+            <label for="hall">Zal Seç:</label>
+            <select id="hall" v-model="selectedHall" @change="fetchTablesForHall(selectedHall)">
+              <!-- Options for halls -->
+              <option v-for="(hall, index) in halls" :key="index" :value="hall.id">{{ hall.name }}</option>
+            </select>
+          </div>
+          <div>
+            <label for="table">Masa seç:</label>
+            <select id="table" v-model="selectedTable">
+              <!-- Options for tables -->
+              <option v-for="(table, index) in tables" :key="index" :value="table.id">{{ table.number }}</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-content-button">
+          <button class="confirm-button" @click="confirmTransfer">Təsdiqlə</button>
+          <button class="cancel-button" @click="cancelTransfer">Ləğv et</button> <!-- Added Cancel button -->
         </div>
       </div>
     </div>
@@ -28,25 +34,30 @@
     <div v-if="showWaitressChangeModal" class="modal">
       <div class="modal-content">
         <h2>Ofsianti dəyiş</h2>
-        <label for="waitress">Ofsiant seç:</label>
-        <select id="waitress" v-model="selectedWaitress">
-          <!-- Options for waitresses -->
-          <option v-for="waitress in waitresses" :key="waitress.id" :value="waitress.id">{{ waitress.full_name }}
-          </option>
-        </select>
-        <div>
-          <button @click="confirmWaitressChange">Təsdiqlə</button>
-          <button @click="cancelWaitressChange">Ləğv et</button>
+        <div class="modal-content-main">
+          <label for="waitress">Ofsiant seç:</label>
+          <select id="waitress" class="waitress" v-model="selectedWaitress">
+            <!-- Options for waitresses -->
+            <option v-for="waitress in waitresses" :key="waitress.id" :value="waitress.id">{{ waitress.full_name }}
+            </option>
+          </select>
+        </div>
+        <div class="modal-content-button">
+          <button class="confirm-button" @click="confirmWaitressChange">Təsdiqlə</button>
+          <button class="cancel-button" @click="cancelWaitressChange">Ləğv et</button>
         </div>
       </div>
+      
     </div>
 
     <!-- Confirmation pop-up -->
     <div v-if="showConfirmationPopup" class="confirmation-popup">
       <div class="popup-content">
-        <p>Masanı bağlamaga əminsiniz?</p>
-        <button @click="cancelCloseOrder">Yox</button>
-        <button @click="confirmCloseOrder">Hə</button>
+        <h2>Masanı bağlamaga əminsiniz?</h2>
+        <div class="popup-content-button">
+          <button class="cancel-button" @click="cancelCloseOrder">Yox</button>
+          <button class="confirm-button" @click="confirmCloseOrder">Hə</button>
+        </div>
       </div>
     </div>
     <!-- Error popup -->
@@ -78,9 +89,9 @@ export default {
       actions: [
         { id: 1, label: 'Print Çek', method: 'printOrder' },
         { id: 5, label: 'Çeki ləğv et', method: 'cancelPrintOrder' },
-        { id: 2, label: 'Ofsianti deyiş', method: 'changeWaitress' },
+        { id: 2, label: 'Ofsianti dəyiş', method: 'changeWaitress' },
         { id: 3, label: 'Masanı bağla', method: 'cancelOrder' },
-        { id: 4, label: 'Masanı köçürt', method: 'openTransferModal' },
+        { id: 4, label: 'Masanı köçür', method: 'openTransferModal' },
         // Add more actions as needed
       ],
       showTransferModal: false,
@@ -296,30 +307,65 @@ changeButtonColor(methodName, color) {
   background-color: #74E291 !important;
 }
 .actions {
+  width: 640px;
   display: flex;
-  flex-direction: column;
+  gap: 5px;
+  padding: 0 10px;
+  white-space: nowrap;
+  overflow-x: auto;
 }
 
-.action-button {
-  /* Styling for action buttons */
-  margin-bottom: 10px;
-  /* Space between buttons */
-  padding: 10px;
-  background-color: #f0f0f0;
-  /* Example color */
+.action-button, 
+.modal-content-button button,
+.popup-content-button button {
   border: none;
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.3s;
 }
+.modal-content-button button,
+.popup-content-button button {
+  padding: 20px 30px;
+}
+.action-button{
+  width: 120px;
+  height: 58px;
+  margin-bottom: 10px;
+  margin-top: 10px;
+  padding: 16px;
+}
+.actions button[data-id="3"],
+.actions button[data-id="5"]{
+  background-color: #fd5c63;
+  color: #fff;
+  font-weight: 600;
+  transition: all 0.3s ease-in-out
+}
+.actions button[data-id="3"]:hover,
+.actions button[data-id="5"]:hover{
+  background-color: #e6313a;
+  color: #fff;
+  font-weight: 600
+}
+.actions button[data-id="2"],
+.actions button[data-id="4"]{
+  background-color: #ffa500;
+  color: #fff;
+  font-weight: 600;
+  transition: all 0.3s ease-in-out
+}
+.actions button[data-id="2"]:hover,
+.actions button[data-id="4"]:hover{
+  background-color: #f7b845;
+}
 
-.action-button:hover {
+.action-button:hover{
   /* Hover state for buttons */
   background-color: #e2e2e2;
 }
 
 /* Styles for confirmation pop-up */
-.confirmation-popup {
+.confirmation-popup,.modal{
   position: fixed;
   top: 50%;
   left: 50%;
@@ -329,7 +375,62 @@ changeButtonColor(methodName, color) {
   border: 1px solid #ccc;
   border-radius: 5px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
+  z-index: 10000;
+}
+.modal-content h2{
+  margin: 0;
+}
+.modal .modal-content{
+  width: 300px;
+  height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.modal-content-main{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+}
+.modal-content-main div{
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.modal-content-main select{
+  padding: 5px 8px;
+}
+.hall{
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+
+}
+
+.modal-content-button,
+.popup-content-button{
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+}
+.cancel-button {
+  background-color: #fd5c63;
+  color: #fff;
+  font-weight: 600;
+  transition: all 0.3s ease-in-out;
+}
+.cancel-button:hover{
+  background-color: #e6313a;
+}
+.confirm-button{
+  background-color: rgb(121, 194, 12);
+  color: #fafafa;
+  font-weight: 600;
+  transition: all 0.3s ease-in-out;
+}
+.confirm-button:hover{
+  background-color: rgb(145, 223, 27);
 }
 
 .popup-content {
