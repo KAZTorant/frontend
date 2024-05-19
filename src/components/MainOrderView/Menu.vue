@@ -20,8 +20,8 @@
     </div>
 </template>
 
-<script>
-import backendServices from '../../backend-services/backend-services';
+
+<script>import backendServices from '../../backend-services/backend-services';
 import { EventBus } from '../../EventBus';
 
 export default {
@@ -112,7 +112,23 @@ export default {
         }
     }
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.querySelector('.search-input');
+
+    if (searchInput) {
+        searchInput.addEventListener('focus', function (event) {
+            event.preventDefault();
+            event.target.blur();
+            setTimeout(() => {
+                event.target.focus();
+            }, 10);
+        });
+    }
+});
+
 </script>
+
 
 <style scoped>
 .menu-category-item-menu {
@@ -200,11 +216,13 @@ export default {
 
 .search-input {
     margin-top: 10px;
+    margin-bottom: 10px;
     padding: 5px;
     width: 100%;
     min-width: 40px;
-    min-height: 60px;
+    min-height: 40px;
     box-sizing: border-box;
+    font-size: 16px; /* Set font size to 16px */
 }
 
 @media (max-width: 1034px) {

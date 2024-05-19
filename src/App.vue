@@ -26,4 +26,8 @@ export default {
   color: #2c3e50;
   margin-top: 40px;
 }
+html, body {
+  touch-action: pan-x pan-y;
+}
+
 </style>
