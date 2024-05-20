@@ -55,7 +55,7 @@ export default {
           router.push(`/`);
     },
     goToTablesView(){
-      router.push(`/home`);
+      router.back();
     },
   },
   

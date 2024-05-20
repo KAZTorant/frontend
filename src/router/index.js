@@ -7,7 +7,7 @@ const routes = [
     component: () => import('../components/LoginView.vue'),
   },
   {
-    path: "/home",
+    path: "/home/:id",
     component: () => import('../components/MainRestorantView/MainView.vue'),
     meta: { requiresAuth: true } // Add meta field to specify authentication requirement
   },

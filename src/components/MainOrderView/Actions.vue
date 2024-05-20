@@ -155,7 +155,7 @@ export default {
         // Optionally, you can close the modal after successful change
         this.showWaitressChangeModal = false;
         // Optionally, you can refresh the table data or update UI as needed
-        router.push(`/home`);
+        router.back();
       } catch (error) {
         console.error('Error changing waitress:', error);
         this.showError('Error changing waitress. Please try again later.'); // Show error popup
@@ -231,7 +231,7 @@ changeButtonColor(methodName, color) {
           .then(data => {
             console.log('Table changed successfully:', data);
             this.showTransferModal = false; // Close modal after successful transfer
-            router.push(`/home`);
+            router.back();
           })
           .catch(error => {
             console.error('Error changing table:', error);
@@ -287,7 +287,7 @@ changeButtonColor(methodName, color) {
       backendServices.closeTableForOrder(this.tableId)
         .then(data => {
           console.log('Table closed successfully:', data);
-          router.push(`/home`);
+          router.back();
         })
         .catch(error => {
           console.error('Error closing table:', error);

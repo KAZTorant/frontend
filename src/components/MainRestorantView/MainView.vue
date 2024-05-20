@@ -9,9 +9,11 @@
                 'occupied': table.waitress.name,
                 'waitress-id-zero': table.waitress.id === 0,
                 'waitress-id-not-zero': table.waitress.id !== 0 && !table.print_check,
-                'check-printed': table.print_check
+                'check-printed': table.print_check,
+                'not-current-waitress': isWaitress && table.waitress.name && table.waitress.name !== waitressName
               }]" 
-      @click="goToMainOrderView(table.id)"> <div>{{ table.number }}</div>
+      @click="isTableClickable(table) ? goToMainOrderView(table.id) : null"> 
+      <div>{{ table.number }}</div>
       <div v-if="table.waitress.name">Ofsiant: {{ table.waitress.name }}</div>
       <div v-if="table.total_price">Cemi Hesab: {{ table.total_price }}azn</div>
       <div v-if="table.serviceTax">Servis: {{ 0 }}azn</div>
@@ -20,7 +22,7 @@
   <!-- Container for the fixed halls menu -->
   <div class="halls-container">
     <div class="halls">
-      <div v-for="hall in halls" :key="hall.id" :class="['hall', { 'clicked': hall.id === clickedHallId }]"  
+      <div v-for="hall in halls" :key="hall.id" :class="['hall', { 'clicked': hall.id === parseInt(this.$route.params.id) }]"  
         @click="fetchTablesByHallId(hall.id)">
         <div>{{ hall.name }}</div>
         <div>{{ hall.description }}</div>
@@ -28,6 +30,7 @@
     </div>
   </div>
 </template>
+
 
 <script>
 import TableComponent from './TableComponent.vue';
@@ -46,12 +49,17 @@ export default {
       tables: [],
       halls: [],
       waitressName: "",
-      clickedHallId: null, // Add a property to track the clicked hall,
       roleDisplayName: "",
-      fetchRoomsInterval: null // Add a property to store the interval ID
-    };
+      intervalId: null // Added to hold the interval ID
+    }
+  },
+  computed: {
+    isWaitress() {
+      return this.role === 'waitress';
+    }
   },
   created() {
+    // Call fetchRooms method from backendServices during creation
     this.waitressName = store.getters['auth/GET_FULL_NAME'];
     this.role = store.getters['auth/GET_ROLE'];
     
@@ -64,45 +72,40 @@ export default {
     }
 
     this.fetchRooms();
+    this.fetchTablesByHallId(this.$route.params.id);
+    
+    // Set up interval to fetch tables every 5 seconds
+    this.intervalId = setInterval(() => {
+      this.fetchTablesByHallId(this.$route.params.id);
+    }, 5000);
   },
-  mounted() {
-    // Call fetchRooms every 3 seconds
-    this.fetchRoomsInterval = setInterval(() => {
-      this.fetchRooms();
-    }, 3000);
-  },
-  beforeDestroy() {
+  beforeUnmount() {
     // Clear the interval when the component is destroyed
-    if (this.fetchRoomsInterval) {
-      clearInterval(this.fetchRoomsInterval);
-    }
+    clearInterval(this.intervalId);
   },
   methods: {
     logout() {
-      this.$store.commit(`auth/SET_AUTHENTICATION`, null);
-      this.$store.commit(`auth/SET_ROLE`, null); // Assuming you are using username for username here
-      this.$store.commit(`auth/SET_USERNAME`, null); 
-      router.push(`/`);
+      this.$store.commit('auth/SET_AUTHENTICATION', null);
+      this.$store.commit('auth/SET_ROLE', null); // Assuming you are using username for username here
+      this.$store.commit('auth/SET_USERNAME', null);
+      router.push('/');
     },
+
+    // Methods to manage the state
     async fetchRooms() {
       try {
         // Call fetchRooms method from backendServices and update data
         const rooms = await backendServices.fetchRooms();
         this.halls = rooms; // Assuming rooms is an array of table objects
-
-        if (this.halls !== null && this.halls.length > 0) {
-          this.clickedHallId = this.halls[0].id; // Set the clicked hall id
-          this.fetchTablesByHallId(this.halls[0].id);
-        }
       } catch (error) {
         console.error('Error fetching rooms:', error);
       }
     },
     async fetchTablesByHallId(id) {
       try {
+        this.$router.push('/home/' + id);
         const tables = await backendServices.fetchTablesByHallId(id); 
         this.tables = tables;
-        this.clickedHallId = id; // Set the clicked hall id
       } catch (error) {
         console.error(`Error fetching tables for ID ${id}:`, error);
         throw error;
@@ -111,13 +114,17 @@ export default {
     goToMainOrderView(tableId) {
       // Navigate to main-order-view page with tableId
       router.push(`/home/main-order-view/${tableId}`);
+    },
+    isTableClickable(table) {
+      return !(this.isWaitress && table.waitress.name && table.waitress.name !== this.waitressName);
     }
   }
-};
+}
 </script>
 
+
 <style>
-.check-printed{
+.check-printed {
   background-color: greenyellow;
 }
 
@@ -133,13 +140,18 @@ export default {
   background-color: gray !important;
 }
 
-.logout-head{
+.not-current-waitress {
+  background-color: gray;
+  pointer-events: none;
+}
+
+.logout-head {
   display: flex;
   justify-content: center;
   overflow-x: auto;
 }
 
-.waiterssName{
+.waiterssName {
   white-space: nowrap;
   size: 40px !important;
   color: black;
@@ -147,36 +159,33 @@ export default {
   padding: 20px;
   margin: 10px;
   padding-bottom: 10px;
-  background-color:bisque;
+  background-color: bisque;
   border-radius: 4px 4px 0 0;
 }
 
 .logout-button, .tables-view {
-  /* Add styles for your logout button */
   width: 140px;
-  margin: 10px; /* Adjust margin as needed */
-  padding: 20px 28px; /* Adjust padding as needed */
-   /* Example background color */
-  color: white; /* Example text color */
-  border: none; /* Remove border if needed */
-  cursor: pointer; /* Change cursor to pointer on hover */
+  margin: 10px;
+  padding: 20px 28px;
+  color: white;
+  border: none;
+  cursor: pointer;
   border-radius: 6px;
   font-weight: 600;
   font-size: 16px;
 }
-.logout-button{
+.logout-button {
   background-color: #fd5c63;
   transition: all 0.3s ease-in-out;
 }
-.logout-button:hover{
+.logout-button:hover {
   background-color: #e6313a;
 }
-/* Ensure the body and html are set up correctly */
 html, body {
   margin: 0;
   padding: 0;
-  height: 100%; /* This might be necessary to ensure scrolling context */
-  overflow-x: hidden; /* Prevents horizontal overflow at the root level */
+  height: 100%;
+  overflow-x: hidden;
 }
 
 .layout {
@@ -184,7 +193,6 @@ html, body {
   grid-template-columns: repeat(5, 1fr);
   gap: 15px;
   margin: 20px 20px 100px;
-  
 }
 
 .table {
@@ -244,5 +252,4 @@ html, body {
     padding: 20px;
   }
 }
-
 </style>

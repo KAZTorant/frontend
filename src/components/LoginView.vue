@@ -52,7 +52,11 @@ export default {
           this.$store.commit(`auth/SET_ROLE`, userData.role); // Assuming you are using username for username here
           this.$store.commit(`auth/SET_USERNAME`, userData.username); // Assuming you are using username for username here
           this.$store.commit(`auth/SET_FULL_NAME`, userData.full_name); // Assuming you are using username for username here
-          this.$router.push('/home');
+
+          const rooms = await backendServices.fetchRooms();
+        if (rooms !== null && rooms.length > 0) {
+          this.$router.push('/home/' + rooms[0].id);
+        }
         } catch (error) {
           console.error('Error during login:', error);
           this.output = "Yanlış PİN!";
