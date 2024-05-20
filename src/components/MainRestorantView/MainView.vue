@@ -1,5 +1,3 @@
-// MainComponent.vue
-<!-- MainComponent.vue -->
 <template>
   <div class="logout-head">
     <div class="waiterssName">{{roleDisplayName}}: {{waitressName}}</div>
@@ -35,7 +33,7 @@
 import TableComponent from './TableComponent.vue';
 import HallListComponent from './HallListComponent.vue';
 import backendServices from '../../backend-services/backend-services'; // Import your backendServices object
-import router  from '../../router/'; // Import the router instance
+import router from '../../router/'; // Import the router instance
 import store from '../../store';
 
 export default {
@@ -45,54 +43,56 @@ export default {
   },
   data() {
     return {
-      tables: [
-      
-      ],
-      halls: [
-       
-        // Array of hall objects
-      ],
+      tables: [],
+      halls: [],
       waitressName: "",
       clickedHallId: null, // Add a property to track the clicked hall,
-      roleDisplayName: ""
-    }
+      roleDisplayName: "",
+      fetchRoomsInterval: null // Add a property to store the interval ID
+    };
   },
   created() {
-    // Call fetchRooms method from backendServices during c
     this.waitressName = store.getters['auth/GET_FULL_NAME'];
     this.role = store.getters['auth/GET_ROLE'];
     
-    if(this.role === "admin"){
+    if (this.role === "admin") {
       this.roleDisplayName = "Adminstrator";
-    }else if(this.role === "waitress"){
+    } else if (this.role === "waitress") {
       this.roleDisplayName = "Ofsiant";
-    }else if(this.role === "restaurant"){
+    } else if (this.role === "restaurant") {
       this.roleDisplayName = "Restorant sahibi";
     }
 
     this.fetchRooms();
   },
+  mounted() {
+    // Call fetchRooms every 3 seconds
+    this.fetchRoomsInterval = setInterval(() => {
+      this.fetchRooms();
+    }, 3000);
+  },
+  beforeDestroy() {
+    // Clear the interval when the component is destroyed
+    if (this.fetchRoomsInterval) {
+      clearInterval(this.fetchRoomsInterval);
+    }
+  },
   methods: {
     logout() {
-          this.$store.commit(`auth/SET_AUTHENTICATION`, null);
-          this.$store.commit(`auth/SET_ROLE`, null); // Assuming you are using username for username here
-          this.$store.commit(`auth/SET_USERNAME`, null); 
-          router.push(`/`);
-
-
+      this.$store.commit(`auth/SET_AUTHENTICATION`, null);
+      this.$store.commit(`auth/SET_ROLE`, null); // Assuming you are using username for username here
+      this.$store.commit(`auth/SET_USERNAME`, null); 
+      router.push(`/`);
     },
-
-    // Methods to manage the state
     async fetchRooms() {
       try {
         // Call fetchRooms method from backendServices and update data
         const rooms = await backendServices.fetchRooms();
         this.halls = rooms; // Assuming rooms is an array of table objects
 
-        if(this.halls !== null && this.halls.length > 0) {
+        if (this.halls !== null && this.halls.length > 0) {
           this.clickedHallId = this.halls[0].id; // Set the clicked hall id
-
-          this.fetchTablesByHallId(this.halls[0].id)
+          this.fetchTablesByHallId(this.halls[0].id);
         }
       } catch (error) {
         console.error('Error fetching rooms:', error);
@@ -113,7 +113,7 @@ export default {
       router.push(`/home/main-order-view/${tableId}`);
     }
   }
-}
+};
 </script>
 
 <style>
