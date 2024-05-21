@@ -1,8 +1,8 @@
 <template>
   <div class="order-items-container">
     <div class="order-total">
-        <span>Cəmi:<span>{{ totalPrice }} azn</span></span>
-      </div>
+      <span>Cəmi:<span>{{ totalPrice }} azn</span></span>
+    </div>
     <div class="order-item-menu sticky">
       <div class="order-items-header">
         <span>Adı</span>
@@ -10,7 +10,6 @@
         <span>Qiyməti</span>
         <span>Cəmi</span>
       </div>
-      
     </div>
     <div class="order-items-list">
       <div v-if="orderItems.length === 0" class="empty-message">
@@ -19,10 +18,10 @@
       <div class="order-item" v-for="item in orderItems" :key="item.meal.id">
         <span>{{ item.meal.name }}</span>
         <span class="quantity-container">
-      <button v-if=checkViewPermissionForAdmin() @click="decrementQuantity(item)">-</button>
-      <div class="quantity">{{ item.quantity }}</div>
-      <button @click="incrementQuantity(item)">+</button>
-    </span>
+          <button v-if="checkViewPermissionForAdmin()" @click="decrementQuantity(item)">-</button>
+          <div class="quantity">{{ item.quantity }}</div>
+          <button @click="incrementQuantity(item)">+</button>
+        </span>
         <span>{{ item.meal.price }} azn</span>
         <span>{{ (item.quantity * item.meal.price) }} azn</span>
       </div>
@@ -34,7 +33,7 @@
 import backendServices from '../../backend-services/backend-services';
 import { EventBus } from '../../EventBus';
 import store from '../../store';
-import router  from '../../router/'; // Import the router instance
+import router from '../../router/'; // Import the router instance
 
 export default {
   name: 'OrderItems',
@@ -49,19 +48,20 @@ export default {
       orderItems: [],
     };
   },
-  created() {
+  async created() {
     // Fetch order items when the component is created
-    this.fetchOrderItems();
+    await this.fetchOrderItems();
 
-    EventBus.on('orderItemAdded', () => {
-      this.fetchOrderItems(); // Refresh order items
-    });
+    // Listen for 'orderItemAdded' event
+    EventBus.on('orderItemAdded', this.fetchOrderItems);
+  },
+  beforeUnmount() {
+  EventBus.off('orderItemAdded', this.fetchOrderItems);
   },
   methods: {
-    checkViewPermissionForAdmin(){
+    checkViewPermissionForAdmin() {
       return store.getters['auth/GET_ROLE'] === 'restaurant';
     },
-
     async decrementQuantity(item) {
       if (item.quantity > 0) {
         item.quantity--; // Decrement the quantity locally
@@ -101,43 +101,36 @@ export default {
   },
   computed: {
     totalPrice() {
-    const total = this.orderItems.reduce((acc, item) => acc + item.quantity * item.meal.price, 0);
-    return total; // Ensure two decimal places
-  }
+      const total = this.orderItems.reduce((acc, item) => acc + item.quantity * item.meal.price, 0);
+      return total; // Ensure two decimal places
+    }
   },
 };
 </script>
 
 <style scoped>
-.tables-view{
+.tables-view {
   background-color: orange;
   font-weight: bold;
   transition: all 0.3s ease-in-out
 }
-.tables-view:hover{
+.tables-view:hover {
   background-color: #f7b845;
 }
-
-
 .quantity-container {
   display: flex;
   align-items: center;
 }
-
-
-
 .order-item button {
   width: 17px;
   font-size: 16px; /* Adjust the font size as needed */
   padding: 2px; /* Adjust the padding for button size */
 }
-
 .order-items-container {
   display: flex;
   flex-direction: column;
   overflow-y: auto;
 }
-
 .sticky {
   position: sticky;
   top: 0;
@@ -146,12 +139,11 @@ export default {
   /* Or the color of your app's background */
   z-index: 10;
 }
-
 .order-items-list {
   overflow-y: auto;
 }
 .empty-message {
-  display:flex;
+  display: flex;
   justify-content: center;
   align-items: center;
   padding: 100px 0;
@@ -160,15 +152,13 @@ export default {
   font-weight: 700;
   background-color: #f0f0f0;
 }
-
 .order-items-header,
-.order-item{
+.order-item {
   display: grid;
   grid-template-columns: 150px repeat(3, minmax(50px, 1fr));
   align-items: center;
   gap: 4px;
 }
-
 .order-total {
   border-bottom: 1px solid #ccc;
   padding: 10px;
@@ -176,7 +166,6 @@ export default {
 .order-total span {
   gap: 5px
 }
-
 .order-items-header span,
 .order-item span,
 .order-total span {
@@ -186,15 +175,14 @@ export default {
   font-size: 14px;
 }
 .order-items-header span,
-.order-item span{
+.order-item span {
   border-bottom: 1px solid #ccc;
   padding: 10px;
 }
-.order-item span{
+.order-item span {
   min-height: 60px;
   height: 60px;
 }
-
 .quantity {
   padding: 4px 8px !important; /* Adjust padding as needed */
   font-size: 1.2em; /* Adjust font size as needed */
@@ -207,15 +195,14 @@ export default {
   font-weight: bold;
   /* Makes the header border thicker */
 }
-
 .order-total {
   font-weight: bold;
 }
 @media (max-width: 768px) {
-  .order-items-container{
+  .order-items-container {
     height: 310px;
   }
-  .empty-message{
+  .empty-message {
     height: 235px;
     padding: 0;
   }

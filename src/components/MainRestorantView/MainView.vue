@@ -1,18 +1,16 @@
 <template>
   <div class="logout-head">
-    <div class="waiterssName">{{roleDisplayName}}: {{waitressName}}</div>
+    <div class="waiterssName">{{ roleDisplayName }}: {{ waitressName }}</div>
     <button @click="logout" class="logout-button">Çıxış</button>
   </div>
   <div class="layout">
-    <div v-for="table in tables" :key="table.id" 
-     :class="['table', { 
-                'occupied': table.waitress.name,
-                'waitress-id-zero': table.waitress.id === 0,
-                'waitress-id-not-zero': table.waitress.id !== 0 && !table.print_check,
-                'check-printed': table.print_check,
-                'not-current-waitress': isWaitress && table.waitress.name && table.waitress.name !== waitressName
-              }]" 
-      @click="isTableClickable(table) ? goToMainOrderView(table.id) : null"> 
+    <div v-for="table in tables" :key="table.id" :class="['table', {
+      'occupied': table.waitress.name,
+      'waitress-id-zero': table.waitress.id === 0,
+      'waitress-id-not-zero': table.waitress.id !== 0 && !table.print_check,
+      'check-printed': table.print_check,
+      'not-current-waitress': isWaitress && table.waitress.name && table.waitress.name !== waitressName
+    }]" @click="isTableClickable(table) ? goToMainOrderView(table.id) : null">
       <div>{{ table.number }}</div>
       <div v-if="table.waitress.name">Ofsiant: {{ table.waitress.name }}</div>
       <div v-if="table.total_price">Cemi Hesab: {{ table.total_price }}azn</div>
@@ -22,7 +20,8 @@
   <!-- Container for the fixed halls menu -->
   <div class="halls-container">
     <div class="halls">
-      <div v-for="hall in halls" :key="hall.id" :class="['hall', { 'clicked': hall.id === parseInt(this.$route.params.id) }]"  
+      <div v-for="hall in halls" :key="hall.id"
+        :class="['hall', { 'clicked': hall.id === parseInt(this.$route.params.id) }]"
         @click="fetchTablesByHallId(hall.id)">
         <div>{{ hall.name }}</div>
         <div>{{ hall.description }}</div>
@@ -62,7 +61,7 @@ export default {
     // Call fetchRooms method from backendServices during creation
     this.waitressName = store.getters['auth/GET_FULL_NAME'];
     this.role = store.getters['auth/GET_ROLE'];
-    
+
     if (this.role === "admin") {
       this.roleDisplayName = "Adminstrator";
     } else if (this.role === "waitress") {
@@ -73,15 +72,17 @@ export default {
 
     this.fetchRooms();
     this.fetchTablesByHallId(this.$route.params.id);
-    
-    // Set up interval to fetch tables every 5 seconds
-    this.intervalId = setInterval(() => {
-      this.fetchTablesByHallId(this.$route.params.id);
-    }, 5000);
+
+    if (store.getters['auth/GET_ROLE'] === "admin" || store.getters['auth/GET_ROLE'] === "restaurant") {
+      this.intervalId = setInterval(() => {
+        this.fetchTablesByHallId(this.$route.params.id);
+      }, 5000);
+    }
   },
   beforeUnmount() {
-    // Clear the interval when the component is destroyed
-    clearInterval(this.intervalId);
+    if (store.getters['auth/GET_ROLE'] === "admin" || store.getters['auth/GET_ROLE'] === "restaurant") {
+      clearInterval(this.intervalId);
+    }
   },
   methods: {
     logout() {
@@ -104,7 +105,7 @@ export default {
     async fetchTablesByHallId(id) {
       try {
         this.$router.push('/home/' + id);
-        const tables = await backendServices.fetchTablesByHallId(id); 
+        const tables = await backendServices.fetchTablesByHallId(id);
         this.tables = tables;
       } catch (error) {
         console.error(`Error fetching tables for ID ${id}:`, error);
@@ -113,7 +114,7 @@ export default {
     },
     goToMainOrderView(tableId) {
       // Navigate to main-order-view page with tableId
-      router.push(`/home/main-order-view/${tableId}`);
+      router.push('/home/' + this.$route.params.id + '/main-order-view/' + tableId);
     },
     isTableClickable(table) {
       return !(this.isWaitress && table.waitress.name && table.waitress.name !== this.waitressName);
@@ -163,7 +164,8 @@ export default {
   border-radius: 4px 4px 0 0;
 }
 
-.logout-button, .tables-view {
+.logout-button,
+.tables-view {
   width: 140px;
   margin: 10px;
   padding: 20px 28px;
@@ -174,14 +176,18 @@ export default {
   font-weight: 600;
   font-size: 16px;
 }
+
 .logout-button {
   background-color: #fd5c63;
   transition: all 0.3s ease-in-out;
 }
+
 .logout-button:hover {
   background-color: #e6313a;
 }
-html, body {
+
+html,
+body {
   margin: 0;
   padding: 0;
   height: 100%;
@@ -214,7 +220,8 @@ html, body {
   background-color: #000;
   color: #fff;
   padding: 10px 20px;
-  position: -webkit-sticky; /* For Safari */
+  position: -webkit-sticky;
+  /* For Safari */
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -231,21 +238,26 @@ html, body {
   position: fixed;
   bottom: 0;
   left: 0;
-  width: 100%; /* Ensures the menu stretches across the viewport */
-  z-index: 1000; /* Ensures the menu appears above other content */
+  width: 100%;
+  /* Ensures the menu stretches across the viewport */
+  z-index: 1000;
+  /* Ensures the menu appears above other content */
 }
+
 @media (max-width: 1008px) {
   .layout {
     grid-template-columns: repeat(4, 1fr);
     padding: 20px;
   }
 }
+
 @media (max-width: 768px) {
   .layout {
     grid-template-columns: repeat(3, 1fr);
     padding: 20px;
   }
 }
+
 @media (max-width: 558px) {
   .layout {
     grid-template-columns: repeat(2, 1fr);
