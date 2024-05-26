@@ -80,9 +80,7 @@ export default {
     }
   },
   beforeUnmount() {
-    if (store.getters['auth/GET_ROLE'] === "admin" || store.getters['auth/GET_ROLE'] === "restaurant") {
       clearInterval(this.intervalId);
-    }
   },
   methods: {
     logout() {

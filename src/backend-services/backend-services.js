@@ -293,9 +293,22 @@ async fetchTableDetails(tableId) {
     console.error('Error fetching table details:', error);
     throw error;
   }
+},
+async getNetworkAddress() {
+  try {
+    const response = await axiosInstance.get(`/api/users/network-ip/`, {
+      headers: {
+        'accept': 'application/json',
+        'X-PIN': store.getters['auth/GET_USERNAME']
+      }
+    });
+    return response.data;
+  } catch (error) {
+    // Handle error
+    console.error('Error fetching network address:', error);
+    throw error;
+  }
 }
-
-
   // Define other API functions here
 };
 

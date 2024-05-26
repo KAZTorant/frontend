@@ -1,6 +1,5 @@
 <template>
   <div class="login-container">
-  
     <div name="login-form" class="login-form">     
       <div class="mb-3 username-input">
         <label for="username">PIN: </label>
@@ -13,25 +12,44 @@
         <button class="btn control enter" type="submit" @click="login()">Daxil ol</button>
       </div>
     </div>
-    <h3 class="output">{{ output }}</h3>  
+    <h3 class="output">{{ output }}</h3>
+    <div v-if="isDesktop && networkAddress" class="qr-code">
+      <qrcode :value="networkAddress" :size="200"></qrcode>
+      <p>Sistemə daxil ol</p>
+    </div>
   </div>
 </template>
 
 <script>
+import Qrcode from 'vue-qrcode';
 import backendServices from '../backend-services/backend-services'; // Update the path accordingly
 import router from '@/router/'; // Import the router instance
 
 export default {
   name: 'LoginView',
+  components: {
+    Qrcode
+  },
   data() {
     return {
       input: {
         username: ""
       },
       output: "",
+      networkAddress: "",
+      isDesktop: window.innerWidth >= 1024 // initial value
     }
   },
   methods: {
+    async getNetworkAddress() {
+      const privateIpAddress = await this.getLocalIP();
+      const networkAddress = `http://${privateIpAddress}:8080/`; // Example static IP
+      return networkAddress;
+    },
+    async getLocalIP() {
+      const result = await await backendServices.getNetworkAddress();
+      return result.network_ip;
+    },
     pressKey(n) {
       this.input.username += n.toString();
     },
@@ -41,22 +59,17 @@ export default {
     async login() {
       if (this.input.username != "") {
         console.log(this.input.username);
-
         try {
-          // Call the login method from backendServices
           const userData = await backendServices.login(this.input.username);
-
           this.output = "Authentication complete";
-          // Dummy authentication logic, replace with actual logic
           this.$store.commit(`auth/SET_AUTHENTICATION`, true);
-          this.$store.commit(`auth/SET_ROLE`, userData.role); // Assuming you are using username for username here
-          this.$store.commit(`auth/SET_USERNAME`, userData.username); // Assuming you are using username for username here
-          this.$store.commit(`auth/SET_FULL_NAME`, userData.full_name); // Assuming you are using username for username here
-
+          this.$store.commit(`auth/SET_ROLE`, userData.role);
+          this.$store.commit(`auth/SET_USERNAME`, userData.username);
+          this.$store.commit(`auth/SET_FULL_NAME`, userData.full_name);
           const rooms = await backendServices.fetchRooms();
-        if (rooms !== null && rooms.length > 0) {
-          this.$router.push('/home/' + rooms[0].id);
-        }
+          if (rooms !== null && rooms.length > 0) {
+            this.$router.push('/home/' + rooms[0].id);
+          }
         } catch (error) {
           console.error('Error during login:', error);
           this.output = "Yanlış PİN!";
@@ -64,7 +77,17 @@ export default {
       } else {
         this.output = "Boş qeyd edilə bilməz!";
       }
+    },
+    handleResize() {
+      this.isDesktop = window.innerWidth >= 1024;
     }
+  },
+  async created() {
+    this.networkAddress = await this.getNetworkAddress();
+    window.addEventListener('resize', this.handleResize);
+  },
+  beforeDestroy() {
+    window.removeEventListener('resize', this.handleResize);
   }
 }
 </script>
@@ -155,4 +178,8 @@ export default {
   margin-top: 20px;
 }
 
+.qr-code {
+  text-align: center;
+  margin-top: 20px;
+}
 </style>
