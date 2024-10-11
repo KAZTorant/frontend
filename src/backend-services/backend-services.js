@@ -49,22 +49,6 @@ const backendServices = {
     }
   },
 
-  async fetchTablesByHallId(id) {
-    try {
-      const response = await axiosInstance.get(`/api/tables/${id}/tables/`, {
-        headers: {
-          'accept': 'application/json',
-          'X-PIN': store.getters['auth/GET_USERNAME']
-        }
-      });
-      return response.data;
-    } catch (error) {
-      // Handle error
-      console.error(`Error fetching tables for ID ${id}:`, error);
-      throw error;
-    }
-  },
-
   async createOrder(tableId) {
     try {
       const response = await axiosInstance.post(`/api/orders/${tableId}/create/`, null, {
@@ -260,6 +244,25 @@ const backendServices = {
       throw error;
     }
   },
+
+  async combineTables(tableId, otherTableIds) {
+    try {
+      const response = await axiosInstance.post(`/api/orders/${tableId}/join-tables-orders/`, {
+        other_table_ids: otherTableIds 
+      }, {
+        headers: {
+          'accept': 'application/json',
+          'X-PIN': store.getters['auth/GET_USERNAME']
+        }
+      });
+      return response.data;
+    } catch (error) {
+      // Xətanı idarə et
+      console.error(`Error printing check for order ID ${tableId}:`, error);
+      throw error;
+    }
+  },
+  
 
   async deleteCheck(tableId) {
     try {
