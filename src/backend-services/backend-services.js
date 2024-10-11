@@ -80,6 +80,22 @@ const backendServices = {
       throw error;
     }
   },
+  
+  async listOrders(tableId) {
+    try {
+      const response = await axiosInstance.get(`/api/orders/${tableId}/list-orders/`, {
+        headers: {
+          'accept': 'application/json',
+          'X-PIN': store.getters['auth/GET_USERNAME']
+        }
+      });
+      return response.data;
+    } catch (error) {
+      // Handle error
+      console.error(`Error listing order items for table ID ${tableId}:`, error);
+      throw error;
+    }
+  },
 
   async fetchMealCategories() {
     try {

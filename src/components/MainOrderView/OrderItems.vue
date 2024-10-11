@@ -1,5 +1,21 @@
 <template>
   <div class="order-items-container">
+    <div v-if="!(mainOrder && mainOrder.is_main && otherOrders.length === 0)" class="order-container">
+  <div v-if="mainOrder" class="order-item-box main-order">
+    <div class="order-item-header">
+      <button class="main-order-button">Masa {{ mainOrder.pk }} (Əsas Masa)</button>
+    </div>
+  </div>
+
+  <!-- Qalan masalar (is_main: false) -->
+  <div class="button-container">
+    <div v-for="item in otherOrders" :key="item.pk" class="order-item-button">
+      <button class="order-button">Masa {{ item.pk }}</button>
+    </div>
+  </div>
+</div>
+
+    
     <div class="order-total">
       <span>Cəmi:<span>{{ totalPrice }} azn</span></span>
     </div>
@@ -33,7 +49,7 @@
 import backendServices from '../../backend-services/backend-services';
 import { EventBus } from '../../EventBus';
 import store from '../../store';
-import router from '../../router/'; // Import the router instance
+import router from '../../router/'; 
 
 export default {
   name: 'OrderItems',
@@ -45,18 +61,31 @@ export default {
   },
   data() {
     return {
+      mainOrder: null, 
+      otherOrders: [],
       orderItems: [],
     };
   },
   async created() {
-    // Fetch order items when the component is created
+    try {
+      // Calling listOrders via API
+      const orders = await backendServices.listOrders(this.tableId);
+      
+      // Finding and separating the main order and other orders
+      this.mainOrder = orders.find(order => order.is_main);
+      this.otherOrders = orders.filter(order => !order.is_main);
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+    }
+
+    // Loading order items as well
     await this.fetchOrderItems();
 
     // Listen for 'orderItemAdded' event
     EventBus.on('orderItemAdded', this.fetchOrderItems);
   },
   beforeUnmount() {
-  EventBus.off('orderItemAdded', this.fetchOrderItems);
+    EventBus.off('orderItemAdded', this.fetchOrderItems);
   },
   methods: {
     checkViewPermissionForAdmin() {
@@ -64,45 +93,44 @@ export default {
     },
     async decrementQuantity(item) {
       if (item.quantity > 0) {
-        item.quantity--; // Decrement the quantity locally
+        item.quantity--;
         try {
-          // Call backend service to remove order item
+          // API call to the backend service
           await backendServices.deleteOrderItem(this.tableId, item.meal.id, 1);
           this.fetchOrderItems();
         } catch (error) {
           console.error('Error deleting order item:', error);
-          // Revert the local quantity change if there's an error
-          item.quantity++;
+          item.quantity++; // Revert the quantity on error
         }
       }
     },
     async incrementQuantity(item) {
-      item.quantity++; // Increment the quantity locally
+      // Increasing quantity locally
+      item.quantity++; 
       try {
-        // Call backend service to add order item
+        // API call to the backend service
         await backendServices.addOrderItem(this.tableId, item.meal.id, 1);
         this.fetchOrderItems();
       } catch (error) {
         console.error('Error adding order item:', error);
-        // Revert the local quantity change if there's an error
         item.quantity--;
       }
     },
     async fetchOrderItems() {
       try {
-        // Assuming the table ID is passed as a prop named "tableId"
+        // Fetching the order items
         const response = await backendServices.listOrderItems(this.tableId);
-        this.orderItems = response; // Update the orderItems data with the fetched items
+        this.orderItems = response;
       } catch (error) {
         console.error('Error fetching order items:', error);
-        // Handle error as needed
       }
     }
   },
   computed: {
     totalPrice() {
+      // Calculating the total price of order items
       const total = this.orderItems.reduce((acc, item) => acc + item.quantity * item.meal.price, 0);
-      return total; // Ensure two decimal places
+      return total;
     }
   },
 };
@@ -130,6 +158,7 @@ export default {
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  border-top: 1px solid #ccc;
 }
 .sticky {
   position: sticky;
@@ -184,20 +213,59 @@ export default {
   height: 60px;
 }
 .quantity {
-  padding: 4px 8px !important; /* Adjust padding as needed */
-  font-size: 1.2em; /* Adjust font size as needed */
-  border: 1px solid #ccc; /* Add border for better visibility */
-  border-radius: 5px; /* Add border radius for rounded corners */
-  min-width: 20px; /* Adjust minimum width as needed */
-  text-align: center; /* Center the quantity text */
+  padding: 4px 8px !important;
+  font-size: 1.2em;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  min-width: 20px;
+  text-align: center;
 }
 .order-items-header {
   font-weight: bold;
-  /* Makes the header border thicker */
 }
 .order-total {
   font-weight: bold;
 }
+.order-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center; 
+  align-items: center; 
+  gap: 5px;
+  padding: 5px;
+}
+
+.button-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.order-button, .main-order-button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 20px 30px;
+  font-size: 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  width: 300px;
+  transition: background-color 0.3s;
+}
+
+.main-order-button {
+  background-color: #008CBA;
+}
+
+.main-order-button:hover {
+  background-color: #007B9A;
+}
+
+.order-button:hover {
+  background-color: #45a049;
+}
+
 @media (max-width: 768px) {
   .order-items-container {
     height: 310px;
