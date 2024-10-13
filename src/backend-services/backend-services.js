@@ -65,21 +65,23 @@ const backendServices = {
     }
   },
 
-  async listOrderItems(tableId) {
+  async listOrderItems(tableId, orderId) {
     try {
       const response = await axiosInstance.get(`/api/orders/${tableId}/list-order-items/`, {
         headers: {
           'accept': 'application/json',
           'X-PIN': store.getters['auth/GET_USERNAME']
+        },
+        params: {
+          order_id: orderId // Burada order_id parametrlər olaraq əlavə edilir
         }
       });
       return response.data;
     } catch (error) {
-      // Handle error
-      console.error(`Error listing order items for table ID ${tableId}:`, error);
+      console.error(`Error listing order items for table ID ${tableId} and order ID ${orderId}:`, error);
       throw error;
     }
-  },
+  },  
   
   async listOrders(tableId) {
     try {
