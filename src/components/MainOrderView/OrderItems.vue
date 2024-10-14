@@ -21,11 +21,11 @@
           :decrement-quantity="decrementQuantity"
         />
       </div>
-
+        
       <div class="button-container">
         <div v-for="item in otherOrders" :key="item.pk" class="order-item-button">
           <button class="order-button" @click="toggleDropdown(item.pk)">
-            <span v-if="showDropdown === mainOrder.pk">&#9650;</span>
+            <span v-if="showDropdown === item.pk">&#9650;</span>
             <span v-else>&#9660;</span>
             Masa {{ item.pk }}
           </button>
@@ -36,7 +36,7 @@
             :order-items="orderItems"
             :total-price="totalPrice"
             :check-view-permission-for-admin="checkViewPermissionForAdmin"
-            :increment-quantity="incrementQuantity"
+            :increment-quantity="incrementQuantity" 
             :decrement-quantity="decrementQuantity"
           />
         </div>
@@ -79,6 +79,7 @@ export default {
       otherOrders: [],
       orderItems: [],
       showDropdown: null,
+      selectedOrderId: null,
     };
   },
   async created() {
@@ -101,41 +102,51 @@ export default {
       return store.getters['auth/GET_ROLE'] === 'restaurant';
     },
     async toggleDropdown(orderId) {
-      if (this.showDropdown === orderId) {
-        this.showDropdown = null;
-        return;
-      }
-      this.showDropdown = orderId;
+    if (this.showDropdown === orderId) {
+      this.showDropdown = null;
+      EventBus.emit('selectedOrderId', null);
+      return;
+    }
+    
+    this.showDropdown = orderId;
+    EventBus.emit('selectedOrderId', orderId);
+    
+    // Check if items are already loaded for the selected order
+    if (this.orderItems.length === 0 || this.selectedOrderId !== orderId) {
       await this.fetchOrderItems(orderId);
-    },
-    async decrementQuantity(item) {
-      if (item.quantity > 0) {
-        item.quantity--;
-        try {
-          await backendServices.deleteOrderItem(this.tableId, item.meal.id, 1);
-          this.fetchOrderItems();
-        } catch (error) {
-          console.error('Error deleting order item:', error);
-          item.quantity++;
-        }
-      }
-    },
-    async incrementQuantity(item) {
-      item.quantity++;
+    }
+  },
+  async incrementQuantity(item) {
       try {
-        await backendServices.addOrderItem(this.tableId, item.meal.id, 1);
-        this.fetchOrderItems();
+        await backendServices.addOrderItem(this.tableId, item.meal.id, 1, item.orderId);
+        item.quantity++;
+        this.fetchOrderItems(item.orderId); 
       } catch (error) {
         console.error('Error adding order item:', error);
-        item.quantity--;
+      }
+    },
+    
+    async decrementQuantity(item) {
+      if (item.quantity > 0) {
+        try {
+          await backendServices.deleteOrderItem(this.tableId, item.meal.id, 1, item.orderId);
+          item.quantity--;
+          this.fetchOrderItems(item.orderId); 
+        } catch (error) {
+          console.error('Error deleting order item:', error);
+        }
       }
     },
     async fetchOrderItems(orderId = null) {
       try {
-        const response = await backendServices.listOrderItems(this.tableId, orderId || this.mainOrder?.pk);
-        this.orderItems = response;
+          const selectedOrderId = orderId || this.showDropdown; 
+          const response = await backendServices.listOrderItems(this.tableId, selectedOrderId);
+          this.orderItems = response.map(item => ({
+            ...item,
+            orderId: selectedOrderId 
+          }));
       } catch (error) {
-        console.error('Error fetching order items:', error);
+          console.error('Sifariş məlumatları yüklənərkən xəta baş verdi:', error);
       }
     }
   },

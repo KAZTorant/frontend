@@ -281,12 +281,13 @@ export default {
   }
 
   try {
-    const otherTableIds = [this.selectedTable]; 
+    const orderId = [this.selectedTable]; 
 
-    await backendServices.combineTables(this.tableId, otherTableIds); 
+    await backendServices.combineTables(this.tableId, orderId); 
 
     this.showSuccess('Masa birləşdirildi!'); 
     this.cancelCombine();
+    router.back();
   } catch (error) {
     console.error('Error combining tables:', error);
     this.showError('Masa birləşdirilərkən xəta baş verdi. Zəhmət olmasa, daha sonra yenidən cəhd edin.'); 

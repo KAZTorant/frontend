@@ -135,11 +135,12 @@ const backendServices = {
     }
   },
 
-  async addOrderItem(tableId, mealId, quantity) {
+  async addOrderItem(tableId, mealId, quantity, orderId) {
     try {
       const response = await axiosInstance.post(`/api/orders/${tableId}/add-order-item/`, {
         meal_id: mealId,
-        quantity: quantity
+        quantity: quantity,
+        order_id: orderId
       }, {
         headers: {
           'accept': 'application/json',
@@ -155,7 +156,7 @@ const backendServices = {
     }
   },
 
-  async deleteOrderItem(tableId, mealId, quantity) {
+  async deleteOrderItem(tableId, mealId, quantity, orderId) {
     try {
       const response = await axiosInstance.delete(`/api/orders/${tableId}/delete-order-item/`, {
         headers: {
@@ -165,7 +166,8 @@ const backendServices = {
         },
         data: {
           meal_id: mealId,
-          quantity: quantity
+          quantity: quantity,
+          order_id: orderId
         }
       });
       return response.data;
@@ -190,7 +192,7 @@ const backendServices = {
       return response.data;
     } catch (error) {
       // Handle error
-      console.error(`Error changing table for order ID ${orderId}:`, error);
+      console.error(`Error changing table for order ID ${newTableId}:`, error);
       throw error;
     }
   },
@@ -207,7 +209,7 @@ const backendServices = {
       return response.data;
     } catch (error) {
       // Handle error
-      console.error(`Error closing table for order ID ${orderId}:`, error);
+      console.error(`Error closing table for order ID ${tableId}:`, error);
       throw error;
     }
   },
@@ -263,10 +265,10 @@ const backendServices = {
     }
   },
 
-  async combineTables(tableId, otherTableIds) {
+  async combineTables(tableId, orderId) {
     try {
       const response = await axiosInstance.post(`/api/orders/${tableId}/join-tables-orders/`, {
-        other_table_ids: otherTableIds 
+        other_table_ids: orderId 
       }, {
         headers: {
           'accept': 'application/json',
