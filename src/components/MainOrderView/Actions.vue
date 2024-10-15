@@ -31,6 +31,34 @@
       </div>
     </div>
 
+<!-- Modal for combine action -->
+<div v-if="showCombine" class="modal">
+  <div class="modal-content">
+    <h2>Masanı birləşdir</h2>
+    <div class="modal-content-main hall">
+      <div>
+        <label for="hall">Zal Seç:</label>
+        <select id="hall" v-model="selectedHall" @change="fetchTablesForCombine(selectedHall)">
+          <!-- Options for halls -->
+          <option v-for="(hall, index) in halls" :key="index" :value="hall.id">{{ hall.name }}</option>
+        </select>
+      </div>
+      <div>
+        <label for="table">Masa seç:</label>
+        <select id="table" v-model="selectedTable">
+          <!-- Options for tables -->
+          <option v-for="(table, index) in tables" :key="index" :value="table.id">{{ table.number }}</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-content-button">
+      <button class="confirm-button" @click="confirmCombine">Birləşdir</button>
+      <button class="cancel-button" @click="cancelCombine">Ləğv et</button>
+    </div>
+  </div>
+</div>
+
+
     <div v-if="showWaitressChangeModal" class="modal">
       <div class="modal-content">
         <h2>Ofsianti dəyiş</h2>
@@ -92,8 +120,10 @@ export default {
         { id: 2, label: 'Ofsianti dəyiş', method: 'changeWaitress' },
         { id: 3, label: 'Masanı bağla', method: 'cancelOrder' },
         { id: 4, label: 'Masanı köçür', method: 'openTransferModal' },
+        { id: 6, label: 'Masanı birləşdir', method: 'openCombine' },
         // Add more actions as needed
       ],
+      showCombine: false,
       showTransferModal: false,
       selectedHall: null,
       selectedTable: null,
@@ -185,6 +215,10 @@ export default {
       } else if (methodName === 'cancelPrintOrder') {
         // Show confirmation pop-up for canceling order
         await this.callCanelPrintOrder(this.tableId);
+      } else if (methodName === 'openCombine') {
+        this.showCombine = true;
+        await this.fetchHalls();
+        await this.fetchTablesForCombine(this.selectedHall);
       }
       else {
         this.performAction(methodName);
@@ -215,8 +249,8 @@ export default {
         console.error('Error cancelling check:', error);
         this.showError('Çeki ləğv etmədə problem yarandı.');
       }
-},
-changeButtonColor(methodName, color) {
+    },
+    changeButtonColor(methodName, color) {
       const button = this.$el.querySelector(`.action-button[data-method="${methodName}"]`);
       if (button) {
         button.style.backgroundColor = color;
@@ -239,7 +273,35 @@ changeButtonColor(methodName, color) {
           });
       }
     },
-    async fetchTablesForHall(selectedHallId) {
+    
+    async confirmCombine() {
+  if (!this.selectedTable) {
+    this.showError('Zəhmət olmasa, bir masa seçin.'); // Masa seçməyinizi istə
+    return;
+  }
+
+  try {
+    const orderId = [this.selectedTable]; 
+
+    await backendServices.combineTables(this.tableId, orderId); 
+
+    this.showSuccess('Masa birləşdirildi!'); 
+    this.cancelCombine();
+    router.back();
+  } catch (error) {
+    console.error('Error combining tables:', error);
+    this.showError('Masa birləşdirilərkən xəta baş verdi. Zəhmət olmasa, daha sonra yenidən cəhd edin.'); 
+  }
+},
+
+cancelCombine() {
+  this.showCombine = false; 
+  this.selectedTable = null; 
+  this.tables = [];
+},
+
+
+  async fetchTablesForHall(selectedHallId) {
       try {
         const tables = await backendServices.fetchTablesByHallId(selectedHallId);
         this.tables = tables.filter(table => table.waitress.id === 0); // Filter tables where waitress.id is 0
@@ -255,6 +317,26 @@ changeButtonColor(methodName, color) {
         this.showError('Error fetching tables. Please try again later.'); // Show error popup
       }
     },
+    async fetchTablesForCombine(selectedHallId) {
+    try {
+      console.log(this.tableId)
+      const tables = await backendServices.fetchTablesByHallId(selectedHallId);
+
+      this.tables = tables.filter(table => table.waitress.id !== 0 && table.id !== this.tableId); 
+
+      if (this.tables.length === 0) {
+        this.showError('Zalda dolu masa yoxdur.');
+      }
+
+      if (this.tables.length > 0) {
+        this.selectedTable = this.tables[0].id;
+      }
+    } catch (error) {
+      console.error(`Error fetching tables for ID ${selectedHallId}:`, error);
+      this.showError('Zalda masalar gətirilərkən xəta baş verdi.');
+    }
+  },
+
     async fetchHalls() {
       try {
         // Call fetchRooms method from backendServices and update data
@@ -328,7 +410,7 @@ changeButtonColor(methodName, color) {
   padding: 20px 30px;
 }
 .action-button{
-  width: 120px;
+  min-width: 130px;
   height: 58px;
   margin-bottom: 10px;
   margin-top: 10px;
