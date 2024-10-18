@@ -1,42 +1,89 @@
 <template>
   <div class="order-items-container">
-    <div class="order-total">
-      <span>Cəmi:<span>{{ totalPrice }} azn</span></span>
-    </div>
-    <div class="order-item-menu sticky">
-      <div class="order-items-header">
-        <span>Adı</span>
-        <span>Sayı</span>
-        <span>Qiyməti</span>
-        <span>Cəmi</span>
+    <div class="order-container">
+      <!-- Display mainOrder if it exists -->
+      <div v-if="mainOrder" class="order-item-box main-order">
+        <div class="order-item-header">
+          <button class="order-button" @click="toggleDropdown(mainOrder.pk)">
+            <span>
+              <font-awesome-icon class="order-icon" :class="{ rotated: showDropdown === mainOrder.pk, closed: showDropdown !== mainOrder.pk }" icon="angle-right" />
+            </span>
+            Sifariş {{ mainOrder.pk }} (Əsas)
+          </button>
+        </div>
+
+        <OrderDropdown
+          v-if="showDropdown === mainOrder.pk"
+          :show-dropdown="showDropdown === mainOrder.pk"
+          :order-items="orderItems"
+          :total-price="totalPrice"
+          :check-view-permission-for-admin="checkViewPermissionForAdmin"
+          :increment-quantity="incrementQuantity"
+          :decrement-quantity="decrementQuantity"
+        />
       </div>
-    </div>
-    <div class="order-items-list">
-      <div v-if="orderItems.length === 0" class="empty-message">
-        <p>Yemək əlavə etməmisiniz.</p>
+
+      <!-- Display otherOrders -->
+      <div class="button-container">
+        <div v-for="item in otherOrders" :key="item.pk" class="order-item-button order-item-box">
+          <button class="order-button" @click="toggleDropdown(item.pk)">
+            <span>
+              <font-awesome-icon class="order-icon" :class="{ rotated: showDropdown === item.pk, closed: showDropdown !== item.pk }" icon="angle-right" />
+            </span>
+            Sifariş {{ item.pk }}
+          </button>
+
+          <OrderDropdown
+            v-if="showDropdown === item.pk"
+            :show-dropdown="showDropdown === item.pk"
+            :order-items="orderItems"
+            :total-price="totalPrice"
+            :check-view-permission-for-admin="checkViewPermissionForAdmin"
+            :increment-quantity="incrementQuantity"
+            :decrement-quantity="decrementQuantity"
+          />
+        </div>
       </div>
-      <div class="order-item" v-for="item in orderItems" :key="item.meal.id">
-        <span>{{ item.meal.name }}</span>
-        <span class="quantity-container">
-          <button v-if="checkViewPermissionForAdmin()" @click="decrementQuantity(item)">-</button>
-          <div class="quantity">{{ item.quantity }}</div>
-          <button @click="incrementQuantity(item)">+</button>
-        </span>
-        <span>{{ item.meal.price }} azn</span>
-        <span>{{ (item.quantity * item.meal.price) }} azn</span>
+
+      <!-- Only display Default order if there is no mainOrder and no otherOrders -->
+      <div v-if="!mainOrder && otherOrders.length === 0" class="order-item-box">
+        <div class="order-item-header">
+          <button class="order-button" @click="toggleDropdown('default')">
+            <span>
+              <font-awesome-icon class="order-icon" :class="{ rotated: showDropdown !== 'default', closed: showDropdown === 'default' }" icon="angle-right" />
+            </span>
+            Sifariş (Əsas)
+          </button>
+        </div>
+        <OrderDropdown
+          v-if="showDropdown !== 'default'"
+          :show-dropdown="showDropdown !== 'default'"
+          :order-items="orderItems"
+          :total-price="totalPrice"
+          :check-view-permission-for-admin="checkViewPermissionForAdmin"
+          :increment-quantity="incrementQuantity"
+          :decrement-quantity="decrementQuantity"
+        />
       </div>
     </div>
   </div>
 </template>
 
 <script>
+import OrderDropdown from './OrderDropdown.vue';
 import backendServices from '../../backend-services/backend-services';
 import { EventBus } from '../../EventBus';
 import store from '../../store';
-import router from '../../router/'; // Import the router instance
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { faAngleRight } from '@fortawesome/free-solid-svg-icons';
+
+library.add(faAngleRight);
 
 export default {
   name: 'OrderItems',
+  components: {
+    OrderDropdown,
+  },
   props: {
     tableId: {
       type: Number,
@@ -45,166 +92,178 @@ export default {
   },
   data() {
     return {
+      mainOrder: null,
+      otherOrders: [],
       orderItems: [],
+      showDropdown: null,
+      selectedOrderId: null,
     };
   },
   async created() {
-    // Fetch order items when the component is created
-    await this.fetchOrderItems();
+    await this.fetchOrders(); 
+    await this.fetchOrderItems(); 
 
-    // Listen for 'orderItemAdded' event
-    EventBus.on('orderItemAdded', this.fetchOrderItems);
+    if (this.mainOrder) {
+      this.showDropdown = this.mainOrder.pk; 
+    }
+    EventBus.on('orderItemAdded', this.handleOrderItemAdded); 
+
   },
   beforeUnmount() {
-  EventBus.off('orderItemAdded', this.fetchOrderItems);
+    EventBus.off('orderItemAdded', this.handleOrderItemAdded);
   },
   methods: {
     checkViewPermissionForAdmin() {
       return store.getters['auth/GET_ROLE'] === 'restaurant';
     },
-    async decrementQuantity(item) {
-      if (item.quantity > 0) {
-        item.quantity--; // Decrement the quantity locally
-        try {
-          // Call backend service to remove order item
-          await backendServices.deleteOrderItem(this.tableId, item.meal.id, 1);
-          this.fetchOrderItems();
-        } catch (error) {
-          console.error('Error deleting order item:', error);
-          // Revert the local quantity change if there's an error
-          item.quantity++;
+    async toggleDropdown(orderId) {
+      // If the clicked order is already open, close it
+      if (this.showDropdown === orderId) {
+        this.showDropdown = null; 
+        EventBus.emit('selectedOrderId', null);
+      } else {
+        // Close any open dropdown and open the clicked one
+        this.showDropdown = orderId;
+        EventBus.emit('selectedOrderId', orderId);
+
+        // Check if items are already loaded for the selected order
+        if (this.orderItems.length === 0 || this.selectedOrderId !== orderId) {
+          await this.fetchOrderItems(orderId);
         }
       }
     },
     async incrementQuantity(item) {
-      item.quantity++; // Increment the quantity locally
       try {
-        // Call backend service to add order item
-        await backendServices.addOrderItem(this.tableId, item.meal.id, 1);
-        this.fetchOrderItems();
+        await backendServices.addOrderItem(this.tableId, item.meal.id, 1, item.orderId);
+        item.quantity++;
+        this.fetchOrderItems(item.orderId); 
+        EventBus.emit('orderItemAdded');
       } catch (error) {
         console.error('Error adding order item:', error);
-        // Revert the local quantity change if there's an error
-        item.quantity--;
       }
     },
-    async fetchOrderItems() {
-      try {
-        // Assuming the table ID is passed as a prop named "tableId"
-        const response = await backendServices.listOrderItems(this.tableId);
-        this.orderItems = response; // Update the orderItems data with the fetched items
-      } catch (error) {
-        console.error('Error fetching order items:', error);
-        // Handle error as needed
+    
+    async decrementQuantity(item) {
+      if (item.quantity > 0) {
+        try {
+          await backendServices.deleteOrderItem(this.tableId, item.meal.id, 1, item.orderId);
+          item.quantity--;
+          this.fetchOrderItems(item.orderId); 
+          EventBus.emit('orderItemAdded');
+        } catch (error) {
+          console.error('Error deleting order item:', error);
+        }
       }
+    },
+    async fetchOrders() {
+      try {
+        const orders = await backendServices.listOrders(this.tableId);
+        this.mainOrder = orders.find(order => order.is_main);
+        this.otherOrders = orders.filter(order => !order.is_main);
+        if (this.mainOrder && this.otherOrders.length === 0) {
+          this.showDropdown = this.mainOrder.pk;
+        } 
+      } catch (error) {
+        console.error('Error fetching orders:', error);
+      }
+    },
+    async fetchOrderItems(orderId = null) {
+      try {
+        const selectedOrderId = orderId || this.showDropdown; 
+        const response = await backendServices.listOrderItems(this.tableId, selectedOrderId);
+        this.orderItems = response.map(item => ({
+          ...item,
+          orderId: selectedOrderId 
+        }));
+      } catch (error) {
+        console.error('Sifariş məlumatları yüklənərkən xəta baş verdi:', error);
+      }
+    },
+    async handleOrderItemAdded() {
+      await this.fetchOrders();
+      await this.fetchOrderItems(); 
     }
   },
   computed: {
     totalPrice() {
-      const total = this.orderItems.reduce((acc, item) => acc + item.quantity * item.meal.price, 0);
-      return total; // Ensure two decimal places
+      return this.orderItems.reduce((acc, item) => acc + item.quantity * item.meal.price, 0);
     }
   },
 };
 </script>
 
 <style scoped>
-.tables-view {
-  background-color: orange;
-  font-weight: bold;
-  transition: all 0.3s ease-in-out
-}
-.tables-view:hover {
-  background-color: #f7b845;
-}
-.quantity-container {
-  display: flex;
-  align-items: center;
-}
-.order-item button {
-  width: 17px;
-  font-size: 16px; /* Adjust the font size as needed */
-  padding: 2px; /* Adjust the padding for button size */
-}
+
 .order-items-container {
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  border-top: 1px solid #ccc;
 }
-.sticky {
-  position: sticky;
-  top: 0;
-  /* Adjust if you have a top bar */
-  background-color: white;
-  /* Or the color of your app's background */
-  z-index: 10;
+.order-item-box{
+  background-color: #efefef;
 }
-.order-items-list {
-  overflow-y: auto;
-}
-.empty-message {
+.order-container {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  justify-content: center; 
+  padding: 10px 5px;
+}
+.main-order{
+  margin-bottom: 10px ;
+}
+
+
+.button-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.order-button {
+  background-color: #efefef;
+  color: black;
+  font-weight: 500;
+  border: none;
+  padding: 20px;
+  font-size: 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  width: 100%;
+  transition: background-color 0.3s;
+  display: flex;
   align-items: center;
-  padding: 100px 0;
+  justify-content: start;
+  gap: 30px;
+}
+
+.order-button span .order-icon {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: black;
+  border-radius: 50%;
+  cursor: pointer;
   font-size: 18px;
-  color: #333;
-  font-weight: 700;
-  background-color: #f0f0f0;
+  transition: transform 0.3s ease; 
 }
-.order-items-header,
-.order-item {
-  display: grid;
-  grid-template-columns: 150px repeat(3, minmax(50px, 1fr));
-  align-items: center;
-  gap: 4px;
+
+.order-button span .order-icon.rotated {
+  transform: rotate(90deg);
+  transition: transform 0.3s ease;
 }
-.order-total {
-  border-bottom: 1px solid #ccc;
-  padding: 10px;
+
+.order-button span .order-icon.closed {
+  transform: rotate(0deg);
+  transition: transform 0.3s ease;
 }
-.order-total span {
-  gap: 5px
-}
-.order-items-header span,
-.order-item span,
-.order-total span {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 14px;
-}
-.order-items-header span,
-.order-item span {
-  border-bottom: 1px solid #ccc;
-  padding: 10px;
-}
-.order-item span {
-  min-height: 60px;
-  height: 60px;
-}
-.quantity {
-  padding: 4px 8px !important; /* Adjust padding as needed */
-  font-size: 1.2em; /* Adjust font size as needed */
-  border: 1px solid #ccc; /* Add border for better visibility */
-  border-radius: 5px; /* Add border radius for rounded corners */
-  min-width: 20px; /* Adjust minimum width as needed */
-  text-align: center; /* Center the quantity text */
-}
-.order-items-header {
-  font-weight: bold;
-  /* Makes the header border thicker */
-}
-.order-total {
-  font-weight: bold;
-}
+
 @media (max-width: 768px) {
   .order-items-container {
     height: 310px;
-  }
-  .empty-message {
-    height: 235px;
-    padding: 0;
   }
 }
 </style>

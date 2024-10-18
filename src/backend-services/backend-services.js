@@ -49,22 +49,6 @@ const backendServices = {
     }
   },
 
-  async fetchTablesByHallId(id) {
-    try {
-      const response = await axiosInstance.get(`/api/tables/${id}/tables/`, {
-        headers: {
-          'accept': 'application/json',
-          'X-PIN': store.getters['auth/GET_USERNAME']
-        }
-      });
-      return response.data;
-    } catch (error) {
-      // Handle error
-      console.error(`Error fetching tables for ID ${id}:`, error);
-      throw error;
-    }
-  },
-
   async createOrder(tableId) {
     try {
       const response = await axiosInstance.post(`/api/orders/${tableId}/create/`, null, {
@@ -81,9 +65,27 @@ const backendServices = {
     }
   },
 
-  async listOrderItems(tableId) {
+  async listOrderItems(tableId, orderId) {
     try {
       const response = await axiosInstance.get(`/api/orders/${tableId}/list-order-items/`, {
+        headers: {
+          'accept': 'application/json',
+          'X-PIN': store.getters['auth/GET_USERNAME']
+        },
+        params: {
+          order_id: orderId // Burada order_id parametrlər olaraq əlavə edilir
+        }
+      });
+      return response.data;
+    } catch (error) {
+      console.error(`Error listing order items for table ID ${tableId} and order ID ${orderId}:`, error);
+      throw error;
+    }
+  },  
+  
+  async listOrders(tableId) {
+    try {
+      const response = await axiosInstance.get(`/api/orders/${tableId}/list-orders/`, {
         headers: {
           'accept': 'application/json',
           'X-PIN': store.getters['auth/GET_USERNAME']
@@ -133,11 +135,12 @@ const backendServices = {
     }
   },
 
-  async addOrderItem(tableId, mealId, quantity) {
+  async addOrderItem(tableId, mealId, quantity, orderId) {
     try {
       const response = await axiosInstance.post(`/api/orders/${tableId}/add-order-item/`, {
         meal_id: mealId,
-        quantity: quantity
+        quantity: quantity,
+        order_id: orderId
       }, {
         headers: {
           'accept': 'application/json',
@@ -153,7 +156,7 @@ const backendServices = {
     }
   },
 
-  async deleteOrderItem(tableId, mealId, quantity) {
+  async deleteOrderItem(tableId, mealId, quantity, orderId) {
     try {
       const response = await axiosInstance.delete(`/api/orders/${tableId}/delete-order-item/`, {
         headers: {
@@ -163,7 +166,8 @@ const backendServices = {
         },
         data: {
           meal_id: mealId,
-          quantity: quantity
+          quantity: quantity,
+          order_id: orderId
         }
       });
       return response.data;
@@ -188,7 +192,7 @@ const backendServices = {
       return response.data;
     } catch (error) {
       // Handle error
-      console.error(`Error changing table for order ID ${orderId}:`, error);
+      console.error(`Error changing table for order ID ${newTableId}:`, error);
       throw error;
     }
   },
@@ -205,7 +209,7 @@ const backendServices = {
       return response.data;
     } catch (error) {
       // Handle error
-      console.error(`Error closing table for order ID ${orderId}:`, error);
+      console.error(`Error closing table for order ID ${tableId}:`, error);
       throw error;
     }
   },
@@ -260,6 +264,25 @@ const backendServices = {
       throw error;
     }
   },
+
+  async combineTables(tableId, orderId) {
+    try {
+      const response = await axiosInstance.post(`/api/orders/${tableId}/join-tables-orders/`, {
+        other_table_ids: orderId 
+      }, {
+        headers: {
+          'accept': 'application/json',
+          'X-PIN': store.getters['auth/GET_USERNAME']
+        }
+      });
+      return response.data;
+    } catch (error) {
+      // Xətanı idarə et
+      console.error(`Error printing check for order ID ${tableId}:`, error);
+      throw error;
+    }
+  },
+  
 
   async deleteCheck(tableId) {
     try {

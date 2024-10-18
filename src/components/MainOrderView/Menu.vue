@@ -1,5 +1,5 @@
 <template>
-    <div class="menu">
+    <div class="menu">  
         <div class="menu-category-item-menu sticky">
             <div class="menu-category-items-header">
                 <span :class="{ active: selectedCategory === undefined }" @click="fetchMenuItems()">
@@ -40,11 +40,18 @@ export default {
             loading: false,
             orderCreatedAlready: false,
             searchQuery: '', // Add search query state
+            orderId: null
         };
     },
     async created() {
         this.fetchMealCategories();
         this.fetchMenuItems();
+        EventBus.on('selectedOrderId', (orderId) => {
+            this.orderId = orderId;
+        });
+    },
+    beforeUnmount() {
+        EventBus.off('selectedOrderId');
     },
     computed: {
         filteredMenuItems() {
@@ -93,19 +100,21 @@ export default {
                 console.error('Error fetching menu items:', error);
             } finally {
                 this.loading = false;
-                if (!categoryId) {
-                    document.querySelector('.active-green').classList.remove('active-green');
+                
+                const activeGreenElement = document.querySelector('.active-green');
+                if (!categoryId && activeGreenElement) {
+                    activeGreenElement.classList.remove('active-green');
                 }
             }
         },
-        async addOrderItem(categoryId, mealId, quantity) {
+        async addOrderItem(categoryId, mealId, quantity, orderId) {
             try {
                 await this.checkOrderIfCreated();
                 this.loading = true;
-                await backendServices.addOrderItem(categoryId, mealId, quantity);
+                await backendServices.addOrderItem(categoryId, mealId, quantity, this.orderId || orderId);
                 EventBus.emit('orderItemAdded');
             } catch (error) {
-                console.error('Error while adding meal to order:', error);
+                console.error('Sifarişi əlavə edərkən xəta baş verdi:', error);
             } finally {
                 this.loading = false;
             }
