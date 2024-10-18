@@ -1,5 +1,5 @@
 <template>
-    <div v-if="showDropdown">
+    <div class="order-dropdown" v-if="showDropdown">
       <div class="order-total">
         <span>Cəmi:<span>{{ totalPrice }} azn</span></span>
       </div>
@@ -62,6 +62,10 @@
   
 
 <style scoped>
+.order-dropdown{
+  background-color: #fff;
+  margin: 0px 15px 15px;
+}
 .quantity-container {
   display: flex;
   align-items: center;
@@ -90,7 +94,7 @@
   font-size: 18px;
   color: #333;
   font-weight: 700;
-  background-color: #f0f0f0;
+  background-color: #fff;
 }
 .order-items-header,
 .order-item {
