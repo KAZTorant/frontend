@@ -28,6 +28,7 @@ export default {
 }
 html, body {
   touch-action: pan-x pan-y;
+  height: 100%;
 }
 
 </style>

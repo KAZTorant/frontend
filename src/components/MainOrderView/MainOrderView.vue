@@ -89,12 +89,13 @@ export default {
 </script>
 
 <style>
-.logout-div{
+.logout-div {
   display: flex;  
   justify-content: space-between;
   white-space: nowrap;
   overflow-x: auto;
 }
+
 .logout-div>div{
   display: flex;
 }

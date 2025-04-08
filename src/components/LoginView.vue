@@ -73,6 +73,7 @@ export default {
         } catch (error) {
           console.error('Error during login:', error);
           this.output = "Yanlış PİN!";
+          this.input.username = ""; 
         }
       } else {
         this.output = "Boş qeyd edilə bilməz!";
@@ -94,15 +95,25 @@ export default {
 
 <style>
 .login-container {
-  max-width: 400px;
-  margin: auto;
-  padding: 20px;
-  border: 1px solid #000;
+  width: 100%;
+  height: 100vh;
+  background-image: url("/src/assets/login-back.jpg");
+  background-size: cover;
+  background-position: center;
+  margin-top: -40px;
+  padding-top: 40px;
+  overflow-y: auto;
 }
 
 .login-form {
+  max-width: 400px;
+  background-color: white;
+  margin: auto;
+  padding: 20px;
+  border: 1px solid #000;
   display: flex;
   flex-direction: column;
+  border-radius: 20px;
 }
 
 .mb-3 {
@@ -176,10 +187,12 @@ export default {
 .output {
   text-align: center;
   margin-top: 20px;
+  color: #fff;
 }
 
 .qr-code {
   text-align: center;
   margin-top: 20px;
+  color: #fff;
 }
 </style>

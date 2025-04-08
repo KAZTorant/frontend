@@ -69,11 +69,14 @@
 .quantity-container {
   display: flex;
   align-items: center;
+  gap: 6px;
 }
 .order-item button {
-  width: 17px;
-  font-size: 16px; /* Adjust the font size as needed */
-  padding: 2px; /* Adjust the padding for button size */
+  width: 34px;
+  height: 34px;
+  font-size: 16px;
+  padding: 4px 8px;
+  cursor: pointer;
 }
 .sticky {
   position: sticky;
@@ -107,9 +110,6 @@
   border-bottom: 1px solid #ccc;
   padding: 10px;
 }
-.order-total span {
-  gap: 5px
-}
 .order-items-header span,
 .order-item span,
 .order-total span {
@@ -124,15 +124,20 @@
   padding: 10px;
 }
 .order-item span {
+  gap:5px;
   min-height: 60px;
   height: 60px;
 }
 .quantity {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   padding: 4px 8px !important;
   font-size: 1.2em;
   border: 1px solid #ccc;
   border-radius: 5px;
-  min-width: 20px;
+  min-width: 34px;
+  height: 34px;
   text-align: center;
 }
 .order-items-header {

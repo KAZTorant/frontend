@@ -2,18 +2,29 @@
     <div class="menu">  
         <div class="menu-category-item-menu sticky">
             <div class="menu-category-items-header">
-                <span :class="{ active: selectedCategory === undefined }" @click="fetchMenuItems()">
-                    Əsas yeməklər
-                </span> 
-                <span v-for="category in mealCategories" :key="category.id" @click="fetchMenuItems(category.id)"
-                    :class="{ active: selectedCategory === category.id }">
-                    {{ category.name }}
-                </span>
+                <!-- Əgər heç bir kateqoriya seçilməyibsə, bütün kateqoriyaları göstər -->
+                <template v-if="selectedCategory === null">
+                    <span :class="{ active: selectedCategory === null }" @click="fetchMenuItems()">
+                        Əsas yeməklər
+                    </span> 
+                    <span v-for="category in mealCategories" :key="category.id" 
+                          @click="fetchMenuItems(category.id)"
+                          :class="{ active: selectedCategory === category.id }">
+                        {{ category.name }}
+                    </span>
+                </template>
+                <template v-else>
+                    <button class="back-btn" @click="fetchMenuItems()">Geri</button>
+                    <span class="active">{{ currentCategoryName }}</span>
+                </template>
             </div>
             <input type="text" v-model="searchQuery" placeholder="Axtarış..." class="search-input">
         </div>
-        <div class="menu-item" v-for="item in filteredMenuItems" :key="item.id" @click="addOrderItem(tableId, item.id, 1)"
-            :class="{ 'disabled': loading }">
+        <div class="menu-item" 
+             v-for="item in filteredMenuItems" 
+             :key="item.id" 
+             @click="addOrderItem(tableId, item.id, 1)"
+             :class="{ 'disabled': loading }">
             <div class="menu-item-name">{{ item.name }}</div>
             <div class="menu-item-price">{{ item.price }} azn</div>
         </div>
@@ -21,7 +32,8 @@
 </template>
 
 
-<script>import backendServices from '../../backend-services/backend-services';
+<script>
+import backendServices from '../../backend-services/backend-services';
 import { EventBus } from '../../EventBus';
 
 export default {
@@ -36,16 +48,16 @@ export default {
         return {
             mealCategories: [],
             menuItems: [],
-            selectedCategory: null,
+            selectedCategory: null, // Başlanğıc vəziyyəti null olaraq təyin edirik
             loading: false,
             orderCreatedAlready: false,
-            searchQuery: '', // Add search query state
+            searchQuery: '',
             orderId: null
         };
     },
     async created() {
         this.fetchMealCategories();
-        this.fetchMenuItems();
+        this.fetchMenuItems(); // Əsas yeməklər (kateqoriya seçilməmiş halda)
         EventBus.on('selectedOrderId', (orderId) => {
             this.orderId = orderId;
         });
@@ -60,6 +72,11 @@ export default {
             }
             const query = this.searchQuery.toLowerCase();
             return this.menuItems.filter(item => item.name.toLowerCase().includes(query));
+        },
+        // Seçilmiş kateqoriyanın adını tapmaq üçün computed property
+        currentCategoryName() {
+            const category = this.mealCategories.find(cat => cat.id === this.selectedCategory);
+            return category ? category.name : '';
         }
     },
     methods: {
@@ -95,7 +112,8 @@ export default {
                 this.loading = true;
                 const items = await backendServices.fetchMealsByCategoryId(categoryId);
                 this.menuItems = items;
-                this.selectedCategory = categoryId;
+                // Əgər categoryId ötürülübsə, seçilmiş kateqoriya həmin ID olur, yoxsa null
+                this.selectedCategory = categoryId || null;
             } catch (error) {
                 console.error('Error fetching menu items:', error);
             } finally {
@@ -135,8 +153,8 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
-
 </script>
+
 
 
 <style scoped>
@@ -196,14 +214,17 @@ document.addEventListener('DOMContentLoaded', function () {
 }
 
 .menu-category-items-header {
-    display: flex;
-    gap: 5px;
-    flex-wrap: wrap;
+    max-height: 250px;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px;
     white-space: nowrap;
     cursor: pointer;
     background-color: cadetblue;
     border-left: 4px solid cadetblue;
     border-right: 4px solid cadetblue;
+    padding: 10px 6px;
 }
 
 .menu-category-items-header span:not(.active) {
@@ -216,11 +237,8 @@ document.addEventListener('DOMContentLoaded', function () {
 .menu-category-items-header span {
     font-size: 18px;
     font-weight: bold;
-    border-left: 2px solid cadetblue;
-    border-right: 2px solid cadetblue;
-    border-top: 6px solid cadetblue;   
-    border-bottom: 6px solid cadetblue;
-    padding: 4px 10px;
+    border: 2px solid cadetblue;
+    padding: 8px 10px;
 }
 
 .search-input {
@@ -232,6 +250,16 @@ document.addEventListener('DOMContentLoaded', function () {
     min-height: 40px;
     box-sizing: border-box;
     font-size: 16px; /* Set font size to 16px */
+}
+
+.back-btn {
+    padding: 8px 10px;
+    font-size: 16px;
+    font-weight: bold;
+    border: 2px solid cadetblue;
+    background-color: #fff;
+    cursor: pointer;
+    margin-right: 10px;
 }
 
 @media (max-width: 1034px) {

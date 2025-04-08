@@ -416,30 +416,47 @@ cancelCombine() {
   margin-top: 10px;
   padding: 16px;
 }
-.actions button[data-id="3"],
-.actions button[data-id="5"]{
-  background-color: #fd5c63;
+
+.actions button[data-id="3"] {
+  background-color: #d32f2f;
   color: #fff;
   font-weight: 600;
-  transition: all 0.3s ease-in-out
+  transition: all 0.3s ease-in-out;
 }
-.actions button[data-id="3"]:hover,
-.actions button[data-id="5"]:hover{
-  background-color: #e6313a;
-  color: #fff;
-  font-weight: 600
+.actions button[data-id="3"]:hover {
+  background-color: #c62828;
 }
-.actions button[data-id="2"],
-.actions button[data-id="4"]{
-  background-color: #ffa500;
+
+.actions button[data-id="5"] {
+  background-color: #ff9800;
   color: #fff;
   font-weight: 600;
-  transition: all 0.3s ease-in-out
+  transition: all 0.3s ease-in-out;
 }
-.actions button[data-id="2"]:hover,
-.actions button[data-id="4"]:hover{
-  background-color: #f7b845;
+.actions button[data-id="5"]:hover {
+  background-color: #fb8c00;
 }
+
+.actions button[data-id="2"] {
+  background-color: #4caf50;
+  color: #fff;
+  font-weight: 600;
+  transition: all 0.3s ease-in-out;
+}
+.actions button[data-id="2"]:hover {
+  background-color: #43a047;
+}
+
+.actions button[data-id="4"] {
+  background-color: #2196f3;
+  color: #fff;
+  font-weight: 600;
+  transition: all 0.3s ease-in-out;
+}
+.actions button[data-id="4"]:hover {
+  background-color: #1e88e5;
+}
+
 
 .action-button:hover{
   /* Hover state for buttons */
