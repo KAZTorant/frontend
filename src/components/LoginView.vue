@@ -1,7 +1,7 @@
 <template>
   <div class="login-container">
     <div v-if="networkAddress" class="qr-code">
-      <qrcode :value="networkAddress" :size="200" style="width: 300px; border: 10px solid transparent; outline: 10px dashed #ba68c8; height: 300px;"></qrcode>
+      <qrcode :value="networkAddress" :size="200" style="width: 300px; border: 10px solid transparent; outline: 10px dashed var(--primary-color); height: 300px;"></qrcode>
       <p>Ofisiant kimi daxil ol</p>
     </div>
     <div>
@@ -123,7 +123,7 @@ export default {
 .login-form {
   background-color: white;
   padding: 20px; 
-  border: 5px solid #ba68c8;
+  border: 5px solid var(--primary-color);
   display: flex;
   flex-direction: column;
   border-radius: 20px;
@@ -170,7 +170,7 @@ export default {
 .btn {
   padding: 20px 0;
   font-size: 1.5rem;
-  border: 2px solid #ba68c8;
+  border: 2px solid var(--primary-color);
   background-color: #fff;
   cursor: pointer;
 }

@@ -28,6 +28,15 @@ export default {
 </script>
 
 <style>
+
+:root {
+  --primary-color: #4CAF50;
+  --primary-hover: #388E3C;
+  --light-background: #f5f5f5;
+  --text-color: #fff;
+}
+
+
 *{
   box-sizing: border-box;
 }
