@@ -18,10 +18,15 @@
         <div class="order-item" v-for="item in orderItems" :key="item.meal.id">
           <span>{{ item.meal.name }}</span>
           <span class="quantity-container">
-            <button v-if="checkViewPermissionForAdmin()" @click="decrementQuantity(item)">-</button>
+            <button v-if="checkViewPermissionForAdmin()" @click="decrementQuantity(item)" class="btn-decrement">
+              <font-awesome-icon icon="minus" />
+            </button>
             <div class="quantity">{{ item.quantity }}</div>
-            <button @click="incrementQuantity(item)">+</button>
+            <button @click="incrementQuantity(item)" class="btn-increment">
+              <font-awesome-icon icon="plus" />
+            </button>
           </span>
+
           <span>{{ item.meal.price }} azn</span>
           <span>{{ (item.quantity * item.meal.price) }} azn</span>
         </div>
@@ -74,10 +79,33 @@
 .order-item button {
   width: 34px;
   height: 34px;
-  font-size: 16px;
-  padding: 4px 8px;
+  font-size: 18px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   cursor: pointer;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  color: white;
+  transition: all 0.3s ease-in-out;
 }
+
+.btn-decrement {
+  background-color: #f44336;
+}
+
+.btn-increment {
+  background-color: #4CAF50;
+}
+
+.btn-decrement:hover {
+  background-color: #d32f2f;
+}
+
+.btn-increment:hover {
+  background-color: #388e3c;
+}
+
 .sticky {
   position: sticky;
   top: 0;

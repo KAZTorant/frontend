@@ -10,7 +10,20 @@ export default {
   name: 'App',
   components: {
     MainView
+  },
+  mounted() {
+    document.body.addEventListener('dblclick', this.disableZoom);
+  },
+  beforeUnmount() {
+    document.body.removeEventListener('dblclick', this.disableZoom);
+  },
+  methods: {
+    disableZoom(event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
   }
+
 }
 </script>
 

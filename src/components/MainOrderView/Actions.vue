@@ -117,8 +117,8 @@ export default {
       actions: [
         { id: 1, label: 'Print Çek', method: 'printOrder' },
         { id: 5, label: 'Çeki ləğv et', method: 'cancelPrintOrder' },
-        { id: 2, label: 'Ofsianti dəyiş', method: 'changeWaitress' },
         { id: 3, label: 'Masanı bağla', method: 'cancelOrder' },
+        { id: 2, label: 'Ofsianti dəyiş', method: 'changeWaitress' },
         { id: 4, label: 'Masanı köçür', method: 'openTransferModal' },
         { id: 6, label: 'Masanı birləşdir', method: 'openCombine' },
         // Add more actions as needed
@@ -415,12 +415,12 @@ cancelCombine() {
   margin-bottom: 10px;
   margin-top: 10px;
   padding: 16px;
+  font-weight: 600;
 }
 
 .actions button[data-id="3"] {
   background-color: #d32f2f;
   color: #fff;
-  font-weight: 600;
   transition: all 0.3s ease-in-out;
 }
 .actions button[data-id="3"]:hover {
@@ -430,7 +430,6 @@ cancelCombine() {
 .actions button[data-id="5"] {
   background-color: #ff9800;
   color: #fff;
-  font-weight: 600;
   transition: all 0.3s ease-in-out;
 }
 .actions button[data-id="5"]:hover {
@@ -440,7 +439,6 @@ cancelCombine() {
 .actions button[data-id="2"] {
   background-color: #4caf50;
   color: #fff;
-  font-weight: 600;
   transition: all 0.3s ease-in-out;
 }
 .actions button[data-id="2"]:hover {
@@ -450,11 +448,18 @@ cancelCombine() {
 .actions button[data-id="4"] {
   background-color: #2196f3;
   color: #fff;
-  font-weight: 600;
   transition: all 0.3s ease-in-out;
 }
 .actions button[data-id="4"]:hover {
   background-color: #1e88e5;
+}
+
+.actions button[data-id="6"] {
+  color: #fff;
+  background-color: #9c27b0;
+}
+.actions button[data-id="6"]:hover {
+  background-color: #8e24aa;
 }
 
 

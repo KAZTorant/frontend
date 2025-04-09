@@ -1,22 +1,27 @@
 <template>
   <div class="login-container">
-    <div name="login-form" class="login-form">     
-      <div class="mb-3 username-input">
-        <label for="username">PIN: </label>
-        <input disabled type="password" id="username" v-model="input.username" />
-      </div>
-      <div class="keypad">
-        <button v-for="n in 9" :key="n" class="btn number" @click="pressKey(n)">{{ n }}</button>
-        <button class="btn number zero" @click="pressKey(0)">0</button>
-        <button class="btn control clear" @click="clearusername">Təmizlə</button>
-        <button class="btn control enter" type="submit" @click="login()">Daxil ol</button>
-      </div>
+    <div v-if="networkAddress" class="qr-code">
+      <qrcode :value="networkAddress" :size="200" style="width: 300px; border: 10px solid transparent; outline: 10px dashed #ba68c8; height: 300px;"></qrcode>
+      <p>Ofisiant kimi daxil ol</p>
     </div>
-    <h3 class="output">{{ output }}</h3>
-    <div v-if="isDesktop && networkAddress" class="qr-code">
-      <qrcode :value="networkAddress" :size="200"></qrcode>
-      <p>Sistemə daxil ol</p>
+    <div>
+      <div name="login-form" class="login-form">     
+        <div class="mb-3 username-input">
+          <label for="username">PIN: </label>
+          <input disabled type="password" id="username" v-model="input.username" />
+        </div>
+        <div class="keypad">
+          <button v-for="n in 9" :key="n" class="btn number" @click="pressKey(n)">{{ n }}</button>
+          <button class="btn number zero" @click="pressKey(0)">0</button>
+          <button class="btn control clear" @click="clearusername">Təmizlə</button>
+          <button class="btn control enter" type="submit" @click="login()">Daxil ol</button>
+        </div>
+        
+      </div>
+      <h3 class="output">{{ output }}</h3>
     </div>
+    
+    
   </div>
 </template>
 
@@ -95,6 +100,11 @@ export default {
 
 <style>
 .login-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
   width: 100%;
   height: 100vh;
   background-image: url("/src/assets/login-back.jpg");
@@ -104,13 +114,16 @@ export default {
   padding-top: 40px;
   overflow-y: auto;
 }
+.login-form, .qr-code {
+  max-width: 400px;
+  width: 100%;
+  margin: 0 auto;
+}
 
 .login-form {
-  max-width: 400px;
   background-color: white;
-  margin: auto;
-  padding: 20px;
-  border: 1px solid #000;
+  padding: 20px; 
+  border: 5px solid #ba68c8;
   display: flex;
   flex-direction: column;
   border-radius: 20px;
@@ -157,42 +170,66 @@ export default {
 .btn {
   padding: 20px 0;
   font-size: 1.5rem;
-  border: 1px solid #000;
+  border: 2px solid #ba68c8;
   background-color: #fff;
   cursor: pointer;
 }
 
 .number {
-  background-color: #fff; /* Numbers are white */
+  background-color: #fff;
 }
 
 .number.zero {
-  grid-column: span 2; /* Make the 0 button wide */
+  grid-column: span 2;
 }
 
 .control {
-  background-color: #4CAF50; /* Control buttons are green */
+  background-color: #4CAF50;
   color: #fff;
 }
 
 .clear {
-  background-color: #f44336; /* Clear button is red */
+  background-color: #f44336;
   color: #fff;
 }
 
 .enter {
-  grid-column: 3 / 4; /* Align the Enter button to the right */
+  grid-column: 3 / 4; 
 }
 
 .output {
   text-align: center;
   margin-top: 20px;
-  color: #fff;
+  color: #f44336;
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8);
 }
 
 .qr-code {
   text-align: center;
   margin-top: 20px;
   color: #fff;
+  font-weight: bold;
+  font-size: 22px;
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8);
 }
+@media (max-width: 1024px) {
+  .login-container {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    row-gap: 40px;
+  }
+  .qr-code {
+    order: 2;
+  }
+
+  .login-form {
+    order: 1;
+  }
+}
+@media (max-width: 500px) {
+  .qr-code {
+    display: none;
+  }
+}
+
 </style>

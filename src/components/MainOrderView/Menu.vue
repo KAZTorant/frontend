@@ -21,7 +21,10 @@
                 </template>
 
                 <template v-else>
-                    <button class="back-btn" @click="goBackToCategories">Geri</button>
+                    <button class="back-btn" @click="goBackToCategories">
+                        <font-awesome-icon icon="arrow-left" />
+                        Kateqoriyalar
+                    </button>
                     <span class="active">
                         {{ selectedCategory === null ? "Əsas yeməklər" : currentCategoryName }}
                     </span>
@@ -183,11 +186,18 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 
-
+<style>
+:root {
+  --primary-color: #4CAF50;
+  --primary-hover: #388E3C;
+  --light-background: #f5f5f5;
+  --text-color: #fff;
+}
+</style>
 
 <style scoped>
 .menu-category-item-menu {
-    max-height: 300px;
+    height: auto;
 }
 
 .disabled {
@@ -196,13 +206,18 @@ document.addEventListener('DOMContentLoaded', function () {
 }
 
 .active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px;
     font-weight: bold;
-    background-color: greenyellow;
+    background-color: var(--primary-color);
+    color: var(--text-color);
     transition: all 0.3ms ease-in-out;
 }
 
 .active:hover {
-    background-color: rgb(145, 223, 27);
+    background-color: var(--primary-hover);
 }
 
 .menu {
@@ -215,18 +230,20 @@ document.addEventListener('DOMContentLoaded', function () {
 }
 
 .menu-item {
-    border: 2px solid black;
-    padding: 5px;
+    border: 2px solid var(--primary-color);
+    padding: 6px;
+    border-radius: 5px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: space-between;
     height: 60px;
     max-width: 200px;
-    background-color: cadetblue;
-    color: white;
+    color: var(--text-color);
+    background-color: var(--primary-color);
     overflow-wrap: break-word;
 }
+
 .menu-item-name,
 .menu-item-price {
     font-size: 18px;
@@ -237,7 +254,7 @@ document.addEventListener('DOMContentLoaded', function () {
     grid-column: 1 / -1;
     position: sticky;
     top: 0;
-    background: white;
+    background: var(--text-color);
     z-index: 1000;
 }
 
@@ -245,25 +262,25 @@ document.addEventListener('DOMContentLoaded', function () {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 10px;
-    white-space: nowrap;
     cursor: pointer;
-    background-color: cadetblue;
-    border-left: 4px solid cadetblue;
-    border-right: 4px solid cadetblue;
-    padding: 10px 6px;
+    background-color: var(--light-background);
+    padding: 10px;
 }
 
 .menu-category-items-header span:not(.active) {
-    background-color: #fff;
+    background-color: var(--text-color);
+    padding: 12px 14px;
+    border-radius: 5px;
 }
 
 .menu-category-items-header::-webkit-scrollbar {
     display: none;
-} 
+}
+
 .menu-category-items-header span {
     font-size: 18px;
     font-weight: bold;
-    border: 2px solid cadetblue;
+    border: 2px solid var(--primary-color);
     padding: 8px 10px;
 }
 
@@ -275,17 +292,25 @@ document.addEventListener('DOMContentLoaded', function () {
     min-width: 40px;
     min-height: 40px;
     box-sizing: border-box;
-    font-size: 16px; /* Set font size to 16px */
+    font-size: 16px;
+    border: 2px solid var(--primary-color);
 }
 
 .back-btn {
-    padding: 8px 10px;
-    font-size: 16px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    font-size: 18px;
+    padding: 12px 14px;
+    border-radius: 5px;
     font-weight: bold;
-    border: 2px solid cadetblue;
-    background-color: #fff;
+    border: 2px solid var(--primary-color);
+    background-color: var(--text-color);
     cursor: pointer;
     margin-right: 10px;
+    color: #2c3e50;
 }
 
 @media (max-width: 1034px) {
@@ -296,11 +321,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
 @media (max-width: 768px) {
     .menu {
-    grid-template-columns: repeat(3, 1fr); 
+        grid-template-columns: repeat(3, 1fr); 
     }
-  .menu-category-items-header{
-    overflow-x: auto;
-    flex-wrap: nowrap;}
+    .menu-category-items-header {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+    }
 }
 
 @media (max-width: 530px) {
