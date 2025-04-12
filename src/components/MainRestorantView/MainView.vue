@@ -200,7 +200,8 @@ body {
 }
 
 .table {
-  border: 2px solid #000;
+  border: 2px solid var(--primary-color);
+  border-radius: 8px;
   padding: 10px;
   display: flex;
   flex-direction: column;
@@ -230,6 +231,7 @@ body {
   margin-right: 10px;
   min-width: 100px;
   font-weight: bold;
+  cursor: pointer;
 }
 
 .halls-container {
