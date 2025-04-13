@@ -1,30 +1,32 @@
 <template>
-  <div class="logout-head">
-    <div class="waiterssName">{{ roleDisplayName }}: {{ waitressName }}</div>
-    <button @click="logout" class="logout-button">Çıxış</button>
-  </div>
-  <div class="layout">
-    <div v-for="table in tables" :key="table.id" :class="['table', {
-      'occupied': table.waitress.name,
-      'waitress-id-zero': table.waitress.id === 0,
-      'waitress-id-not-zero': table.waitress.id !== 0 && !table.print_check,
-      'check-printed': table.print_check,
-      'not-current-waitress': isWaitress && table.waitress.name && table.waitress.name !== waitressName
-    }]" @click="isTableClickable(table) ? goToMainOrderView(table.id) : null">
-      <div>{{ table.number }}</div>
-      <div v-if="table.waitress.name">Ofsiant: {{ table.waitress.name }}</div>
-      <div v-if="table.total_price">Cemi Hesab: {{ table.total_price }}azn</div>
-      <div v-if="table.serviceTax">Servis: {{ 0 }}azn</div>
+  <div class="restaurant-background">
+    <div class="logout-head">
+      <div class="waiterssName">{{ roleDisplayName }}: {{ waitressName }}</div>
+      <button @click="logout" class="logout-button">Çıxış</button>
     </div>
-  </div>
-  <!-- Container for the fixed halls menu -->
-  <div class="halls-container">
-    <div class="halls">
-      <div v-for="hall in halls" :key="hall.id"
-        :class="['hall', { 'clicked': hall.id === parseInt(this.$route.params.id) }]"
-        @click="fetchTablesByHallId(hall.id)">
-        <div>{{ hall.name }}</div>
-        <div>{{ hall.description }}</div>
+    <div class="layout">
+      <div v-for="table in tables" :key="table.id" :class="['table', {
+        'occupied': table.waitress.name,
+        'waitress-id-zero': table.waitress.id === 0,
+        'waitress-id-not-zero': table.waitress.id !== 0 && !table.print_check,
+        'check-printed': table.print_check,
+        'not-current-waitress': isWaitress && table.waitress.name && table.waitress.name !== waitressName
+      }]" @click="isTableClickable(table) ? goToMainOrderView(table.id) : null">
+        <div>{{ table.number }}</div>
+        <div v-if="table.waitress.name">Ofsiant: {{ table.waitress.name }}</div>
+        <div v-if="table.total_price">Cemi Hesab: {{ table.total_price }}azn</div>
+        <div v-if="table.serviceTax">Servis: {{ 0 }}azn</div>
+      </div>
+    </div>
+    <!-- Container for the fixed halls menu -->
+    <div class="halls-container">
+      <div class="halls">
+        <div v-for="hall in halls" :key="hall.id"
+          :class="['hall', { 'clicked': hall.id === parseInt(this.$route.params.id) }]"
+          @click="fetchTablesByHallId(hall.id)">
+          <div>{{ hall.name }}</div>
+          <div>{{ hall.description }}</div>
+        </div>
       </div>
     </div>
   </div>
@@ -123,16 +125,39 @@ export default {
 
 
 <style>
+/* Background image styling */
+.restaurant-background {
+  min-height: 100vh;
+  width: 100%;
+  background-image: url('../../assets/restaurantBackgroundImage.jpeg'); /* Replace with your image path */
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  position: relative;
+}
+
+/* Add a semi-transparent overlay for better readability */
+.restaurant-background::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.7); /* White with 70% opacity */
+  z-index: -1;
+}
+
 .check-printed {
   background-color: greenyellow;
 }
 
 .waitress-id-zero {
-  background-color: white;
+  background-color: rgba(255, 255, 255, 0.9); /* More opaque white for better contrast */
 }
 
 .waitress-id-not-zero {
-  background-color: #FFDB5C;
+  background-color: rgba(255, 219, 92, 0.9); /* More opaque yellow for better contrast */
 }
 
 .hall.clicked {
@@ -140,7 +165,7 @@ export default {
 }
 
 .not-current-waitress {
-  background-color: gray;
+  background-color: rgba(128, 128, 128, 0.9); /* More opaque gray */
   pointer-events: none;
 }
 
@@ -148,6 +173,8 @@ export default {
   display: flex;
   justify-content: center;
   overflow-x: auto;
+  position: relative;
+  z-index: 1;
 }
 
 .waiterssName {
@@ -160,6 +187,7 @@ export default {
   padding-bottom: 10px;
   background-color: bisque;
   border-radius: 4px 4px 0 0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 .logout-button,
@@ -173,6 +201,7 @@ export default {
   border-radius: 6px;
   font-weight: 600;
   font-size: 16px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 .logout-button {
@@ -197,6 +226,8 @@ body {
   grid-template-columns: repeat(5, 1fr);
   gap: 15px;
   margin: 20px 20px 100px;
+  position: relative;
+  z-index: 1;
 }
 
 .table {
@@ -209,6 +240,14 @@ body {
   align-items: center;
   height: 150px;
   cursor: pointer;
+  background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white background */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.table:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
 .halls {
@@ -216,7 +255,7 @@ body {
   overflow-x: auto;
   white-space: nowrap;
   align-items: center;
-  background-color: #000;
+  background-color: rgba(0, 0, 0, 0.8); /* Semi-transparent black background */
   color: #fff;
   padding: 10px 20px;
   position: -webkit-sticky;
@@ -224,6 +263,7 @@ body {
   position: sticky;
   top: 0;
   z-index: 1000;
+  box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.3);
 }
 
 .hall {
@@ -232,6 +272,12 @@ body {
   min-width: 100px;
   font-weight: bold;
   cursor: pointer;
+  transition: background-color 0.3s ease;
+  border-radius: 4px;
+}
+
+.hall:hover {
+  background-color: rgba(255, 255, 255, 0.2);
 }
 
 .halls-container {
