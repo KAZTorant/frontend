@@ -61,7 +61,7 @@ import router  from '../../router';
 import CustomerCountPopup from './CustomerCountPopup.vue';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { faTable, faRightFromBracket } from '@fortawesome/free-solid-svg-icons';
-import EventBus from '../../event-bus.js';
+import { EventBus } from '../../EventBus';
 
 library.add(faTable, faRightFromBracket);
 
@@ -87,7 +87,8 @@ export default {
       showConfirmationPopup: false,
       showWaitressModal: false,
       showTransferModal: false,
-      showCloseModal: false
+      showCloseModal: false,
+      orders: []
     }
   },
   methods: {
@@ -134,10 +135,22 @@ export default {
         this.selectedTableId = null;
       }
     },
+    async fetchOrders() {
+      try {
+        const response = await backendServices.fetchOrders(this.tableId);
+        this.orders = response.orders;
+      } catch (error) {
+        console.error('Error fetching orders:', error);
+      }
+    },
     async handleOrderConfirmed() {
-      await this.fetchOrders();
-      await this.fetchOrderItems();
-      EventBus.emit('orderItemAdded');
+      try {
+        const orders = await backendServices.listOrders(this.tableId);
+        this.orders = orders;
+        EventBus.emit('orderItemAdded');
+      } catch (error) {
+        console.error('Error handling order confirmation:', error);
+      }
     }
   },
   

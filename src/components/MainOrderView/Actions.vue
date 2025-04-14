@@ -1,109 +1,18 @@
 <template>
-  <div class="actions">
-    <button 
-      class="action-button" 
-      v-for="action in actions" 
-      :key="action.id" 
-      @click="handleAction(action.method)" 
-      :data-method="action.method" 
-      :data-id="action.id" 
-      :class="{ 'green-button': action.method === 'printOrder' && buttonColor === '#74E291', 'blur-content': showConfirmation || showTransferModal || showWaitressModal || showCombineModal }"
-    >
-      {{ action.label }}
-    </button>
-
-    <!-- Error and Success popups -->
-    <error-popup :error-message="error" v-if="error" @close="clearError" />
-    <success-popup :success-message="successMessage" v-if="successMessage" @close="clearSuccess" />
-
-    <!-- All Modals -->
-    <Teleport to="body">
-      <!-- Confirmation Dialog -->
-      <div v-if="showConfirmation" class="modal-container">
-        <div class="modal-overlay"></div>
-        <div class="confirmation-dialog">
-          <div class="confirmation-message">
-            Masanı bağlamağa əminsiniz?
-          </div>
-          <div class="confirmation-buttons">
-            <button class="confirm-btn" @click="confirmAction">Hə</button>
-            <button class="cancel-btn" @click="cancelAction">Yox</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Transfer Modal -->
-      <div v-if="showTransferModal" class="modal-container">
-        <div class="modal-overlay"></div>
-        <div class="confirmation-dialog">
-          <h2 class="modal-title">Masanı köçür</h2>
-          <div class="modal-content-main hall">
-            <div>
-              <label for="hall">Zal Seç:</label>
-              <select id="hall" v-model="selectedHall" @change="fetchTablesForHall">
-                <option v-for="hall in halls" :key="hall.id" :value="hall.id">{{ hall.name }}</option>
-              </select>
-            </div>
-            <div>
-              <label for="table">Masa seç:</label>
-              <select id="table" v-model="selectedTable">
-                <option v-for="table in tables" :key="table.id" :value="table.id">{{ table.number }}</option>
-              </select>
-            </div>
-          </div>
-          <div class="confirmation-buttons">
-            <button class="confirm-btn" @click="confirmTransfer">Təsdiqlə</button>
-            <button class="cancel-btn" @click="cancelTransfer">Ləğv et</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Waitress Change Modal -->
-      <div v-if="showWaitressModal" class="modal-container">
-        <div class="modal-overlay"></div>
-        <div class="confirmation-dialog">
-          <h2 class="modal-title">Ofsianti dəyiş</h2>
-          <div class="modal-content-main">
-            <label for="waitress">Ofsiant seç:</label>
-            <select id="waitress" class="waitress" v-model="selectedWaitress">
-              <option v-for="waitress in waitresses" :key="waitress.id" :value="waitress.id">
-                {{ waitress.full_name }}
-              </option>
-            </select>
-          </div>
-          <div class="confirmation-buttons">
-            <button class="confirm-btn" @click="confirmWaitressChange">Təsdiqlə</button>
-            <button class="cancel-btn" @click="cancelWaitressChange">Ləğv et</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Combine Modal -->
-      <div v-if="showCombineModal" class="modal-container">
-        <div class="modal-overlay"></div>
-        <div class="confirmation-dialog">
-          <h2 class="modal-title">Masanı birləşdir</h2>
-          <div class="modal-content-main hall">
-            <div>
-              <label for="combine-hall">Zal Seç:</label>
-              <select id="combine-hall" v-model="selectedHall" @change="fetchTablesForCombine">
-                <option v-for="hall in halls" :key="hall.id" :value="hall.id">{{ hall.name }}</option>
-              </select>
-            </div>
-            <div>
-              <label for="combine-table">Masa seç:</label>
-              <select id="combine-table" v-model="selectedTable">
-                <option v-for="table in tables" :key="table.id" :value="table.id">{{ table.number }}</option>
-              </select>
-            </div>
-          </div>
-          <div class="confirmation-buttons">
-            <button class="confirm-btn" @click="confirmCombine">Birləşdir</button>
-            <button class="cancel-btn" @click="cancelCombine">Ləğv et</button>
-          </div>
-        </div>
-      </div>
-    </Teleport>
+  <div class="actions-container">
+    <div class="admin-actions">
+      <button
+        v-for="action in actions"
+        :key="action.id"
+        class="action-button"
+        :data-id="action.id"
+        @click="handleAction(action.method)"
+      >
+        {{ action.label }}
+      </button>
+    </div>
+    <ErrorPopup v-if="error" :message="error" @close="clearError" />
+    <SuccessPopup v-if="successMessage" :message="successMessage" @close="clearSuccess" />
   </div>
 </template>
 
@@ -125,10 +34,10 @@ export default {
   name: 'Actions',
   props: {
     tableId: {
-      type: Number,
+      type: [Number, String],
       required: true,
       validator: (value) => {
-        return typeof value === 'number' || !isNaN(Number(value));
+        return !isNaN(Number(value));
       }
     },
     selectedOrderId: {
@@ -145,7 +54,7 @@ export default {
         { id: 4, label: 'Masanı köçür', method: 'openTransferModal' },
         { id: 5, label: 'Çeki ləğv et', method: 'cancelPrintOrder' },
         { id: 6, label: 'Masanı birləşdir', method: 'openCombine' },
-        { id: 7, label: 'Mətbəxə göndər', method: 'confirmKitchen' }
+        { id: 7, label: 'Mətbəxə göndər', method: 'confirmKitchen', isKitchenButton: true }
       ],
       error: null,
       successMessage: null,
@@ -247,7 +156,11 @@ export default {
             this.$emit('order-confirmed');
           } catch (error) {
             console.error('Error confirming order:', error);
-            this.showError('Sifarişi mətbəxə göndərmək mümkün olmadı.');
+            if (error.code === 'ECONNABORTED') {
+              this.showError('Server cavab vermir. Zəhmət olmasa bir az sonra yenidən cəhd edin.');
+            } else {
+              this.showError('Sifarişi mətbəxə göndərmək mümkün olmadı.');
+            }
           }
           break;
       }
@@ -449,83 +362,92 @@ export default {
   overflow-x: auto;
 }
 
-.action-button, 
-.modal-content-button button,
-.popup-content-button button {
+.actions-container {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.admin-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.action-button {
   border: none;
-  border-radius: 4px;
+  border-radius: 12px;
   cursor: pointer;
-  transition: background-color 0.3s;
-}
-.modal-content-button button,
-.popup-content-button button {
-  padding: 20px 30px;
-}
-.action-button{
+  transition: all 0.3s ease;
   min-width: 130px;
   height: 58px;
   margin-bottom: 10px;
   margin-top: 10px;
-  padding: 16px;
+  padding: 15px 20px;
   font-weight: 600;
-}
-
-.actions button[data-id="3"] {
-  background-color: #d32f2f;
   color: #fff;
-  transition: all 0.3s ease-in-out;
-}
-.actions button[data-id="3"]:hover {
-  background-color: #c62828;
-}
-
-.actions button[data-id="5"] {
-  background-color: #ff9800;
-  color: #fff;
-  transition: all 0.3s ease-in-out;
-}
-.actions button[data-id="5"]:hover {
-  background-color: #fb8c00;
+  font-size: 1.1em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-.actions button[data-id="2"] {
-  background-color: #4caf50;
-  color: #fff;
-  transition: all 0.3s ease-in-out;
-}
-.actions button[data-id="2"]:hover {
-  background-color: #43a047;
+.action-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.actions button[data-id="4"] {
-  background-color: #2196f3;
-  color: #fff;
-  transition: all 0.3s ease-in-out;
+.action-button[data-id="1"] {
+  background-color: #4caf50 !important;
 }
-.actions button[data-id="4"]:hover {
-  background-color: #1e88e5;
+.action-button[data-id="1"]:hover {
+  background-color: #43a047 !important;
 }
 
-.actions button[data-id="6"] {
-  color: #fff;
-  background-color: #9c27b0;
+.action-button[data-id="2"] {
+  background-color: #4caf50 !important;
 }
-.actions button[data-id="6"]:hover {
-  background-color: #8e24aa;
-}
-
-.actions button[data-id="7"] {
-  background-color: #4caf50;
-  color: #fff;
-  transition: all 0.3s ease-in-out;
-}
-.actions button[data-id="7"]:hover {
-  background-color: #43a047;
+.action-button[data-id="2"]:hover {
+  background-color: #43a047 !important;
 }
 
-.action-button:hover{
-  /* Hover state for buttons */
-  background-color: #e2e2e2;
+.action-button[data-id="3"] {
+  background-color: #d32f2f !important;
+}
+.action-button[data-id="3"]:hover {
+  background-color: #c62828 !important;
+}
+
+.action-button[data-id="4"] {
+  background-color: #2196f3 !important;
+}
+.action-button[data-id="4"]:hover {
+  background-color: #1e88e5 !important;
+}
+
+.action-button[data-id="5"] {
+  background-color: #ff9800 !important;
+}
+.action-button[data-id="5"]:hover {
+  background-color: #fb8c00 !important;
+}
+
+.action-button[data-id="6"] {
+  background-color: #9c27b0 !important;
+}
+.action-button[data-id="6"]:hover {
+  background-color: #8e24aa !important;
+}
+
+.action-button[data-id="7"] {
+  background-color: #4caf50 !important;
+}
+.action-button[data-id="7"]:hover {
+  background-color: #43a047 !important;
 }
 
 /* Styles for confirmation pop-up */
@@ -714,21 +636,35 @@ body:has(.confirmation-popup) {
 }
 
 @media (max-width: 768px) {
-  .action-btn {
-    padding: 10px 15px;
-    font-size: 1em;
+  .actions-container {
+    width: 100%;
+    overflow-x: auto;
+    padding: 10px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .admin-actions {
+    flex-wrap: nowrap;
+    width: max-content;
+    padding-bottom: 5px; /* Space for the scrollbar */
+  }
+
+  .action-button {
+    min-width: 130px;
+    margin: 0 5px;
+    white-space: nowrap;
   }
 }
 
-@media (max-width: 480px) {
-  .action-btn {
-    padding: 8px 12px;
-    font-size: 0.95em;
-  }
-  
-  .actions-container {
-    gap: 8px;
-  }
+/* Hide scrollbar for Chrome, Safari and Opera */
+.actions-container::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.actions-container {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
 }
 
 .popup-overlay ~ .content-container,
@@ -935,5 +871,44 @@ body:has(.confirmation-popup) {
   .cancel-btn {
     width: 100%;
   }
+}
+
+.action-button {
+  background: #ffffff;
+  color: #2c3e50;
+  border: none;
+  padding: 15px 20px;
+  font-size: 1.1em;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 50px;
+  width: 100%;
+  font-weight: 600;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.action-button:hover {
+  background: #f8f9fa;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.action-button[data-kitchen="true"] {
+  background: #4caf50;
+  color: white;
+}
+
+.action-button[data-kitchen="true"]:hover {
+  background: #43a047;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 </style>

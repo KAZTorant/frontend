@@ -115,10 +115,11 @@ export default {
       this.showDropdown = this.mainOrder.pk; 
     }
     EventBus.on('orderItemAdded', this.handleOrderItemAdded); 
-
+    EventBus.on('order-confirmed', this.handleOrderItemAdded);
   },
   beforeUnmount() {
     EventBus.off('orderItemAdded', this.handleOrderItemAdded);
+    EventBus.off('order-confirmed', this.handleOrderItemAdded);
   },
   methods: {
     checkViewPermissionForAdmin() {
