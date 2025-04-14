@@ -2,16 +2,24 @@
     <div class="menu">  
         <div class="menu-category-item-menu sticky">
             <div class="menu-category-items-header">
-                <template v-if="!showAllMeals">
+                <template v-if="!showAllMeals || !selectedGroup">
                     <span 
-                        :class="{ active: showAllMeals && selectedCategory === null }"
-                        @click="fetchMenuItems(null)"
+                        v-for="group in mealGroups" 
+                        :key="group.id"
+                        @click="selectGroup(group)"
+                        :class="{ active: selectedGroup?.id === group.id }"
                     >
-                        Əsas yeməklər
+                        {{ group.name }}
                     </span>
+                </template>
 
+                <template v-else>
+                    <button class="back-btn" @click="goBackToGroups">
+                        <font-awesome-icon icon="arrow-left" />
+                        Qruplar
+                    </button>
                     <span 
-                        v-for="category in mealCategories" 
+                        v-for="category in selectedGroup.categories" 
                         :key="category.id"
                         @click="fetchMenuItems(category.id)"
                         :class="{ active: selectedCategory === category.id }"
@@ -19,25 +27,14 @@
                         {{ category.name }}
                     </span>
                 </template>
-
-                <template v-else>
-                    <button class="back-btn" @click="goBackToCategories">
-                        <font-awesome-icon icon="arrow-left" />
-                        Kateqoriyalar
-                    </button>
-                    <span class="active">
-                        {{ selectedCategory === null ? "Əsas yeməklər" : currentCategoryName }}
-                    </span>
-                </template>
             </div>
             <input 
-                v-if="showAllMeals" 
+                v-if="showAllMeals && selectedCategory" 
                 type="text" 
                 v-model="searchQuery" 
                 placeholder="Axtarış..." 
                 class="search-input"
             />
-
         </div>
         <div class="menu-items-container">
             <div class="menu-item" 
@@ -67,7 +64,8 @@ export default {
     },
     data() {
         return {
-            mealCategories: [],
+            mealGroups: [],
+            selectedGroup: null,
             menuItems: [],
             selectedCategory: null,
             loading: false,
@@ -78,8 +76,7 @@ export default {
         };
     },
     async created() {
-        this.fetchMealCategories();
-        this.fetchMenuItems();
+        this.fetchMealGroups();
         EventBus.on('selectedOrderId', (orderId) => {
             this.orderId = orderId;
         });
@@ -94,11 +91,6 @@ export default {
             }
             const query = this.searchQuery.toLowerCase();
             return this.menuItems.filter(item => item.name.toLowerCase().includes(query));
-        },
-
-        currentCategoryName() {
-            const category = this.mealCategories.find(cat => cat.id === this.selectedCategory);
-            return category ? category.name : '';
         }
     },
     methods: {
@@ -121,43 +113,34 @@ export default {
                 }
             }
         },
-        async fetchMealCategories() {
+        async fetchMealGroups() {
             try {
-                const categories = await backendServices.fetchMealCategories();
-                this.mealCategories = categories;
-                this.fetchMenuItems(null);
+                const groups = await backendServices.fetchMealGroups();
+                this.mealGroups = groups;
             } catch (error) {
-                console.error('Error fetching meal categories:', error);
+                console.error('Error fetching meal groups:', error);
             }
+        },
+        selectGroup(group) {
+            this.selectedGroup = group;
+            this.showAllMeals = true;
+            this.selectedCategory = null;
+            this.menuItems = [];
         },
         async fetchMenuItems(categoryId = null) {
+            if (!categoryId) return;
             this.selectedCategory = categoryId;
-
-            if (categoryId === null) {
-                this.currentCategoryName = "Əsas yeməklər";
-                this.showAllMeals = true;
-
-                let allMeals = [];
-                for (const category of this.mealCategories) {
-                const meals = await backendServices.fetchMealsByCategoryId(category.id);
-                allMeals = allMeals.concat(meals);
-                }
-                this.menuItems = allMeals;
-            } else {
-                this.showAllMeals = true;
-                const category = this.mealCategories.find(cat => cat.id === categoryId);
-                this.currentCategoryName = category ? category.name : "";
-
+            try {
                 const items = await backendServices.fetchMealsByCategoryId(categoryId);
                 this.menuItems = items;
+            } catch (error) {
+                console.error('Error fetching menu items:', error);
             }
         },
-
-        goBackToCategories() {
+        goBackToGroups() {
             this.showAllMeals = false;
             this.selectedCategory = null;
             this.menuItems = [];
-            this.currentCategoryName = "";
         },
         async addOrderItem(categoryId, mealId, quantity, orderId) {
             try {

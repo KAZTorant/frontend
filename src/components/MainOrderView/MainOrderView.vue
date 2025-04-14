@@ -16,25 +16,38 @@
         <div class="right-section">
           <div class="action-buttons">
             <button class="action-btn tables-btn" @click="goToTablesView()">
-              <font-awesome-icon icon="table" />
+              <font-awesome-icon icon="fa-solid fa-table" />
               <span>Masalar</span>
             </button>
             <button class="action-btn logout-btn" @click="logout">
-              <font-awesome-icon icon="sign-out-alt" />
+              <font-awesome-icon icon="fa-solid fa-right-from-bracket" />
               <span>Çıxış</span>
             </button>
           </div>
         </div>
       </div>
       <div class="admin-actions" v-if="role === 'admin' || role === 'restaurant'">
-        <Actions :tableId="parseInt(tableId)" />
+        <Actions 
+          :table-id="tableId" 
+          :selected-order-id="selectedOrderId"
+          @show-confirmation="showConfirmationPopup = true"
+          @show-waitress-modal="showWaitressModal = true"
+          @show-transfer-modal="showTransferModal = true"
+          @show-close-modal="showCloseModal = true"
+          @order-confirmed="handleOrderConfirmed"
+        />
       </div>
     </div>
     
     <div class="content-container">
-      <OrderItems class="order-section" :tableId="parseInt(tableId)" />
+      <OrderItems class="order-section" :tableId="parseInt(tableId)" @table-click="handleTableClick" />
       <Menu class="menu-section" :tableId="parseInt(tableId)" />
     </div>
+    <CustomerCountPopup 
+      :show="showCustomerCountPopup"
+      @confirm="handleCustomerCountConfirm"
+      @close="showCustomerCountPopup = false"
+    />
   </div>
 </template>
 
@@ -45,13 +58,20 @@ import Actions from './Actions.vue';
 import backendServices from '../../backend-services/backend-services';
 import store from '../../store';
 import router  from '../../router';
+import CustomerCountPopup from './CustomerCountPopup.vue';
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { faTable, faRightFromBracket } from '@fortawesome/free-solid-svg-icons';
+import EventBus from '../../event-bus.js';
+
+library.add(faTable, faRightFromBracket);
 
 export default {
   name: 'MainOrderView',
   components: {
     OrderItems,
     Menu,
-    Actions
+    Actions,
+    CustomerCountPopup
   },
   data() {
     return {
@@ -60,7 +80,14 @@ export default {
       waitressName: "",
       tableName: "",
       print_check: false,
-      roleDisplayName: ""
+      roleDisplayName: "",
+      showCustomerCountPopup: false,
+      selectedTableId: null,
+      selectedOrderId: null,
+      showConfirmationPopup: false,
+      showWaitressModal: false,
+      showTransferModal: false,
+      showCloseModal: false
     }
   },
   methods: {
@@ -72,6 +99,45 @@ export default {
     },
     goToTablesView(){
       router.back();
+    },
+    async handleTableClick(table) {
+      console.log('Table clicked in MainOrderView:', table); // Debug log
+      if (table.status === 'empty') {
+        console.log('Table is empty, showing popup'); // Debug log
+        this.selectedTableId = table.id;
+        this.showCustomerCountPopup = true;
+      } else {
+        console.log('Table is not empty, updating details'); // Debug log
+        this.tableId = table.id;
+        try {
+          const tableResponse = await backendServices.fetchTableDetails(table.id);
+          this.waitressName = tableResponse.waitress.name;
+          this.tableName = tableResponse.number;
+          this.print_check = tableResponse.print_check;
+        } catch (error) {
+          console.error('Error fetching table details:', error);
+        }
+      }
+    },
+    async handleCustomerCountConfirm(customerCount) {
+      try {
+        const order = await backendServices.createOrder(this.selectedTableId, customerCount);
+        this.tableId = this.selectedTableId;
+        const tableResponse = await backendServices.fetchTableDetails(this.selectedTableId);
+        this.waitressName = tableResponse.waitress.name;
+        this.tableName = tableResponse.number;
+        this.print_check = tableResponse.print_check;
+      } catch (error) {
+        console.error('Error creating order:', error);
+      } finally {
+        this.showCustomerCountPopup = false;
+        this.selectedTableId = null;
+      }
+    },
+    async handleOrderConfirmed() {
+      await this.fetchOrders();
+      await this.fetchOrderItems();
+      EventBus.emit('orderItemAdded');
     }
   },
   

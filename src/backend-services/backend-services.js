@@ -109,7 +109,6 @@ const backendServices = {
       });
       return response.data;
     } catch (error) {
-      // Handle error
       console.error('Error fetching meal categories:', error);
       throw error;
     }
@@ -331,8 +330,43 @@ async getNetworkAddress() {
     console.error('Error fetching network address:', error);
     throw error;
   }
+},
+
+async fetchMealGroups() {
+  try {
+    const response = await axiosInstance.get('/api/meals/groups/', {
+      headers: {
+        'accept': 'application/json',
+        'X-PIN': store.getters['auth/GET_USERNAME']
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching meal groups:', error);
+    throw error;
+  }
+},
+
+async confirmOrder(orderId) {
+  try {
+    const response = await axiosInstance.post(
+      `/api/orders/${orderId}/confirm/`,
+      {
+      },
+      {
+        headers: {
+          'X-PIN': store.getters['auth/GET_USERNAME'],
+          'X-CSRFTOKEN': store.getters['auth/GET_CSRFTOKEN'],
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error confirming order:', error);
+    throw error;
+  }
 }
-  // Define other API functions here
 };
 
 

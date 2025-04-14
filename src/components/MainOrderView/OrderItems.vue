@@ -10,6 +10,9 @@
             </span>
             Sifariş {{ mainOrder.pk }} (Əsas)
           </button>
+          <button class="table-button" @click="handleTableClick(mainOrder.table)">
+            <font-awesome-icon icon="fa-solid fa-table" />
+          </button>
         </div>
 
         <OrderDropdown
@@ -26,12 +29,17 @@
       <!-- Display otherOrders -->
       <div class="button-container">
         <div v-for="item in otherOrders" :key="item.pk" class="order-item-button order-item-box">
-          <button class="order-button" @click="toggleDropdown(item.pk)">
-            <span>
-              <font-awesome-icon class="order-icon" :class="{ rotated: showDropdown === item.pk, closed: showDropdown !== item.pk }" icon="angle-right" />
-            </span>
-            Sifariş {{ item.pk }}
-          </button>
+          <div class="order-item-header">
+            <button class="order-button" @click="toggleDropdown(item.pk)">
+              <span>
+                <font-awesome-icon class="order-icon" :class="{ rotated: showDropdown === item.pk, closed: showDropdown !== item.pk }" icon="angle-right" />
+              </span>
+              Sifariş {{ item.pk }}
+            </button>
+            <button class="table-button" @click="handleTableClick(item.table)">
+              <font-awesome-icon icon="fa-solid fa-table" />
+            </button>
+          </div>
 
           <OrderDropdown
             v-if="showDropdown === item.pk"
@@ -75,9 +83,9 @@ import backendServices from '../../backend-services/backend-services';
 import { EventBus } from '../../EventBus';
 import store from '../../store';
 import { library } from '@fortawesome/fontawesome-svg-core';
-import { faAngleRight } from '@fortawesome/free-solid-svg-icons';
+import { faAngleRight, faTable } from '@fortawesome/free-solid-svg-icons';
 
-library.add(faAngleRight);
+library.add(faTable, faAngleRight);
 
 export default {
   name: 'OrderItems',
@@ -182,6 +190,20 @@ export default {
     async handleOrderItemAdded() {
       await this.fetchOrders();
       await this.fetchOrderItems(); 
+    },
+    async handleTableClick(table) {
+      console.log('Table button clicked:', table); // Debug log
+      try {
+        const tableResponse = await backendServices.fetchTableDetails(table.id);
+        console.log('Table response:', tableResponse); // Debug log
+        this.$emit('table-click', {
+          id: table.id,
+          status: tableResponse.status,
+          number: tableResponse.number
+        });
+      } catch (error) {
+        console.error('Error fetching table details:', error);
+      }
     }
   },
   computed: {
@@ -327,8 +349,38 @@ export default {
 }
 
 .order-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   border-bottom: 1px solid #e9ecef;
   padding: 15px;
+}
+
+.table-button {
+  background: linear-gradient(135deg, #ffffff, #f8f9fa);
+  color: #2c3e50;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 40px;
+  margin-left: 10px;
+}
+
+.table-button:hover {
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.table-button svg {
+  font-size: 1.2em;
+  color: #2ecc71;
 }
 
 @media (max-width: 1024px) {
@@ -371,6 +423,12 @@ export default {
     height: 24px;
     font-size: 1.1em;
   }
+
+  .table-button {
+    padding: 8px;
+    min-width: 35px;
+    height: 35px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -384,6 +442,12 @@ export default {
     width: 20px;
     height: 20px;
     font-size: 1em;
+  }
+
+  .table-button {
+    padding: 6px;
+    min-width: 30px;
+    height: 30px;
   }
 }
 </style>

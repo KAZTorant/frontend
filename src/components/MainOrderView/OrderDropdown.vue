@@ -9,6 +9,7 @@
           <span>Sayı</span>
           <span>Qiyməti</span>
           <span>Cəmi</span>
+          <span>Status</span>
         </div>
       </div>
       <div class="order-items-list">
@@ -29,6 +30,9 @@
 
           <span>{{ item.meal.price }} azn</span>
           <span>{{ (item.quantity * item.meal.price) }} azn</span>
+          <span class="status-indicator" :class="{ 'confirmed': item.confirmed }">
+            {{ item.confirmed ? 'Təsdiqlənib' : 'Gözləyir' }}
+          </span>
         </div>
       </div>
     </div>
@@ -159,7 +163,7 @@
 .order-items-header,
 .order-item {
   display: grid;
-  grid-template-columns: 150px repeat(3, minmax(50px, 1fr));
+  grid-template-columns: 150px repeat(4, minmax(50px, 1fr));
   align-items: center;
   gap: 10px;
   padding: 0 15px;
@@ -225,10 +229,26 @@
   color: #2ecc71;
 }
 
+.status-indicator {
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 8px;
+  text-align: center;
+  background: #f8d7da;
+  color: #721c24;
+  font-size: 0.9em;
+  transition: all 0.3s ease;
+}
+
+.status-indicator.confirmed {
+  background: #d4edda;
+  color: #155724;
+}
+
 @media (max-width: 1024px) {
   .order-items-header,
   .order-item {
-    grid-template-columns: 120px repeat(3, minmax(40px, 1fr));
+    grid-template-columns: 120px repeat(4, minmax(40px, 1fr));
     gap: 8px;
     padding: 0 12px;
   }
@@ -252,7 +272,7 @@
 
   .order-items-header,
   .order-item {
-    grid-template-columns: 100px repeat(3, minmax(35px, 1fr));
+    grid-template-columns: 100px repeat(4, minmax(35px, 1fr));
     gap: 5px;
     padding: 0 10px;
   }
@@ -282,7 +302,7 @@
 @media (max-width: 480px) {
   .order-items-header,
   .order-item {
-    grid-template-columns: 80px repeat(3, minmax(30px, 1fr));
+    grid-template-columns: 80px repeat(4, minmax(30px, 1fr));
     gap: 4px;
     padding: 0 8px;
   }

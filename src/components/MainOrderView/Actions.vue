@@ -112,6 +112,10 @@ import ErrorPopup from '@/components/ErrorPopup.vue';
 import SuccessPopup from '@/components/SuccessPopup.vue';
 import backendServices from '@/backend-services/backend-services';
 import router from '@/router/';
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { faPrint, faUser, faExchangeAlt, faTimes, faUtensils } from '@fortawesome/free-solid-svg-icons';
+
+library.add(faPrint, faUser, faExchangeAlt, faTimes, faUtensils);
 
 export default {
   components: {
@@ -122,18 +126,26 @@ export default {
   props: {
     tableId: {
       type: Number,
-      required: true
+      required: true,
+      validator: (value) => {
+        return typeof value === 'number' || !isNaN(Number(value));
+      }
     },
+    selectedOrderId: {
+      type: Number,
+      default: null
+    }
   },
   data() {
     return {
       actions: [
         { id: 1, label: 'Print Çek', method: 'printOrder' },
-        { id: 5, label: 'Çeki ləğv et', method: 'cancelPrintOrder' },
-        { id: 3, label: 'Masanı bağla', method: 'cancelOrder' },
         { id: 2, label: 'Ofsianti dəyiş', method: 'changeWaitress' },
+        { id: 3, label: 'Masanı bağla', method: 'cancelOrder' },
         { id: 4, label: 'Masanı köçür', method: 'openTransferModal' },
+        { id: 5, label: 'Çeki ləğv et', method: 'cancelPrintOrder' },
         { id: 6, label: 'Masanı birləşdir', method: 'openCombine' },
+        { id: 7, label: 'Mətbəxə göndər', method: 'confirmKitchen' }
       ],
       error: null,
       successMessage: null,
@@ -227,6 +239,16 @@ export default {
           break;
         case 'cancelPrintOrder':
           await this.callCanelPrintOrder(this.tableId);
+          break;
+        case 'confirmKitchen':
+          try {
+            await backendServices.confirmOrder(this.tableId);
+            this.showSuccess('Sifariş mətbəxə göndərildi.');
+            this.$emit('order-confirmed');
+          } catch (error) {
+            console.error('Error confirming order:', error);
+            this.showError('Sifarişi mətbəxə göndərmək mümkün olmadı.');
+          }
           break;
       }
     },
@@ -492,6 +514,14 @@ export default {
   background-color: #8e24aa;
 }
 
+.actions button[data-id="7"] {
+  background-color: #4caf50;
+  color: #fff;
+  transition: all 0.3s ease-in-out;
+}
+.actions button[data-id="7"]:hover {
+  background-color: #43a047;
+}
 
 .action-button:hover{
   /* Hover state for buttons */
