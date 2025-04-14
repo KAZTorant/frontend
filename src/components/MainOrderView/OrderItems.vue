@@ -193,77 +193,197 @@ export default {
 </script>
 
 <style scoped>
-
 .order-items-container {
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  border-top: 1px solid #ccc;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(245, 245, 245, 0.98));
+  border-radius: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e9ecef;
+  overflow: hidden;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
-.order-item-box{
-  background-color: #efefef;
-}
+
 .order-container {
   display: flex;
   flex-direction: column;
-  justify-content: center; 
-  padding: 10px 5px;
-}
-.main-order{
-  margin-bottom: 10px ;
+  gap: 20px;
+  padding: 20px;
+  height: 100%;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #2ecc71 #f8f9fa;
 }
 
+.order-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.order-container::-webkit-scrollbar-track {
+  background: #f8f9fa;
+  border-radius: 4px;
+}
+
+.order-container::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  border-radius: 4px;
+}
+
+.order-item-box {
+  background: linear-gradient(135deg, #ffffff, #f8f9fa);
+  border-radius: 15px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e9ecef;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.order-item-box:hover {
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.main-order {
+  background: linear-gradient(135deg, #ffffff, #f8f9fa);
+  border: 2px solid #2ecc71;
+  position: relative;
+}
+
+.main-order::before {
+  content: 'Əsas';
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 25px;
+  font-size: 1em;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(46, 204, 113, 0.2);
+}
 
 .button-container {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 20px;
 }
 
 .order-button {
-  background-color: #efefef;
-  color: black;
-  font-weight: 500;
+  background: linear-gradient(135deg, #ffffff, #f8f9fa);
+  color: #2c3e50;
+  font-weight: 600;
   border: none;
-  padding: 20px;
-  font-size: 20px;
-  border-radius: 5px;
+  padding: 20px 25px;
+  font-size: 1.2em;
+  border-radius: 15px;
   cursor: pointer;
   width: 100%;
-  transition: background-color 0.3s;
+  transition: all 0.3s ease;
   display: flex;
   align-items: center;
-  justify-content: start;
-  gap: 30px;
+  justify-content: space-between;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  touch-action: manipulation;
+  min-height: 60px;
 }
 
-.order-button span .order-icon {
-  width: 26px;
-  height: 26px;
+.order-button:hover {
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.order-button span {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.order-icon {
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0;
-  color: black;
+  color: #2ecc71;
   border-radius: 50%;
   cursor: pointer;
-  font-size: 18px;
-  transition: transform 0.3s ease; 
+  font-size: 1.4em;
+  transition: all 0.3s ease;
 }
 
-.order-button span .order-icon.rotated {
+.order-icon.rotated {
   transform: rotate(90deg);
-  transition: transform 0.3s ease;
+  color: #2ecc71;
 }
 
-.order-button span .order-icon.closed {
+.order-icon.closed {
   transform: rotate(0deg);
-  transition: transform 0.3s ease;
+  color: #6c757d;
+}
+
+.order-item-header {
+  border-bottom: 1px solid #e9ecef;
+  padding: 15px;
+}
+
+@media (max-width: 1024px) {
+  .order-items-container {
+    border-radius: 15px;
+  }
+
+  .order-container {
+    padding: 15px;
+    gap: 15px;
+  }
+
+  .order-button {
+    padding: 15px 20px;
+    font-size: 1.1em;
+    min-height: 50px;
+  }
+
+  .order-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 1.2em;
+  }
+
+  .main-order::before {
+    font-size: 0.9em;
+    padding: 5px 10px;
+  }
 }
 
 @media (max-width: 768px) {
-  .order-items-container {
-    height: 310px;
+  .order-button {
+    padding: 12px 15px;
+    font-size: 1em;
+    min-height: 45px;
+  }
+
+  .order-icon {
+    width: 24px;
+    height: 24px;
+    font-size: 1.1em;
+  }
+}
+
+@media (max-width: 480px) {
+  .order-button {
+    padding: 10px 12px;
+    font-size: 0.95em;
+    min-height: 40px;
+  }
+
+  .order-icon {
+    width: 20px;
+    height: 20px;
+    font-size: 1em;
   }
 }
 </style>

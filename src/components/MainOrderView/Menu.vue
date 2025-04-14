@@ -39,13 +39,15 @@
             />
 
         </div>
-        <div class="menu-item" 
-             v-for="item in filteredMenuItems" 
-             :key="item.id" 
-             @click="addOrderItem(tableId, item.id, 1)"
-             :class="{ 'disabled': loading }">
-            <div class="menu-item-name">{{ item.name }}</div>
-            <div class="menu-item-price">{{ item.price }} azn</div>
+        <div class="menu-items-container">
+            <div class="menu-item" 
+                 v-for="item in filteredMenuItems" 
+                 :key="item.id" 
+                 @click="addOrderItem(tableId, item.id, 1)"
+                 :class="{ 'disabled': loading }">
+                <div class="menu-item-name">{{ item.name }}</div>
+                <div class="menu-item-price">{{ item.price }} azn</div>
+            </div>
         </div>
     </div>
 </template>
@@ -71,7 +73,8 @@ export default {
             loading: false,
             orderCreatedAlready: false,
             searchQuery: '',
-            orderId: null
+            orderId: null,
+            showAllMeals: false
         };
     },
     async created() {
@@ -187,142 +190,206 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 
 <style scoped>
-.menu-category-item-menu {
-    height: auto;
-}
-
-.disabled {
-    pointer-events: none;
-    opacity: 0.5;
-}
-
-.active {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 5px;
-    font-weight: bold;
-    background-color: var(--primary-color);
-    color: var(--text-color);
-    transition: all 0.3ms ease-in-out;
-}
-
-.active:hover {
-    background-color: var(--primary-hover);
-}
-
 .menu {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    grid-template-rows: repeat(15, 1fr);
-    gap: 10px;
-    padding: 0 5px;
-    overflow-y: auto;
-}
-
-.menu-item {
-    border: 2px solid var(--primary-color);
-    padding: 6px;
-    border-radius: 5px;
-    cursor: pointer;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 60px;
-    max-width: 200px;
-    color: var(--text-color);
-    background-color: var(--primary-color);
-    overflow-wrap: break-word;
+    flex-direction: column;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(245, 245, 245, 0.98));
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    overflow: hidden;
 }
 
-.menu-item-name,
-.menu-item-price {
-    font-size: 18px;
-    font-weight: bold;
-}
-
-.menu-category-item-menu.sticky {
-    grid-column: 1 / -1;
+.menu-category-item-menu {
+    background: linear-gradient(135deg, #ffffff, #f8f9fa);
+    padding: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e9ecef;
     position: sticky;
     top: 0;
-    background: var(--text-color);
     z-index: 1000;
+    flex-shrink: 0;
 }
 
 .menu-category-items-header {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    display: flex;
     gap: 10px;
-    cursor: pointer;
-    background-color: var(--light-background);
-    padding: 10px;
-}
-
-.menu-category-items-header span:not(.active) {
-    background-color: var(--text-color);
-    padding: 12px 14px;
-    border-radius: 5px;
-}
-
-.menu-category-items-header::-webkit-scrollbar {
-    display: none;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+    justify-content: flex-start;
 }
 
 .menu-category-items-header span {
-    font-size: 18px;
-    font-weight: bold;
-    border: 2px solid var(--primary-color);
-    padding: 8px 10px;
+    padding: 10px 20px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    color: #2c3e50;
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    min-width: 100px;
+    text-align: center;
+    touch-action: manipulation;
+    font-size: 0.95em;
+}
+
+.menu-category-items-header span.active {
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
+    color: white;
+    box-shadow: 0 4px 12px rgba(46, 204, 113, 0.2);
+}
+
+.menu-items-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+    padding: 15px;
+    flex: 1;
+    overflow: hidden;
+}
+
+.menu-item {
+    background: linear-gradient(135deg, #ffffff, #f8f9fa);
+    padding: 15px;
+    border-radius: 12px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 100px;
+    transition: all 0.3s ease;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    touch-action: manipulation;
+}
+
+.menu-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: #2ecc71;
+}
+
+.menu-item-name {
+    font-size: 1.1em;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 10px;
+    line-height: 1.3;
+}
+
+.menu-item-price {
+    font-size: 1.2em;
+    font-weight: 700;
+    color: #2ecc71;
 }
 
 .search-input {
-    margin-top: 10px;
-    margin-bottom: 10px;
-    padding: 5px;
     width: 100%;
-    min-width: 40px;
-    min-height: 40px;
-    box-sizing: border-box;
-    font-size: 16px;
-    border: 2px solid var(--primary-color);
+    padding: 12px 15px;
+    border-radius: 12px;
+    border: 2px solid #e9ecef;
+    font-size: 1em;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    margin-bottom: 15px;
+    touch-action: manipulation;
 }
 
 .back-btn {
-    width: 100%;
     display: flex;
-    justify-content: center;
     align-items: center;
-    gap: 6px;
-    font-size: 18px;
-    padding: 12px 14px;
-    border-radius: 5px;
-    font-weight: bold;
-    border: 2px solid var(--primary-color);
-    background-color: var(--text-color);
+    gap: 15px;
+    padding: 15px 25px;
+    border-radius: 15px;
     cursor: pointer;
-    margin-right: 10px;
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
     color: #2c3e50;
+    font-weight: 500;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    touch-action: manipulation;
+    min-width: 160px;
 }
 
-@media (max-width: 1034px) {
-  .menu {
-    grid-template-columns: repeat(2, 1fr);
-  }
+.back-btn:hover {
+    background: linear-gradient(135deg, #e9ecef, #dee2e6);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 1024px) {
+    .menu-items-container {
+        overflow-y: auto;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    }
 }
 
 @media (max-width: 768px) {
-    .menu {
-        grid-template-columns: repeat(3, 1fr); 
+    .menu-category-item-menu {
+        padding: 12px;
     }
+
     .menu-category-items-header {
-        overflow-x: auto;
-        flex-wrap: nowrap;
+        gap: 8px;
+        margin-bottom: 12px;
+        justify-content: center;
+    }
+
+    .menu-category-items-header span {
+        padding: 8px 15px;
+        min-width: 90px;
+        font-size: 0.9em;
+    }
+
+    .menu-items-container {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 12px;
+        padding: 12px;
+    }
+
+    .menu-item {
+        padding: 12px;
+        min-height: 90px;
     }
 }
 
-@media (max-width: 530px) {
-  .menu {
-    grid-template-columns: repeat(2, 1fr);
-  }
+@media (max-width: 480px) {
+    .menu-category-item-menu {
+        padding: 10px;
+    }
+
+    .menu-category-items-header {
+        gap: 6px;
+        margin-bottom: 10px;
+    }
+
+    .menu-category-items-header span {
+        padding: 6px 12px;
+        min-width: 80px;
+        font-size: 0.85em;
+        border-radius: 10px;
+    }
+
+    .menu-items-container {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 10px;
+        padding: 10px;
+    }
+
+    .menu-item {
+        padding: 10px;
+        min-height: 80px;
+        border-radius: 10px;
+    }
+}
+
+/* Add support for landscape mode */
+@media (max-width: 900px) and (orientation: landscape) {
+    .menu-items-container {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        overflow-y: auto;
+    }
 }
 </style>

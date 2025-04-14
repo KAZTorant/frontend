@@ -129,11 +129,12 @@ export default {
 .restaurant-background {
   min-height: 100vh;
   width: 100%;
-  background-image: url('../../assets/restaurantBackgroundImage.jpeg'); /* Replace with your image path */
+  background-image: url('../../assets/restaurantBackgroundImage.jpeg');
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
   position: relative;
+  padding: 20px;
 }
 
 /* Add a semi-transparent overlay for better readability */
@@ -144,170 +145,171 @@ export default {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(255, 255, 255, 0.7); /* White with 70% opacity */
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(245, 245, 245, 0.95));
   z-index: -1;
 }
 
 .check-printed {
-  background-color: greenyellow;
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  color: white;
+  border: none;
 }
 
 .waitress-id-zero {
-  background-color: rgba(255, 255, 255, 0.9); /* More opaque white for better contrast */
+  background: linear-gradient(135deg, #ffffff, #f8f9fa);
+  border: 2px solid #e9ecef;
 }
 
 .waitress-id-not-zero {
-  background-color: rgba(255, 219, 92, 0.9); /* More opaque yellow for better contrast */
+  background: linear-gradient(135deg, #fff3cd, #ffeeba);
+  border: 2px solid #ffeeba;
 }
 
 .hall.clicked {
-  background-color: gray !important;
+  background: linear-gradient(135deg, #2ecc71, #27ae60) !important;
+  color: white;
 }
 
 .not-current-waitress {
-  background-color: rgba(128, 128, 128, 0.9); /* More opaque gray */
+  background: linear-gradient(135deg, #6c757d, #495057);
+  color: white;
   pointer-events: none;
 }
 
 .logout-head {
   display: flex;
-  justify-content: center;
-  overflow-x: auto;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  margin-bottom: 20px;
   position: relative;
   z-index: 1;
 }
 
 .waiterssName {
   white-space: nowrap;
-  size: 40px !important;
-  color: black;
-  font-weight: 700;
-  padding: 20px;
-  margin: 10px;
-  padding-bottom: 10px;
-  background-color: bisque;
-  border-radius: 4px 4px 0 0;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
-
-.logout-button,
-.tables-view {
-  width: 140px;
-  margin: 10px;
-  padding: 20px 28px;
-  color: white;
-  border: none;
-  cursor: pointer;
-  border-radius: 6px;
+  color: #2c3e50;
   font-weight: 600;
-  font-size: 16px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  padding: 15px 25px;
+  background: linear-gradient(135deg, #ffffff, #f8f9fa);
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  font-size: 1.1em;
+  border: 1px solid #e9ecef;
 }
 
 .logout-button {
-  background-color: #fd5c63;
-  transition: all 0.3s ease-in-out;
+  width: 120px;
+  padding: 12px 24px;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 16px;
+  background: linear-gradient(135deg, #ff6b6b, #ff5252);
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(255, 82, 82, 0.2);
 }
 
 .logout-button:hover {
-  background-color: #e6313a;
-}
-
-html,
-body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  overflow-x: hidden;
+  background: linear-gradient(135deg, #ff5252, #ff1744);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 82, 82, 0.3);
 }
 
 .layout {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 15px;
-  margin: 20px 20px 100px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin: 20px;
+  padding-bottom: 100px;
   position: relative;
   z-index: 1;
 }
 
 .table {
-  border: 2px solid var(--primary-color);
-  border-radius: 8px;
-  padding: 10px;
+  border-radius: 16px;
+  padding: 15px;
   display: flex;
   flex-direction: column;
   justify-content: space-around;
   align-items: center;
-  height: 150px;
+  height: 180px;
   cursor: pointer;
-  background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white background */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  background: linear-gradient(135deg, #ffffff, #f8f9fa);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  border: 1px solid #e9ecef;
 }
 
 .table:hover {
   transform: translateY(-5px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+  border-color: #2ecc71;
 }
 
-.halls {
-  display: flex;
-  overflow-x: auto;
-  white-space: nowrap;
-  align-items: center;
-  background-color: rgba(0, 0, 0, 0.8); /* Semi-transparent black background */
-  color: #fff;
-  padding: 10px 20px;
-  position: -webkit-sticky;
-  /* For Safari */
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.3);
+.table div {
+  font-size: 1.1em;
+  color: #2c3e50;
+  margin: 5px 0;
 }
 
-.hall {
-  padding: 10px 20px;
-  margin-right: 10px;
-  min-width: 100px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  border-radius: 4px;
-}
-
-.hall:hover {
-  background-color: rgba(255, 255, 255, 0.2);
+.table div:first-child {
+  font-size: 1.4em;
+  font-weight: 600;
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .halls-container {
   position: fixed;
   bottom: 0;
   left: 0;
-  width: 100%;
-  /* Ensures the menu stretches across the viewport */
-  z-index: 1000;
-  /* Ensures the menu appears above other content */
+  right: 0;
+  background: linear-gradient(135deg, #ffffff, #f8f9fa);
+  padding: 15px;
+  box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.08);
+  z-index: 2;
+  border-top: 1px solid #e9ecef;
 }
 
-@media (max-width: 1008px) {
-  .layout {
-    grid-template-columns: repeat(4, 1fr);
-    padding: 20px;
-  }
+.halls {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  overflow-x: auto;
+  padding: 10px;
 }
 
-@media (max-width: 768px) {
-  .layout {
-    grid-template-columns: repeat(3, 1fr);
-    padding: 20px;
-  }
+.hall {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 150px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e9ecef;
 }
 
-@media (max-width: 558px) {
-  .layout {
-    grid-template-columns: repeat(2, 1fr);
-    padding: 20px;
-  }
+.hall:hover {
+  background: linear-gradient(135deg, #e9ecef, #dee2e6);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.hall div:first-child {
+  font-weight: 600;
+  font-size: 1.1em;
+  margin-bottom: 5px;
+  color: #2c3e50;
+}
+
+.hall div:last-child {
+  font-size: 0.9em;
+  color: #6c757d;
 }
 </style>
