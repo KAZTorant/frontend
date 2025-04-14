@@ -1,18 +1,109 @@
 <template>
-  <div class="actions-container">
-    <div class="admin-actions">
-      <button
-        v-for="action in actions"
-        :key="action.id"
-        class="action-button"
-        :data-id="action.id"
-        @click="handleAction(action.method)"
-      >
-        {{ action.label }}
-      </button>
-    </div>
-    <ErrorPopup v-if="error" :message="error" @close="clearError" />
-    <SuccessPopup v-if="successMessage" :message="successMessage" @close="clearSuccess" />
+  <div class="actions">
+    <button 
+      class="action-button" 
+      v-for="action in actions" 
+      :key="action.id" 
+      @click="handleAction(action.method)" 
+      :data-method="action.method" 
+      :data-id="action.id" 
+      :class="{ 'green-button': action.method === 'printOrder' && buttonColor === '#74E291' }"
+    >
+      {{ action.label }}
+    </button>
+
+    <!-- Error and Success popups -->
+    <ErrorPopup v-if="error" :error-message="error" @close="clearError" />
+    <SuccessPopup v-if="successMessage" :success-message="successMessage" @close="clearSuccess" />
+
+    <!-- All Modals -->
+    <Teleport to="body">
+      <!-- Confirmation Dialog -->
+      <div v-if="showConfirmation" class="modal-container">
+        <div class="modal-overlay"></div>
+        <div class="confirmation-dialog">
+          <div class="confirmation-message">
+            Masanı bağlamağa əminsiniz?
+          </div>
+          <div class="confirmation-buttons">
+            <button class="confirm-btn" @click="confirmAction">Hə</button>
+            <button class="cancel-btn" @click="cancelAction">Yox</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Transfer Modal -->
+      <div v-if="showTransferModal" class="modal-container">
+        <div class="modal-overlay"></div>
+        <div class="confirmation-dialog">
+          <h2 class="modal-title">Masanı köçür</h2>
+          <div class="modal-content-main hall">
+            <div>
+              <label for="hall">Zal Seç:</label>
+              <select id="hall" v-model="selectedHall" @change="fetchTablesForHall">
+                <option v-for="hall in halls" :key="hall.id" :value="hall.id">{{ hall.name }}</option>
+              </select>
+            </div>
+            <div>
+              <label for="table">Masa seç:</label>
+              <select id="table" v-model="selectedTable">
+                <option v-for="table in tables" :key="table.id" :value="table.id">{{ table.number }}</option>
+              </select>
+            </div>
+          </div>
+          <div class="confirmation-buttons">
+            <button class="confirm-btn" @click="confirmTransfer">Təsdiqlə</button>
+            <button class="cancel-btn" @click="cancelTransfer">Ləğv et</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Waitress Change Modal -->
+      <div v-if="showWaitressModal" class="modal-container">
+        <div class="modal-overlay"></div>
+        <div class="confirmation-dialog">
+          <h2 class="modal-title">Ofsianti dəyiş</h2>
+          <div class="modal-content-main">
+            <label for="waitress">Ofsiant seç:</label>
+            <select id="waitress" class="waitress" v-model="selectedWaitress">
+              <option v-for="waitress in waitresses" :key="waitress.id" :value="waitress.id">
+                {{ waitress.full_name }}
+              </option>
+            </select>
+          </div>
+          <div class="confirmation-buttons">
+            <button class="confirm-btn" @click="confirmWaitressChange">Təsdiqlə</button>
+            <button class="cancel-btn" @click="cancelWaitressChange">Ləğv et</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Combine Modal -->
+      <div v-if="showCombineModal" class="modal-container">
+        <div class="modal-overlay"></div>
+        <div class="confirmation-dialog">
+          <h2 class="modal-title">Masanı birləşdir</h2>
+          <div class="modal-content-main hall">
+            <div>
+              <label for="combine-hall">Zal Seç:</label>
+              <select id="combine-hall" v-model="selectedHall" @change="fetchTablesForCombine">
+                <option v-for="hall in halls" :key="hall.id" :value="hall.id">{{ hall.name }}</option>
+              </select>
+            </div>
+            <div>
+              <label for="combine-table">Masa seç:</label>
+              <select id="combine-table" v-model="selectedTable">
+                <option v-for="table in tables" :key="table.id" :value="table.id">{{ table.number }}</option>
+              </select>
+            </div>
+          </div>
+          <div class="confirmation-buttons">
+            <button class="confirm-btn" @click="confirmCombine">Birləşdir</button>
+            <button class="cancel-btn" @click="cancelCombine">Ləğv et</button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -350,39 +441,23 @@ export default {
 </script>
 
 <style scoped>
-.green-button {
-  background-color: #74E291 !important;
-}
 .actions {
-  width: 640px;
-  display: flex;
-  gap: 5px;
-  padding: 0 10px;
-  white-space: nowrap;
-  overflow-x: auto;
-}
-
-.actions-container {
-  display: flex;
-  gap: 15px;
-  flex-wrap: wrap;
-}
-
-.admin-actions {
+  width: 100%;
   display: flex;
   gap: 10px;
-  flex-wrap: wrap;
+  padding: 10px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  white-space: nowrap;
 }
 
 .action-button {
   border: none;
-  border-radius: 12px;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
   min-width: 130px;
   height: 58px;
-  margin-bottom: 10px;
-  margin-top: 10px;
   padding: 15px 20px;
   font-weight: 600;
   color: #fff;
@@ -394,11 +469,6 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.action-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .action-button[data-id="1"] {
@@ -450,256 +520,8 @@ export default {
   background-color: #43a047 !important;
 }
 
-/* Styles for confirmation pop-up */
-.confirmation-popup, .modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999999;
-}
-
-.modal::before,
-.confirmation-popup::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.9);
-  backdrop-filter: blur(8px);
-}
-
-.modal .modal-content,
-.confirmation-popup .popup-content {
-  position: relative;
-  background: #ffffff;
-  padding: 30px;
-  border-radius: 25px;
-  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.3);
-  border: 4px solid #2ecc71;
-  text-align: center;
-  min-width: 400px;
-  z-index: 99999999;
-  animation: popup-appear 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-/* Remove the blanket hide-all rule */
-/* body:has(.modal),
-body:has(.confirmation-popup) {
-  overflow: hidden;
-} */
-
-/* Remove the blanket hide-all rule */
-/* .modal ~ *,
-.confirmation-popup ~ * {
-  display: none !important;
-} */
-
-/* Add specific rules for what should be blurred/hidden */
-.blur-content {
-  filter: blur(5px);
-  pointer-events: none;
-  user-select: none;
-}
-
-/* Ensure error and success popups stay above modals */
-.error-popup,
-.success-popup {
-  position: fixed;
-  top: 30px;
-  right: 30px;
-  z-index: 10000000;
-  pointer-events: auto;
-  user-select: auto;
-}
-
-.modal-content h2,
-.popup-content h2 {
-  font-size: 1.8em;
-  color: #34495e;
-  margin-bottom: 25px;
-  font-weight: 600;
-}
-
-.modal-content-main{
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 20px;
-}
-.modal-content-main div{
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-.modal-content-main select{
-  padding: 5px 8px;
-}
-.hall{
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-
-}
-
-.modal-content-button,
-.popup-content-button{
-  display: flex;
-  justify-content: center;
-  gap: 40px;
-}
-.cancel-button {
-  background-color: #fd5c63;
-  color: #fff;
-  font-weight: 600;
-  transition: all 0.3s ease-in-out;
-}
-.cancel-button:hover{
-  background-color: #e6313a;
-}
-.confirm-button{
-  background-color: rgb(121, 194, 12);
-  color: #fafafa;
-  font-weight: 600;
-  transition: all 0.3s ease-in-out;
-}
-.confirm-button:hover{
-  background-color: rgb(145, 223, 27);
-}
-
-.popup-content {
-  text-align: center;
-}
-
-.confirmation-popup button {
-  margin: 5px;
-}
-
-.action-btn {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 20px;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 1.1em;
-  transition: all 0.3s ease;
-  border: none;
-  cursor: pointer;
-  white-space: nowrap;
-  color: white;
-}
-
-.print-check-btn {
-  background: linear-gradient(135deg, #2ecc71, #27ae60);
-  box-shadow: 0 4px 15px rgba(46, 204, 113, 0.2);
-}
-
-.print-check-btn:hover {
-  background: linear-gradient(135deg, #27ae60, #219a52);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(46, 204, 113, 0.3);
-}
-
-.cancel-check-btn {
-  background: linear-gradient(135deg, #e74c3c, #c0392b);
-  box-shadow: 0 4px 15px rgba(231, 76, 60, 0.2);
-}
-
-.cancel-check-btn:hover {
-  background: linear-gradient(135deg, #c0392b, #a93226);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(231, 76, 60, 0.3);
-}
-
-.finalize-btn {
-  background: linear-gradient(135deg, #3498db, #2980b9);
-  box-shadow: 0 4px 15px rgba(52, 152, 219, 0.2);
-}
-
-.finalize-btn:hover {
-  background: linear-gradient(135deg, #2980b9, #2471a3);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(52, 152, 219, 0.3);
-}
-
-.actions-container {
-  display: flex;
-  gap: 15px;
-  flex-wrap: wrap;
-}
-
-@media (max-width: 768px) {
-  .actions-container {
-    width: 100%;
-    overflow-x: auto;
-    padding: 10px;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .admin-actions {
-    flex-wrap: nowrap;
-    width: max-content;
-    padding-bottom: 5px; /* Space for the scrollbar */
-  }
-
-  .action-button {
-    min-width: 130px;
-    margin: 0 5px;
-    white-space: nowrap;
-  }
-}
-
-/* Hide scrollbar for Chrome, Safari and Opera */
-.actions-container::-webkit-scrollbar {
-  display: none;
-}
-
-/* Hide scrollbar for IE, Edge and Firefox */
-.actions-container {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
-}
-
-.popup-overlay ~ .content-container,
-.popup-overlay ~ .header-container {
-  display: none !important;
-}
-
-.modal-title {
-  font-size: 1.8em;
-  color: #34495e;
-  margin-bottom: 25px;
-  font-weight: 600;
-}
-
-.modal-content-main {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 20px;
-}
-
-.modal-content-main div {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.modal-content-main select {
-  padding: 5px 8px;
-}
-
-.hall {
-  display: flex;
-  align-items: center;
-  flex-direction: column;
+.green-button {
+  background-color: #74E291 !important;
 }
 
 /* Modal styles */
@@ -721,194 +543,127 @@ body:has(.confirmation-popup) {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.9);
-  backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(5px);
 }
 
 .confirmation-dialog {
   position: relative;
   background: #ffffff;
-  border-radius: 25px;
-  padding: 35px;
+  padding: 30px;
+  border-radius: 15px;
   box-shadow: 0 12px 48px rgba(0, 0, 0, 0.3);
-  border: 4px solid #2ecc71;
+  border: 2px solid #2ecc71;
   text-align: center;
   min-width: 400px;
   z-index: 99999999;
-  animation: popup-appear 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .confirmation-message {
-  font-size: 1.8em;
-  color: #34495e;
-  margin-bottom: 35px;
-  line-height: 1.6;
-  padding: 0 20px;
-  font-weight: 600;
+  font-size: 1.5em;
+  color: #2c3e50;
+  margin-bottom: 25px;
 }
 
 .confirmation-buttons {
   display: flex;
-  gap: 20px;
   justify-content: center;
-  padding: 10px 0;
+  gap: 20px;
+  margin-top: 20px;
 }
 
 .confirm-btn,
 .cancel-btn {
-  background: linear-gradient(135deg, #2ecc71, #27ae60);
-  color: white;
-  padding: 16px 35px;
-  border-radius: 15px;
-  font-weight: 700;
-  font-size: 1.3em;
-  border: none;
+  padding: 12px 30px;
+  border-radius: 8px;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  min-width: 160px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  font-size: 1.1em;
+  min-width: 120px;
 }
 
-.cancel-btn {
-  background: linear-gradient(135deg, #e74c3c, #c0392b);
+.confirm-btn {
+  background: #4caf50;
+  color: white;
+  border: none;
 }
 
 .confirm-btn:hover {
-  background: linear-gradient(135deg, #27ae60, #219a52);
-  transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(46, 204, 113, 0.4);
+  background: #43a047;
+}
+
+.cancel-btn {
+  background: #f44336;
+  color: white;
+  border: none;
 }
 
 .cancel-btn:hover {
-  background: linear-gradient(135deg, #c0392b, #a93226);
-  transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(231, 76, 60, 0.4);
-}
-
-@keyframes popup-appear {
-  0% {
-    opacity: 0;
-    transform: scale(0.8) translateY(-40px);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
+  background: #e53935;
 }
 
 .modal-title {
-  font-size: 1.8em;
-  color: #34495e;
-  margin-bottom: 25px;
-  font-weight: 600;
+  font-size: 1.5em;
+  color: #2c3e50;
+  margin-bottom: 20px;
 }
 
 .modal-content-main {
-  margin-bottom: 30px;
+  margin: 20px 0;
 }
 
 .modal-content-main label {
   display: block;
   margin-bottom: 10px;
-  font-size: 1.2em;
   color: #2c3e50;
 }
 
 .modal-content-main select {
   width: 100%;
-  padding: 12px;
-  border-radius: 10px;
-  border: 2px solid #e9ecef;
-  font-size: 1.1em;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
   margin-bottom: 15px;
-  background: #fff;
-  color: #2c3e50;
-  transition: all 0.3s ease;
 }
 
-.modal-content-main select:focus {
-  border-color: #2ecc71;
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.2);
-}
-
-.hall {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-/* Mobile Responsive Adjustments */
 @media (max-width: 768px) {
+  .actions {
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .action-button {
+    min-width: 120px;
+    height: 50px;
+    padding: 12px 16px;
+    font-size: 1em;
+  }
+
   .confirmation-dialog {
-    width: 90%;
-    min-width: unset;
-    padding: 25px;
+    min-width: 300px;
     margin: 20px;
+    padding: 20px;
   }
 
   .confirmation-message {
     font-size: 1.2em;
-    padding: 0 10px;
   }
 
   .confirm-btn,
   .cancel-btn {
-    padding: 14px 25px;
-    font-size: 1.1em;
-    min-width: 130px;
+    padding: 10px 20px;
+    font-size: 1em;
+    min-width: 100px;
   }
 }
 
 @media (max-width: 480px) {
-  .confirmation-buttons {
-    flex-direction: column;
-    gap: 15px;
+  .action-button {
+    min-width: 110px;
+    height: 45px;
+    padding: 10px 14px;
+    font-size: 0.9em;
   }
-
-  .confirm-btn,
-  .cancel-btn {
-    width: 100%;
-  }
-}
-
-.action-button {
-  background: #ffffff;
-  color: #2c3e50;
-  border: none;
-  padding: 15px 20px;
-  font-size: 1.1em;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 50px;
-  width: 100%;
-  font-weight: 600;
-  text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.action-button:hover {
-  background: #f8f9fa;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.action-button[data-kitchen="true"] {
-  background: #4caf50;
-  color: white;
-}
-
-.action-button[data-kitchen="true"]:hover {
-  background: #43a047;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 </style>
