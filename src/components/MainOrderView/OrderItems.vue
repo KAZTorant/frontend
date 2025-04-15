@@ -8,7 +8,11 @@
             <span>
               <font-awesome-icon class="order-icon" :class="{ rotated: showDropdown === mainOrder.pk, closed: showDropdown !== mainOrder.pk }" icon="angle-right" />
             </span>
-            Sifariş {{ mainOrder.pk }} (Əsas)
+            <span v-if="showDropdown === mainOrder.pk">
+              Cəmi: <span>{{ totalPrice }} azn</span>
+            </span>
+
+            Sifariş {{ mainOrder.pk }}
           </button>
           <button class="table-button" @click="handleTableClick(mainOrder.table)">
             <font-awesome-icon icon="fa-solid fa-table" />
@@ -34,6 +38,10 @@
               <span>
                 <font-awesome-icon class="order-icon" :class="{ rotated: showDropdown === item.pk, closed: showDropdown !== item.pk }" icon="angle-right" />
               </span>
+              <span v-if="showDropdown === item.pk">
+                Cəmi: <span>{{ totalPrice }} azn</span>
+              </span>
+
               Sifariş {{ item.pk }}
             </button>
             <button class="table-button" @click="handleTableClick(item.table)">
@@ -60,7 +68,10 @@
             <span>
               <font-awesome-icon class="order-icon" :class="{ rotated: showDropdown !== 'default', closed: showDropdown === 'default' }" icon="angle-right" />
             </span>
-            Sifariş (Əsas)
+            <span v-if="showDropdown !== 'default'">
+              Cəmi: <span>{{ totalPrice }} azn</span>
+            </span>
+            Sifariş
           </button>
         </div>
         <OrderDropdown
@@ -123,7 +134,8 @@ export default {
   },
   methods: {
     checkViewPermissionForAdmin() {
-      return store.getters['auth/GET_ROLE'] === 'restaurant';
+      const role = store.getters['auth/GET_ROLE'];
+      return role === 'restaurant' || role === 'admin';
     },
     async toggleDropdown(orderId) {
       // If the clicked order is already open, close it
@@ -278,12 +290,12 @@ export default {
 .main-order::before {
   content: 'Əsas';
   position: absolute;
-  top: 15px;
-  right: 15px;
+  top: 0;
+  right: 0;
   background: linear-gradient(135deg, #2ecc71, #27ae60);
   color: white;
   padding: 6px 12px;
-  border-radius: 25px;
+  border-radius: 0 0 0 15px;
   font-size: 1em;
   font-weight: 600;
   box-shadow: 0 2px 8px rgba(46, 204, 113, 0.2);

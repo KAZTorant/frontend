@@ -163,7 +163,7 @@ export default {
     }else if(this.role === "waitress"){
       this.roleDisplayName = "Ofsiant";
     }else if(this.role === "restaurant"){
-      this.roleDisplayName = "Restorant sahibi";
+      this.roleDisplayName = "Admin";
     }
 
     try {

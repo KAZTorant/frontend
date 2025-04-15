@@ -1,74 +1,97 @@
 <template>
-    <div class="order-dropdown" v-if="showDropdown">
-      <div class="order-total">
-        <span>Cəmi:<span>{{ totalPrice }} azn</span></span>
-      </div>
-      <div class="order-item-menu sticky">
-        <div class="order-items-header">
-          <span>Adı</span>
-          <span>Sayı</span>
-          <span>Qiyməti</span>
-          <span>Cəmi</span>
-          <span>Status</span>
-        </div>
-      </div>
-      <div class="order-items-list">
-        <div v-if="orderItems.length === 0" class="empty-message">
-          <p>Yemək əlavə etməmisiniz.</p>
-        </div>
-        <div class="order-item" v-for="item in orderItems" :key="item.meal.id">
-          <span>{{ item.meal.name }}</span>
-          <span class="quantity-container">
-            <button v-if="checkViewPermissionForAdmin()" @click="decrementQuantity(item)" class="btn-decrement">
-              <font-awesome-icon icon="minus" />
-            </button>
-            <div class="quantity">{{ item.quantity }}</div>
-            <button @click="incrementQuantity(item)" class="btn-increment">
-              <font-awesome-icon icon="plus" />
-            </button>
-          </span>
-
-          <span>{{ item.meal.price }} azn</span>
-          <span>{{ (item.quantity * item.meal.price) }} azn</span>
-          <span class="status-indicator" :class="{ 'confirmed': item.confirmed }">
-            {{ item.confirmed ? 'Təsdiqlənib' : 'Gözləyir' }}
-          </span>
+  <div class="order-dropdown" v-if="showDropdown">
+    <div class="order-total">
+      <!-- <span>Cəmi: <span>{{ totalPrice }} azn</span></span> -->
+      <div
+        class="selected-controls"
+        v-if="selectedItem"
+      >
+        <div class="quantity-container">
+          <button v-if="checkViewPermissionForAdmin()" @click="decrementQuantity(selectedItem)" class="btn-decrement">
+            <font-awesome-icon icon="minus" />
+          </button>
+          <button
+            @click="incrementQuantity(selectedItem)"
+            class="btn-increment"
+          >
+            <font-awesome-icon icon="plus" />
+          </button>
         </div>
       </div>
     </div>
-  </template>
-  
-  <script>
-  export default {
-    props: {
-      showDropdown: {
-        type: Boolean,
-        required: true,
-      },
-      orderItems: {
-        type: Array,
-        required: true,
-      },
-      totalPrice: {
-        type: Number,
-        required: true,
-      },
-      checkViewPermissionForAdmin: {
-        type: Function,
-        required: true,
-      },
-      incrementQuantity: {
-        type: Function,
-        required: true,
-      },
-      decrementQuantity: {
-        type: Function,
-        required: true,
-      },
+    <div class="order-item-menu sticky">
+      <div class="order-items-header">
+        <span>Adı</span>
+        <span>Sayı</span>
+        <span>Qiyməti</span>
+        <span>Cəmi</span>
+        <span>Status</span>
+      </div>
+    </div>
+
+    <div class="order-items-list">
+      <div v-if="orderItems.length === 0" class="empty-message">
+        <p>Yemək əlavə etməmisiniz.</p>
+      </div>
+      <div
+        class="order-item"
+        v-for="item in orderItems"
+        :key="item.meal.id"
+        @click="selectItem(item)"
+        :class="{ active: selectedItem && selectedItem.meal.id === item.meal.id }"
+      >
+        <span>{{ item.meal.name }}</span>
+        <div class="quantity">{{ item.quantity }}</div>
+        <span>{{ item.meal.price }} azn</span>
+        <span>{{ (item.quantity * item.meal.price) }} azn</span>
+        <span class="status-indicator" :class="{ confirmed: item.confirmed }">
+          {{ item.confirmed ? 'Təsdiqlənib' : 'Gözləyir' }}
+        </span>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  props: {
+    showDropdown: {
+      type: Boolean,
+      required: true,
     },
-  };
-  </script>
-  
+    orderItems: {
+      type: Array,
+      required: true,
+    },
+    totalPrice: {
+      type: Number,
+      required: true,
+    },
+    checkViewPermissionForAdmin: {
+      type: Function,
+      required: true,
+    },
+    incrementQuantity: {
+      type: Function,
+      required: true,
+    },
+    decrementQuantity: {
+      type: Function,
+      required: true,
+    },
+  },
+  data() {
+    return {
+      selectedItem: null,
+    };
+  },
+  methods: {
+    selectItem(item) {
+      this.selectedItem = item;
+    },
+  },
+};
+</script>
 
 <style scoped>
 .order-dropdown {
@@ -96,13 +119,15 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  justify-content: center;
+  justify-content: flex-end;
+  margin-top: 10px;
 }
 
-.order-item button {
-  width: 32px;
-  height: 32px;
-  font-size: 1em;
+.order-item button,
+.quantity-container button {
+  width: 44px;
+  height: 44px;
+  font-size: 1.3em;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -159,7 +184,6 @@
   font-weight: 600;
   background: linear-gradient(135deg, #ffffff, #f8f9fa);
 }
-
 .order-items-header,
 .order-item {
   display: grid;
@@ -167,11 +191,19 @@
   align-items: center;
   gap: 10px;
   padding: 0 15px;
+  cursor: pointer;
+}
+
+.order-item:hover {
+  background-color: #f1f3f5;
+}
+
+.order-item.active {
+  background-color: #d1f7e2;
 }
 
 .order-total {
   border-bottom: 1px solid #e9ecef;
-  padding: 15px;
   background: linear-gradient(135deg, #ffffff, #f8f9fa);
   font-weight: 600;
   color: #2c3e50;
@@ -187,16 +219,10 @@
   justify-content: center;
   align-items: center;
   font-size: 1em;
-  padding: 12px 0;
 }
 
 .order-items-header span,
 .order-item span {
-  border-bottom: 1px solid #e9ecef;
-}
-
-.order-item span {
-  gap: 5px;
   min-height: 60px;
   height: 60px;
   color: #2c3e50;
@@ -215,13 +241,8 @@
   height: 32px;
   text-align: center;
   background: white;
+  margin: 0 auto;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.order-items-header {
-  font-weight: 600;
-  color: #2c3e50;
-  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
 }
 
 .order-total span {
@@ -245,91 +266,14 @@
   color: #155724;
 }
 
-@media (max-width: 1024px) {
-  .order-items-header,
-  .order-item {
-    grid-template-columns: 120px repeat(4, minmax(40px, 1fr));
-    gap: 8px;
-    padding: 0 12px;
-  }
-
-  .order-item span {
-    font-size: 0.95em;
-  }
+.selected-controls {
+  padding: 8px 15px 15px; 
+  text-align: center;
 }
 
-@media (max-width: 768px) {
-  .order-dropdown {
-    margin: 0 10px 10px;
-    border-radius: 12px;
-  }
-
-  .empty-message {
-    height: 200px;
-    padding: 0;
-    font-size: 1em;
-  }
-
-  .order-items-header,
-  .order-item {
-    grid-template-columns: 100px repeat(4, minmax(35px, 1fr));
-    gap: 5px;
-    padding: 0 10px;
-  }
-
-  .order-item span {
-    font-size: 0.9em;
-    min-height: 50px;
-    height: 50px;
-  }
-
-  .quantity {
-    min-width: 28px;
-    height: 28px;
-    font-size: 1em;
-  }
-
-  .order-item button {
-    width: 28px;
-    height: 28px;
-  }
-
-  .order-total {
-    padding: 12px;
-  }
-}
-
-@media (max-width: 480px) {
-  .order-items-header,
-  .order-item {
-    grid-template-columns: 80px repeat(4, minmax(30px, 1fr));
-    gap: 4px;
-    padding: 0 8px;
-  }
-
-  .order-item span {
-    font-size: 0.85em;
-    min-height: 45px;
-    height: 45px;
-  }
-
-  .quantity {
-    min-width: 24px;
-    height: 24px;
-    font-size: 0.9em;
-  }
-
-  .order-item button {
-    width: 24px;
-    height: 24px;
-  }
-
-  .order-total {
-    padding: 10px;
-  }
-
-  .order-total span {
-    font-size: 1.1em;
-  }
+.selected-name {
+  font-size: 1.1em;
+  margin-bottom: 8px;
+  color: #2c3e50;
 }
 </style>

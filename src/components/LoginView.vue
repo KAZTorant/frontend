@@ -110,7 +110,6 @@ export default {
   background-image: url("/src/assets/login-back.jpg");
   background-size: cover;
   background-position: center;
-  margin-top: -40px;
   padding-top: 40px;
   overflow-y: auto;
   position: relative;

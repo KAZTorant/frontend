@@ -69,7 +69,7 @@ export default {
     } else if (this.role === "waitress") {
       this.roleDisplayName = "Ofsiant";
     } else if (this.role === "restaurant") {
-      this.roleDisplayName = "Restorant sahibi";
+      this.roleDisplayName = "Admin";
     }
 
     this.fetchRooms();
@@ -134,7 +134,7 @@ export default {
   background-position: center;
   background-attachment: fixed;
   position: relative;
-  padding: 20px;
+  padding: 40px 20px 0px;
 }
 
 /* Add a semi-transparent overlay for better readability */
