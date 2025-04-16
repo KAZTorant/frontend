@@ -1,6 +1,6 @@
 <template>
   <div class="order-dropdown" v-if="showDropdown">
-    <div class="order-total">
+    
       <!-- <span>Cəmi: <span>{{ totalPrice }} azn</span></span> -->
       <div
         class="selected-controls"
@@ -18,7 +18,6 @@
           </button>
         </div>
       </div>
-    </div>
     <div class="order-item-menu sticky">
       <div class="order-items-header">
         <span>Adı</span>
@@ -44,8 +43,11 @@
         <div class="quantity">{{ item.quantity }}</div>
         <span>{{ item.meal.price }} azn</span>
         <span>{{ (item.quantity * item.meal.price) }} azn</span>
-        <span class="status-indicator" :class="{ confirmed: item.confirmed }">
-          {{ item.confirmed ? 'Təsdiqlənib' : 'Gözləyir' }}
+        <span
+          class="status-indicator"
+          :class="item.confirmed ? 'confirmed' : 'waiting'"
+        >
+          <font-awesome-icon :icon="item.confirmed ? 'check' : 'hourglass-half'" />
         </span>
       </div>
     </div>
@@ -96,23 +98,12 @@ export default {
 <style scoped>
 .order-dropdown {
   background: linear-gradient(135deg, #ffffff, #f8f9fa);
-  margin: 0 15px 15px;
+  margin: 10px 15px 15px;
   border-radius: 16px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-  border: 1px solid #e9ecef;
+  border: 1px solid #2ecc71;
   overflow: hidden;
   position: relative;
-}
-
-.order-dropdown::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #2ecc71, #27ae60);
-  opacity: 0.8;
 }
 
 .quantity-container {
@@ -164,6 +155,7 @@ export default {
   top: 0;
   background: linear-gradient(135deg, #ffffff, #f8f9fa);
   z-index: 10;
+  border-radius: 16px 16px 0 0;
   border-bottom: 1px solid #e9ecef;
   backdrop-filter: blur(10px);
 }
@@ -203,7 +195,6 @@ export default {
 }
 
 .order-total {
-  border-bottom: 1px solid #e9ecef;
   background: linear-gradient(135deg, #ffffff, #f8f9fa);
   font-weight: 600;
   color: #2c3e50;
@@ -258,7 +249,10 @@ export default {
   background: #f8d7da;
   color: #721c24;
   font-size: 0.9em;
-  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 3px 0;
 }
 
 .status-indicator.confirmed {
@@ -266,9 +260,15 @@ export default {
   color: #155724;
 }
 
+.status-indicator.waiting {
+  background: #fff3cd;
+  color: #856404;
+}
+
 .selected-controls {
   padding: 8px 15px 15px; 
   text-align: center;
+  border-bottom: 1px solid #e9ecef;
 }
 
 .selected-name {

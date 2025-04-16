@@ -6,9 +6,9 @@ import './disableZoom.js';
 
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faPlus, faMinus, faArrowLeft } from '@fortawesome/free-solid-svg-icons'
+import { faPlus, faMinus, faArrowLeft, faHourglassHalf, faCheck } from '@fortawesome/free-solid-svg-icons'
 
-library.add(faPlus, faMinus, faArrowLeft)
+library.add(faPlus, faMinus, faArrowLeft, faHourglassHalf, faCheck)
 
 const app = createApp(App)
 app.use(store)

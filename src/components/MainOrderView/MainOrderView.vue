@@ -26,10 +26,11 @@
           </div>
         </div>
       </div>
-      <div class="admin-actions" v-if="role === 'admin' || role === 'restaurant'">
+      <div class="admin-actions">
         <Actions 
           :table-id="tableId" 
           :selected-order-id="selectedOrderId"
+          :role="role"
           @show-confirmation="showConfirmationPopup = true"
           @show-waitress-modal="showWaitressModal = true"
           @show-transfer-modal="showTransferModal = true"
