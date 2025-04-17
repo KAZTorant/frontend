@@ -21,23 +21,16 @@
           <!-- Confirmation Dialog -->
           <div v-if="showConfirmation" class="modal-container">
             <div class="modal-overlay"></div>
-            <div class="confirmation-dialog">
+            <div v-if="loading" class="loading-overlay">
+              <div class="spinner"></div>
+            </div>
+            <div class="confirmation-dialog" v-if="!loading">
               <div class="confirmation-message">
                 <div>
                   <label class="label">Ümumi məbləğ ₼</label>
                   <input
                     type="text"
                     :value="'₼ ' + total_price"
-                    readonly
-                    placeholder="Miqdar"
-                    class="input amount-input"
-                  />
-                </div>
-                <div>
-                  <label class="label">Endirim məbləği ₼</label>
-                  <input
-                    type="text"
-                    :value="'₼ ' + (discount_amount || 0)"
                     readonly
                     placeholder="Miqdar"
                     class="input amount-input"
@@ -53,15 +46,25 @@
                     class="input amount-input"
                   />
                 </div>
+                <div>
+                  <label class="label">Qalıq məbləğ ₼</label>
+                  <input
+                    type="text"
+                    :value="'₼ ' + (paid_amount - (total_price - discount_amount)).toFixed(2).replace(/\.00$/, '')"
+                    readonly
+                    placeholder="Miqdar"
+                    class="input amount-input"
+                  />
+                </div>
               </div>
 
               <div class="modal-form hall">
                 <label>
                   Ödəniş növü*
                   <select v-model="payment_type" required>
-                    <option value="cash">nağd</option>
-                    <option value="card">kart</option>
-                    <option value="other">digər</option>
+                    <option value="cash">Nağd</option>
+                    <option value="card">Kart</option>
+                    <option value="other">Digər</option>
                   </select>
                 </label>
 
@@ -75,7 +78,8 @@
                       v-model="discountPercentInput"
                       readonly
                       placeholder="0 %"
-                      @click="showDiscountNumpad = true"
+                      @click="activateDiscountInput('percent')"
+                      :class="{ active: activeDiscountInput === 'percent' }"
                       class="input"
                     />
                     </div>
@@ -88,6 +92,9 @@
                         readonly
                         placeholder="Miqdar"
                         class="input amount-input"
+                        :class="{ active: activeDiscountInput === 'amount' }"
+                        @click="activateDiscountInput('amount')"
+                        @input="handleAmountInput"
                       />
                     </div>
                     
@@ -111,16 +118,21 @@
                   Endirim səbəbi və ya qeydi
                   <input type="text" v-model="discount_comment" placeholder="Səbəb yazın..." />
                 </label>
-                <div ref="paidNumpadContainer">
+                <div ref="paidNumpadContainer" class="paid-container">
                   <label>
-                    Müştərinin ödədiyi məbləğ (₼)*
-                    <input
-                      type="text"
-                      v-model="paidAmountInput"
-                      readonly
-                      placeholder="₼0"
-                      @click="showNumpad = true"
-                    />
+                    Müştərinin verdiyi məbləğ (₼)*
+                    <div class="input-button-group">
+                      <input
+                        type="text"
+                        v-model="paid_amount"
+                        readonly
+                        placeholder="₼0"
+                        @click="showNumpad = true"
+                      />
+                      <button class="fill-button" @click="fillWithRemainingAmount">
+                        tam
+                      </button>
+                    </div>
                   </label>
 
                   <transition name="fade-slide">
@@ -136,10 +148,11 @@
                     </div>
                   </transition>
                 </div>
+
                 
               </div>
               <div class="confirmation-buttons">
-                <button class="confirm-btn" @click="confirmAction">Təsdiqlə</button>
+                <button class="confirm-btn" @click="confirmAction" :disabled="loading">Təsdiqlə</button>
                 <button class="cancel-btn" @click="cancelAction">Ləgv et</button>
               </div>
             </div>
@@ -227,6 +240,7 @@
     import router from '@/router/';
     import { library } from '@fortawesome/fontawesome-svg-core';
     import { faPrint, faUser, faExchangeAlt, faTimes, faUtensils } from '@fortawesome/free-solid-svg-icons';
+    import { EventBus } from '@/EventBus';
 
     library.add(faPrint, faUser, faExchangeAlt, faTimes, faUtensils);
 
@@ -269,7 +283,9 @@
           discount_percent: 0,
           discount_comment: '',
           paid_amount: 0,
-          paidAmountInput: '',
+          loading: false,
+          activeDiscountInput: '',
+          discountAmountInput: '',
           discountPercentInput: '',
           showNumpad: false,
           showDiscountNumpad: false,
@@ -310,6 +326,9 @@
         }
         document.addEventListener('click', this.handleClickOutsideDiscount);
         document.addEventListener('click', this.handleClickOutsidePaid);
+        EventBus.on('orderItemAdded', () => {
+          this.fetchTableDetailsAndUpdateButtonColor();
+        });
       },
       
       beforeUnmount() {
@@ -465,6 +484,7 @@
         // Modal show methods
         showConfirmationDialog() {
           this.showConfirmation = true;
+          this.fetchTableDetailsAndUpdateButtonColor();
           this.resetForm()
         },
 
@@ -486,6 +506,7 @@
         // Modal cancel methods
         cancelAction() {
           this.resetForm();
+          this.fetchTableDetailsAndUpdateButtonColor();
           this.showConfirmation = false;
         },
 
@@ -504,13 +525,17 @@
         // Modal confirm methods
         resetForm() {
           this.payment_type = 'cash';
-          this.discount_amount = null;
+          this.discount_amount = 0;
           this.discount_comment = '';
           this.paid_amount = 0;
-          this.paidAmountInput = '';
+          this.discountPercentInput = 0;
+          this.discountAmountInput = 0;
           this.showNumpad = false;
         },
+
         async confirmAction() {
+          this.loading = true;
+
           const payload = {
             payment_type: this.payment_type,
             discount_amount: this.discount_amount,
@@ -524,59 +549,150 @@
           } catch (error) {
             console.error('Xəta baş verdi:', error);
             this.showError('Masa bağlanarkən xəta baş verdi. Zəhmət olmasa, yenidən cəhd edin.');
+          }  finally {
+            this.loading = false;
           }
 
           this.showConfirmation = false;
         },
         
         appendToPaidAmount(num) {
-          this.paidAmountInput += num.toString();
-          this.paid_amount = parseFloat(this.paidAmountInput);
+          this.paid_amount += num.toString();
+          this.paid_amount = parseFloat(this.paid_amount);
         },
         deleteLastDigit() {
-          this.paidAmountInput = this.paidAmountInput.slice(0, -1);
-          this.paid_amount = parseFloat(this.paidAmountInput) || 0;
+          this.paid_amount = this.paid_amount.slice(0, -1);
+          this.paid_amount = parseFloat(this.paid_amount) || 0;
         },
         clearPaidAmount() {
-          this.paidAmountInput = '';
+          this.paid_amount = '';
           this.paid_amount = 0;
         },
-   // Endirim faizi üçün
-   appendToDiscountPercent(num) {
-    this.discountPercentInput += num.toString();
-    this.discount_percent = parseInt(this.discountPercentInput) || 0;
-    this.calculateDiscountAmount();
-  },
 
-  deleteLastDigitFromDiscount() {
-    this.discountPercentInput = this.discountPercentInput.slice(0, -1);
-    this.discount_percent = parseInt(this.discountPercentInput) || 0;
-    this.calculateDiscountAmount();
-  },
+        activateDiscountInput(type) {
+          this.discountPercentInput = '';
+          this.discountAmountInput = '';
+          this.discount_percent = 0;
+          this.discount_amount = 0;
 
-  clearDiscountPercent() {
-    this.discountPercentInput = '';
-    this.discount_percent = 0;
-    this.discount_amount = 0;
-  },
+          this.activeDiscountInput = type;
 
-  calculateDiscountAmount() {
-    if (this.discount_percent && !isNaN(this.discount_percent)) {
-      this.discount_amount = parseFloat(((this.total_price * this.discount_percent) / 100).toFixed(2));
-    }
-  },
-  handleClickOutsideDiscount(event) {
-    const numpad = this.$refs.discountNumpadContainer;
-    if (numpad && !numpad.contains(event.target)) {
-      this.showDiscountNumpad = false;
-    }
-  },
-  handleClickOutsidePaid(event) {
-    const numpad = this.$refs.paidNumpadContainer;
-    if (numpad && !numpad.contains(event.target)) {
-      this.showNumpad = false;
-    }
-  },
+          this.showDiscountNumpad = true;
+        },
+
+        appendToDiscountPercent(num) {
+          if (this.activeDiscountInput === 'percent') {
+            if (this.discountPercentInput.length < 3) {
+              if (this.discountPercentInput === '0') {
+                this.discountPercentInput = '';
+              }
+              this.discountPercentInput += num.toString();
+              this.discount_percent = parseFloat(this.discountPercentInput) || 0;
+
+              if (this.discount_percent > 100) {
+                this.discount_percent = 100;
+                this.discountPercentInput = '100';
+              }
+
+              this.calculateAmountFromPercent();
+            }
+          } else if (this.activeDiscountInput === 'amount') {
+            if (this.discountAmountInput === '0') {
+              this.discountAmountInput = '';
+            }
+            this.discountAmountInput += num.toString();
+            this.discount_amount = parseFloat(this.discountAmountInput) || 0;
+
+            if (this.discount_amount > this.total_price) {
+              this.discount_amount = this.total_price;
+              this.discountAmountInput = this.discount_amount.toString();
+            }
+
+            this.calculatePercentFromAmount();
+          }
+        },
+
+        calculateAmountFromPercent() {
+          if (this.discount_percent && this.total_price) {
+            if (this.discount_percent > 100) {
+              this.discount_percent = 100;
+            }
+            
+            const amount = (this.total_price * this.discount_percent) / 100;
+
+            if (amount > this.total_price) {
+              this.discount_amount = this.total_price;
+            } else {
+              this.discount_amount = parseFloat(amount.toFixed(2));
+            }
+
+            this.discountAmountInput = this.discount_amount.toFixed(2);
+          }
+        },
+
+        calculatePercentFromAmount() {
+          if (this.discount_amount && this.total_price) {
+
+            if (this.discount_amount > this.total_price) {
+              this.discount_amount = this.total_price;
+              this.discountAmountInput = this.discount_amount.toFixed(2);
+            }
+
+            const percent = (this.discount_amount / this.total_price) * 100;
+            this.discount_percent = parseFloat(percent.toFixed(2));
+            this.discountPercentInput = this.discount_percent;
+          }
+        },
+        deleteLastDigitFromDiscount() {
+          if (this.activeDiscountInput === 'percent') {
+            if (this.discountPercentInput.length <= 1) {
+              this.discountPercentInput = '';
+              this.discount_percent = 0;
+              this.discount_amount = 0;
+              this.discountAmountInput = '';
+            } else {
+              this.discountPercentInput = this.discountPercentInput.slice(0, -1);
+              this.discount_percent = parseFloat(this.discountPercentInput) || 0;
+              this.calculateAmountFromPercent();
+            }
+          } else if (this.activeDiscountInput === 'amount') {
+            if (this.discountAmountInput.length <= 1) {
+              this.discountAmountInput = '';
+              this.discount_amount = 0;
+              this.discount_percent = 0;
+              this.discountPercentInput = '';
+            } else {
+              this.discountAmountInput = this.discountAmountInput.slice(0, -1);
+              this.discount_amount = parseFloat(this.discountAmountInput) || 0;
+              this.calculatePercentFromAmount();
+            }
+          }
+        },
+
+        clearDiscountPercent() {
+          this.discountPercentInput = '';
+          this.discountAmountInput = '';
+          this.discount_percent = 0;
+          this.discount_amount = 0;
+        },
+
+        fillWithRemainingAmount() {
+          const remaining = (this.total_price - this.discount_amount).toFixed(2);
+          this.paid_amount = remaining.endsWith('.00') ? remaining.slice(0, -3) : remaining;
+        },
+
+        handleClickOutsideDiscount(event) {
+          const numpad = this.$refs.discountNumpadContainer;
+          if (numpad && !numpad.contains(event.target)) {
+            this.showDiscountNumpad = false;
+          }
+        },
+        handleClickOutsidePaid(event) {
+          const numpad = this.$refs.paidNumpadContainer;
+          if (numpad && !numpad.contains(event.target)) {
+            this.showNumpad = false;
+          }
+        },
 
         async confirmTransfer() {
           if (this.selectedHall && this.selectedTable) {
@@ -621,6 +737,34 @@
     </script>
 
 <style scoped>
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.spinner {
+  border: 8px solid rgba(255, 255, 255, 0.3);
+  border-top: 8px solid #2ecc71;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  animation: spin 1.5s ease-in-out infinite;
+  transition: all 0.3s ease-in-out;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 .actions {
   width: 100%;
   display: flex;
@@ -865,6 +1009,33 @@
 .discount-group {
   margin-bottom: 16px;
 }
+.input-button-group {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.input-button-group input{
+  border-radius: 6px 0 0 6px;
+}
+
+.fill-button {
+  background-color: #4caf50;
+  border: none;
+  margin-top: 6px;
+  height: 38px;
+  padding: 10px;
+  border-radius: 0 6px 6px 0;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  color: white;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.fill-button:hover {
+  background-color: #2ecc71;
+}
+
 .input-container {
   display: flex;
   gap: 20px;
@@ -889,6 +1060,11 @@
   border-radius: 5px;
   font-size: 16px;
   text-align: center;
+  outline: none;
+}
+
+.input.active {
+  border: 1px solid #2ecc71; 
 }
 
 .amount-input {
