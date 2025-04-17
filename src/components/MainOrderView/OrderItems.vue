@@ -121,7 +121,7 @@ export default {
   async created() {
     await this.fetchOrders(); 
     await this.fetchOrderItems(); 
-
+    
     if (this.mainOrder) {
       this.showDropdown = this.mainOrder.pk; 
     }

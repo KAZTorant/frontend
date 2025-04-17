@@ -276,4 +276,10 @@ export default {
   margin-bottom: 8px;
   color: #2c3e50;
 }
+@media (max-width: 500px) {
+  .order-items-header,
+  .order-item {
+    grid-template-columns: repeat(5, minmax(50px, 1fr));
+  }
+}
 </style>

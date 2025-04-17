@@ -23,11 +23,124 @@
             <div class="modal-overlay"></div>
             <div class="confirmation-dialog">
               <div class="confirmation-message">
-                Masanı bağlamağa əminsiniz?
+                <div>
+                  <label class="label">Ümumi məbləğ ₼</label>
+                  <input
+                    type="text"
+                    :value="'₼ ' + total_price"
+                    readonly
+                    placeholder="Miqdar"
+                    class="input amount-input"
+                  />
+                </div>
+                <div>
+                  <label class="label">Endirim məbləği ₼</label>
+                  <input
+                    type="text"
+                    :value="'₼ ' + (discount_amount || 0)"
+                    readonly
+                    placeholder="Miqdar"
+                    class="input amount-input"
+                  />
+                </div>
+                <div>
+                  <label class="label">Son məbləğ ₼</label>
+                  <input
+                    type="text"
+                    :value="'₼ ' + (total_price - discount_amount).toFixed(2).replace(/\.00$/, '')"
+                    readonly
+                    placeholder="Miqdar"
+                    class="input amount-input"
+                  />
+                </div>
+              </div>
+
+              <div class="modal-form hall">
+                <label>
+                  Ödəniş növü*
+                  <select v-model="payment_type" required>
+                    <option value="cash">nağd</option>
+                    <option value="card">kart</option>
+                    <option value="other">digər</option>
+                  </select>
+                </label>
+
+                <div ref="discountNumpadContainer" class="discount-group">
+                  <div class="input-container">
+                    
+                    <div>
+                      <label class="label">Endirim Faizi %</label>
+                    <input
+                      type="text"
+                      v-model="discountPercentInput"
+                      readonly
+                      placeholder="0 %"
+                      @click="showDiscountNumpad = true"
+                      class="input"
+                    />
+                    </div>
+                    
+                    <div>
+                      <label class="label">Endirim Miqdari ₼</label>
+                      <input
+                        type="text"
+                        :value="'₼ ' + (discount_amount || 0)"
+                        readonly
+                        placeholder="Miqdar"
+                        class="input amount-input"
+                      />
+                    </div>
+                    
+                  </div>
+
+                  <transition name="fade-slide">
+                    <div v-if="showDiscountNumpad" class="numpad-buttons">
+                      <button v-for="n in 9" :key="n" @click="appendToDiscountPercent(n)">
+                        {{ n }}
+                      </button>
+                      <button @click="appendToDiscountPercent(0)">0</button>
+                      <button @click="deleteLastDigitFromDiscount">
+                        <font-awesome-icon icon="arrow-left" />
+                      </button>
+                      <button @click="clearDiscountPercent">x</button>
+                    </div>
+                  </transition>
+                </div>
+
+                <label>
+                  Endirim səbəbi və ya qeydi
+                  <input type="text" v-model="discount_comment" placeholder="Səbəb yazın..." />
+                </label>
+                <div ref="paidNumpadContainer">
+                  <label>
+                    Müştərinin ödədiyi məbləğ (₼)*
+                    <input
+                      type="text"
+                      v-model="paidAmountInput"
+                      readonly
+                      placeholder="₼0"
+                      @click="showNumpad = true"
+                    />
+                  </label>
+
+                  <transition name="fade-slide">
+                    <div v-if="showNumpad" class="numpad-buttons">
+                      <button v-for="n in 9" :key="n" @click="appendToPaidAmount(n)">
+                        {{ n }}
+                      </button>
+                      <button @click="appendToPaidAmount(0)">0</button>
+                      <button @click="deleteLastDigit">
+                        <font-awesome-icon icon="arrow-left" />
+                      </button>
+                      <button @click="clearPaidAmount">x</button>
+                    </div>
+                  </transition>
+                </div>
+                
               </div>
               <div class="confirmation-buttons">
-                <button class="confirm-btn" @click="confirmAction">Hə</button>
-                <button class="cancel-btn" @click="cancelAction">Yox</button>
+                <button class="confirm-btn" @click="confirmAction">Təsdiqlə</button>
+                <button class="cancel-btn" @click="cancelAction">Ləgv et</button>
               </div>
             </div>
           </div>
@@ -151,6 +264,17 @@
             { id: 6, label: 'Masanı birləşdir', method: 'openCombine' },
             { id: 7, label: 'Mətbəxə göndər', method: 'confirmKitchen', isKitchenButton: true }
           ],
+          payment_type: 'cash',
+          discount_amount: 0,
+          discount_percent: 0,
+          discount_comment: '',
+          paid_amount: 0,
+          paidAmountInput: '',
+          discountPercentInput: '',
+          showNumpad: false,
+          showDiscountNumpad: false,
+          total_price: 0,
+
           error: null,
           successMessage: null,
           buttonColor: '',
@@ -184,22 +308,50 @@
           await this.fetchTablesForCombine();
           await this.fetchWaitresses();
         }
+        document.addEventListener('click', this.handleClickOutsideDiscount);
+        document.addEventListener('click', this.handleClickOutsidePaid);
+      },
+      
+      beforeUnmount() {
+        document.removeEventListener('click', this.handleClickOutsideDiscount);
+        document.removeEventListener('click', this.handleClickOutsidePaid);
       },
       methods: {
+        // Data fetching methods
         async fetchTableDetailsAndUpdateButtonColor() {
           try {
             const tableResponse = await backendServices.fetchTableDetails(this.tableId);
             this.buttonColor = tableResponse.print_check ? '#74E291' : '';
+            this.total_price = tableResponse.total_price; 
           } catch (error) {
             console.error('Error fetching table details:', error);
             this.showError('Error fetching table details. Please try again later.');
           }
         },
+        async fetchTablesForCombine() {
+          if (!this.selectedHall) return;
+          try {
+            const tables = await backendServices.fetchTablesByHallId(this.selectedHall);
+            this.tables = tables.filter(table => {
+              return Number(table.id) !== Number(this.tableId) && table.waitress && table.waitress.id !== 0;
+            });
+
+            if (this.tables.length > 0) {
+              this.selectedTable = this.tables[0].id;
+            }
+          } catch (error) {
+            console.error('Error fetching tables:', error);
+            this.showError('Error fetching tables. Please try again later.');
+          }
+        },
 
         async fetchHalls() {
           try {
-            const hallsResponse = await backendServices.fetchHalls();
-            this.halls = hallsResponse.halls;
+            this.halls = await backendServices.fetchRooms();
+            if (this.halls.length > 0) {
+              this.selectedHall = this.halls[0].id;
+              await this.fetchTablesForHall();
+            }
           } catch (error) {
             console.error('Error fetching halls:', error);
             this.showError('Error fetching halls. Please try again later.');
@@ -207,30 +359,25 @@
         },
 
         async fetchTablesForHall() {
+          if (!this.selectedHall) return;
           try {
-            const tablesResponse = await backendServices.fetchTablesForHall();
-            this.tables = tablesResponse.tables;
+            const tables = await backendServices.fetchTablesByHallId(this.selectedHall);
+            this.tables = tables.filter(table => table.waitress.id === 0);
+            if (this.tables.length > 0) {
+              this.selectedTable = this.tables[0].id;
+            }
           } catch (error) {
-            console.error('Error fetching tables for hall:', error);
-            this.showError('Error fetching tables for hall. Please try again later.');
-          }
-        },
-
-        async fetchTablesForCombine() {
-          try {
-            const tablesResponse = await backendServices.fetchTablesForCombine();
-            this.tables = tablesResponse.tables;
-            
-          } catch (error) {
-            console.error('Error fetching tables for combine:', error);
-            this.showError('Error fetching tables for combine. Please try again later.');
+            console.error('Error fetching tables:', error);
+            this.showError('Error fetching tables. Please try again later.');
           }
         },
 
         async fetchWaitresses() {
           try {
-            const waitressesResponse = await backendServices.fetchWaitresses();
-            this.waitresses = waitressesResponse.waitresses;
+            this.waitresses = await backendServices.fetchWaitresses();
+            if (this.waitresses.length > 0) {
+              this.selectedWaitress = this.waitresses[0].id;
+            }
           } catch (error) {
             console.error('Error fetching waitresses:', error);
             this.showError('Error fetching waitresses. Please try again later.');
@@ -318,6 +465,7 @@
         // Modal show methods
         showConfirmationDialog() {
           this.showConfirmation = true;
+          this.resetForm()
         },
 
         showTransferDialog() {
@@ -337,6 +485,7 @@
 
         // Modal cancel methods
         cancelAction() {
+          this.resetForm();
           this.showConfirmation = false;
         },
 
@@ -353,16 +502,81 @@
         },
 
         // Modal confirm methods
+        resetForm() {
+          this.payment_type = 'cash';
+          this.discount_amount = null;
+          this.discount_comment = '';
+          this.paid_amount = 0;
+          this.paidAmountInput = '';
+          this.showNumpad = false;
+        },
         async confirmAction() {
+          const payload = {
+            payment_type: this.payment_type,
+            discount_amount: this.discount_amount,
+            discount_comment: this.discount_comment,
+            paid_amount: this.paid_amount
+          };
           try {
-            await backendServices.closeTableForOrder(this.tableId);
+            await backendServices.cancelPayment(this.tableId, payload);
+
             router.back();
           } catch (error) {
-            console.error('Error closing table:', error);
-            this.showError('Error closing table. Please try again later.');
+            console.error('Xəta baş verdi:', error);
+            this.showError('Masa bağlanarkən xəta baş verdi. Zəhmət olmasa, yenidən cəhd edin.');
           }
+
           this.showConfirmation = false;
         },
+        
+        appendToPaidAmount(num) {
+          this.paidAmountInput += num.toString();
+          this.paid_amount = parseFloat(this.paidAmountInput);
+        },
+        deleteLastDigit() {
+          this.paidAmountInput = this.paidAmountInput.slice(0, -1);
+          this.paid_amount = parseFloat(this.paidAmountInput) || 0;
+        },
+        clearPaidAmount() {
+          this.paidAmountInput = '';
+          this.paid_amount = 0;
+        },
+   // Endirim faizi üçün
+   appendToDiscountPercent(num) {
+    this.discountPercentInput += num.toString();
+    this.discount_percent = parseInt(this.discountPercentInput) || 0;
+    this.calculateDiscountAmount();
+  },
+
+  deleteLastDigitFromDiscount() {
+    this.discountPercentInput = this.discountPercentInput.slice(0, -1);
+    this.discount_percent = parseInt(this.discountPercentInput) || 0;
+    this.calculateDiscountAmount();
+  },
+
+  clearDiscountPercent() {
+    this.discountPercentInput = '';
+    this.discount_percent = 0;
+    this.discount_amount = 0;
+  },
+
+  calculateDiscountAmount() {
+    if (this.discount_percent && !isNaN(this.discount_percent)) {
+      this.discount_amount = parseFloat(((this.total_price * this.discount_percent) / 100).toFixed(2));
+    }
+  },
+  handleClickOutsideDiscount(event) {
+    const numpad = this.$refs.discountNumpadContainer;
+    if (numpad && !numpad.contains(event.target)) {
+      this.showDiscountNumpad = false;
+    }
+  },
+  handleClickOutsidePaid(event) {
+    const numpad = this.$refs.paidNumpadContainer;
+    if (numpad && !numpad.contains(event.target)) {
+      this.showNumpad = false;
+    }
+  },
 
         async confirmTransfer() {
           if (this.selectedHall && this.selectedTable) {
@@ -402,63 +616,6 @@
             }
           }
         },
-
-        // Data fetching methods
-        async fetchHalls() {
-          try {
-            this.halls = await backendServices.fetchRooms();
-            if (this.halls.length > 0) {
-              this.selectedHall = this.halls[0].id;
-              await this.fetchTablesForHall();
-            }
-          } catch (error) {
-            console.error('Error fetching halls:', error);
-            this.showError('Error fetching halls. Please try again later.');
-          }
-        },
-
-        async fetchTablesForHall() {
-          if (!this.selectedHall) return;
-          try {
-            const tables = await backendServices.fetchTablesByHallId(this.selectedHall);
-            this.tables = tables.filter(table => table.waitress.id === 0);
-            if (this.tables.length > 0) {
-              this.selectedTable = this.tables[0].id;
-            }
-          } catch (error) {
-            console.error('Error fetching tables:', error);
-            this.showError('Error fetching tables. Please try again later.');
-          }
-        },
-
-        async fetchTablesForCombine() {
-          if (!this.selectedHall) return;
-          try {
-            const tables = await backendServices.fetchTablesByHallId(this.selectedHall);
-            this.tables = tables.filter(table => {
-              return Number(table.id) !== Number(this.tableId) && table.waitress && table.waitress.id !== 0;
-            });
-
-            if (this.tables.length > 0) {
-              this.selectedTable = this.tables[0].id;
-            }
-          } catch (error) {
-            console.error('Error fetching tables:', error);
-            this.showError('Error fetching tables. Please try again later.');
-          }
-        },
-
-        async fetchWaitresses() {
-          try {
-            this.waitresses = await backendServices.fetchWaitresses();
-            if (this.waitresses.length > 0) {
-              this.selectedWaitress = this.waitresses[0].id;
-            }
-          } catch (error) {
-            console.error('Error fetching waitresses:', error);
-            this.showError('Error fetching waitresses. Please try again later.');
-          }
-        }
       }
     };
     </script>
@@ -479,7 +636,7 @@
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
-  min-width: 130px;
+  min-width: 140px;
   height: 58px;
   padding: 15px 20px;
   font-weight: 600;
@@ -583,9 +740,38 @@
 }
 
 .confirmation-message {
-  font-size: 1.5em;
-  color: #2c3e50;
-  margin-bottom: 25px;
+  max-width: 380px;
+  width: 100%;
+  margin: 0 auto 20px;
+  display: flex;
+  flex-wrap: wrap ;
+  justify-content: center;
+  gap: 10px;
+}
+
+.confirmation-message > div {
+  display: flex;
+  flex-direction: column;
+
+}
+
+.confirmation-message label {
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #333;
+  font-size: 14px;
+}
+
+.confirmation-message .input {
+  max-width: 120px;
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #2ecc71;
+  border-radius: 6px;
+  font-size: 16px;
+  background-color: #f9f9f9;
+  text-align: center;
+  color: #222;
 }
 
 .confirmation-buttons {
@@ -650,6 +836,129 @@
   margin-bottom: 15px;
 }
 
+/* Cancel Action */
+.modal-form {
+  max-width: 380px;
+  margin: 0 auto;
+  padding: 20px 30px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.modal-form label {
+  display: block;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.modal-form input,
+.modal-form select {
+  width: 100%;
+  padding: 10px;
+  margin-top: 6px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+.discount-group {
+  margin-bottom: 16px;
+}
+.input-container {
+  display: flex;
+  gap: 20px;
+}
+
+.input-container div {
+  flex: 1;
+}
+
+.input-container .label {
+  font-weight: bold;
+  margin-bottom: 5px;
+  display: block;
+  font-size: 14px;
+  color: #333;
+}
+
+.input-container .input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+  text-align: center;
+}
+
+.amount-input {
+  color: green;
+  font-weight: bold;
+}
+
+.confirmation-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1.5rem;
+}
+
+.confirm-btn,
+.cancel-btn {
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.confirm-btn {
+  background-color: #4caf50;
+  color: white;
+}
+
+.confirm-btn:hover {
+  background-color: #45a045;
+}
+
+.cancel-btn {
+  background-color: #f44336;
+  color: white;
+}
+
+.cancel-btn:hover {
+  background-color: #d7372b;
+}
+.numpad-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.numpad-buttons button {
+  padding: 10px 10px;
+  font-size: 16px;
+  background-color: #eee;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  cursor: pointer;
+  width: 40px;
+}
+
+.fade-slide-enter-active, .fade-slide-leave-active {
+  transition: all 0.3s ease;
+}
+.fade-slide-enter-from, .fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
+}
+.fade-slide-enter-to, .fade-slide-leave-from {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 @media (max-width: 768px) {
   .actions {
     padding: 10px;
@@ -660,7 +969,7 @@
     min-width: 120px;
     height: 50px;
     padding: 12px 16px;
-    font-size: 1em;
+    font-size: 0.9em;
   }
 
   .confirmation-dialog {
@@ -686,7 +995,7 @@
     min-width: 110px;
     height: 45px;
     padding: 10px 14px;
-    font-size: 0.9em;
+    font-size: 0.8em;
   }
 }
 </style>

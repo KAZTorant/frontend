@@ -12,6 +12,10 @@
             <div class="table-label">Masa</div>
             <div class="table-number">{{tableName}}</div>
           </div>
+          <div class="table-info">
+            <div class="table-label">Ümumi məbləğ:</div>
+            <div class="table-number">₼ {{ total_price }}</div>
+          </div>
         </div>
         <div class="right-section">
           <div class="action-buttons">
@@ -77,6 +81,7 @@ export default {
   data() {
     return {
       tableId: null,
+      total_price: 0,
       role: null,
       waitressName: "",
       tableName: "",
@@ -92,7 +97,23 @@ export default {
       orders: []
     }
   },
+  async mounted() {
+    await this.fetchTableDetailsAndUpdateButtonColor();
+
+    EventBus.on('orderItemAdded', () => {
+    this.fetchTableDetailsAndUpdateButtonColor();
+  });
+  },
   methods: {
+    async fetchTableDetailsAndUpdateButtonColor() {
+    try {
+      const tableResponse = await backendServices.fetchTableDetails(this.tableId);
+      this.total_price = tableResponse.total_price; 
+    } catch (error) {
+      console.error('Error fetching table details:', error);
+      this.showError('Error fetching table details. Please try again later.');
+    }
+  },
     logout() {
       this.$store.commit(`auth/SET_AUTHENTICATION`, null);
       this.$store.commit(`auth/SET_ROLE`, null);

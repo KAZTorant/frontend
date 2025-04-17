@@ -92,6 +92,7 @@ const backendServices = {
         }
       });
       return response.data;
+      
     } catch (error) {
       // Handle error
       console.error(`Error listing order items for table ID ${tableId}:`, error);
@@ -196,23 +197,6 @@ const backendServices = {
     }
   },
 
-  async closeTableForOrder(tableId) {
-    try {
-      const response = await axiosInstance.delete(`/api/orders/${tableId}/close-table-for-order/`, {
-        headers: {
-          'accept': 'application/json',
-          'X-PIN': store.getters['auth/GET_USERNAME'],
-          'Content-Type': 'application/json',
-        }
-      });
-      return response.data;
-    } catch (error) {
-      // Handle error
-      console.error(`Error closing table for order ID ${tableId}:`, error);
-      throw error;
-    }
-  },
-
   async changeWaitressForOrder(tableId, newWaitressId) {
     try {
       const response = await axiosInstance.post(`/api/orders/${tableId}/change-waitress/`, {
@@ -282,6 +266,20 @@ const backendServices = {
     }
   },
   
+  async cancelPayment(tableId, payload) {
+    try {
+      const response = await axiosInstance.post(`/api/payments/${tableId}/pay-orders/`, payload, {
+        headers: {
+          'accept': 'application/json',
+          'X-PIN': store.getters['auth/GET_USERNAME']
+        }
+      });
+      return response.data;
+    } catch (error) {
+      console.error(`Error printing check for order ID ${tableId}:`, error);
+      throw error;
+    }
+  },
 
   async deleteCheck(tableId) {
     try {
