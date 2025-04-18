@@ -200,6 +200,7 @@ document.addEventListener('DOMContentLoaded', function () {
     flex-wrap: wrap;
     margin-bottom: 15px;
     justify-content: flex-start;
+    align-items: center;
 }
 
 .menu-category-items-header span {
@@ -283,8 +284,8 @@ document.addEventListener('DOMContentLoaded', function () {
     display: flex;
     align-items: center;
     gap: 15px;
-    padding: 15px 25px;
-    border-radius: 15px;
+    padding: 10px 20px;
+    border-radius: 12px;
     cursor: pointer;
     transition: all 0.3s ease;
     background: linear-gradient(135deg, #f8f9fa, #e9ecef);

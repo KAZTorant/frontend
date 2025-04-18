@@ -21,8 +21,8 @@
           <!-- Confirmation Dialog -->
           <div v-if="showConfirmation" class="modal-container">
             <div class="modal-overlay"></div>
-            <div v-if="loading" class="loading-overlay">
-              <div class="spinner"></div>
+            <div v-if="loading">
+              <PrinterLoading />
             </div>
             <div class="confirmation-dialog" v-if="!loading">
               <div class="confirmation-message">
@@ -241,13 +241,15 @@
     import { library } from '@fortawesome/fontawesome-svg-core';
     import { faPrint, faUser, faExchangeAlt, faTimes, faUtensils } from '@fortawesome/free-solid-svg-icons';
     import { EventBus } from '@/EventBus';
+    import PrinterLoading from '@/components/PrinterLoading.vue';
 
     library.add(faPrint, faUser, faExchangeAlt, faTimes, faUtensils);
 
     export default {
       components: {
         ErrorPopup,
-        SuccessPopup
+        SuccessPopup,
+        PrinterLoading
       },
       name: 'Actions',
       props: {
@@ -737,34 +739,6 @@
     </script>
 
 <style scoped>
-.loading-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 999;
-}
-
-.spinner {
-  border: 8px solid rgba(255, 255, 255, 0.3);
-  border-top: 8px solid #2ecc71;
-  border-radius: 50%;
-  width: 60px;
-  height: 60px;
-  animation: spin 1.5s ease-in-out infinite;
-  transition: all 0.3s ease-in-out;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
 .actions {
   width: 100%;
   display: flex;
