@@ -230,7 +230,9 @@ document.addEventListener('DOMContentLoaded', function () {
     gap: 15px;
     padding: 15px;
     flex: 1;
-    overflow: hidden;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #2ecc71 #f8f9fa;
 }
 
 .menu-item {
