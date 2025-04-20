@@ -1,4 +1,10 @@
     <template>
+      <Teleport to="body">
+        <div class="loading-overlay" v-if="isLoading">
+          <PrinterLoading  />
+        </div>
+      </Teleport>
+      
       <div class="actions">
         <button 
           class="action-button" 
@@ -272,7 +278,7 @@
       data() {
         return {
           actions: [
-            { id: 1, label: 'Print Çek', method: 'printOrder' },
+            { id: 1, label: 'Hesab Çeki', method: 'printOrder' },
             { id: 2, label: 'Ofsianti dəyiş', method: 'changeWaitress' },
             { id: 3, label: 'Masanı bağla', method: 'cancelOrder' },
             { id: 4, label: 'Masanı köçür', method: 'openTransferModal' },
@@ -286,6 +292,7 @@
           discount_comment: '',
           paid_amount: 0,
           loading: false,
+          isLoading: false,
           activeDiscountInput: '',
           discountAmountInput: '',
           discountPercentInput: '',
@@ -409,6 +416,9 @@
           if (this.role === 'waitress' && actionId !== 7) {
             return;
           }
+          if (actionId === 1 || actionId === 5 || actionId === 7) {
+            this.isLoading = true;
+          }
           switch(methodName) {
             case 'openTransferModal':
               this.showTransferDialog();
@@ -423,29 +433,36 @@
               this.showCombineDialog();
               break;
             case 'printOrder':
-              await this.callPrintOrder(this.tableId);
+              await this.callPrintOrder(this.tableId, actionId);
               break;
             case 'cancelPrintOrder':
-              await this.callCanelPrintOrder(this.tableId);
+              await this.callCanelPrintOrder(this.tableId, actionId);
               break;
-            case 'confirmKitchen':
-              try {
-                await backendServices.confirmOrder(this.tableId);
-                this.showSuccess('Sifariş mətbəxə göndərildi.');
-                this.$emit('order-confirmed');
-              } catch (error) {
-                console.error('Error confirming order:', error);
-                if (error.code === 'ECONNABORTED') {
-                  this.showError('Server cavab vermir. Zəhmət olmasa bir az sonra yenidən cəhd edin.');
-                } else {
-                  this.showError('Sifarişi mətbəxə göndərmək mümkün olmadı.');
+              case 'confirmKitchen':
+                this.isLoading = true;
+                try {
+                  await backendServices.confirmOrder(this.tableId);
+                  this.showSuccess('Sifariş mətbəxə göndərildi.');
+                  this.$emit('order-confirmed');
+                } catch (error) {
+                  console.error('Error confirming order:', error);
+                  if (error.code === 'ECONNABORTED') {
+                    this.showError('Server cavab vermir. Zəhmət olmasa bir az sonra yenidən cəhd edin.');
+                  } else {
+                    this.showError('Sifarişi mətbəxə göndərmək mümkün olmadı.');
+                  }
+                } finally {
+                  if (actionId === 7) {
+                    this.isLoading = false;
+                  }
                 }
-              }
               break;
           }
         },
 
-        async callPrintOrder(tableId) {
+        async callPrintOrder(tableId, actionId) {
+          this.isLoading = true;
+
           try {
             await backendServices.printCheck(tableId);
             this.showSuccess('Çek print olundu.');
@@ -453,10 +470,15 @@
           } catch (error) {
             console.error('Error printing check:', error);
             this.showError('Çek print olunub artıq.');
+          } finally {
+            if (actionId === 1) {
+              this.isLoading = false;
+            }
           }
         },
 
-        async callCanelPrintOrder(tableId) {
+        async callCanelPrintOrder(tableId, actionId) {
+          this.isLoading = true;
           try {
             await backendServices.deleteCheck(tableId);
             this.showSuccess('Çek leğv olundu.');
@@ -464,6 +486,10 @@
           } catch (error) {
             console.error('Error cancelling check:', error);
             this.showError('Çeki ləğv etmədə problem yarandı.');
+          } finally {
+            if (actionId === 5) {
+              this.isLoading = false;
+            }
           }
         },
 
@@ -739,6 +765,18 @@
     </script>
 
 <style scoped>
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.4); /* arxa fon yarı şəffaf */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
 .actions {
   width: 100%;
   display: flex;

@@ -108,7 +108,7 @@ export default {
     async fetchTableDetailsAndUpdateButtonColor() {
     try {
       const tableResponse = await backendServices.fetchTableDetails(this.tableId);
-      this.total_price = tableResponse.total_price; 
+      this.total_price = tableResponse.total_price.toFixed(2); 
     } catch (error) {
       console.error('Error fetching table details:', error);
       this.showError('Error fetching table details. Please try again later.');

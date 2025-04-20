@@ -230,8 +230,10 @@ export default {
   },
   computed: {
     totalPrice() {
-      return this.orderItems.reduce((acc, item) => acc + item.quantity * item.meal.price, 0);
-    }
+  return this.orderItems
+    .reduce((acc, item) => acc + item.quantity * item.meal.price, 0)
+    .toFixed(2);
+}
   },
 };
 </script>
