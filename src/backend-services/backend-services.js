@@ -178,6 +178,21 @@ const backendServices = {
     }
   },
 
+  async transferOrderItems({ order_id, meal_id, quantity, target_table_id },tableId) {
+    console.log('tableId:', tableId )
+    const response = await axiosInstance.post(`/api/orders/${tableId}/tranfer-order-items/`,
+    { order_id, meal_id, quantity, target_table_id },
+      {
+        headers: {
+          accept: 'application/json',
+          'X-PIN': store.getters['auth/GET_USERNAME'],
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+    return response.data;
+  },  
+
   async changeTableForOrder(oldTableId, newTableId) {
     try {
       const response = await axiosInstance.post(`/api/orders/${oldTableId}/change-table-for-order/`, {

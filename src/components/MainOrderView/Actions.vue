@@ -278,7 +278,7 @@
             { id: 4, label: 'Masanı köçür', method: 'openTransferModal' },
             { id: 5, label: 'Çeki ləğv et', method: 'cancelPrintOrder' },
             { id: 6, label: 'Masanı birləşdir', method: 'openCombine' },
-            { id: 7, label: 'Mətbəxə göndər', method: 'confirmKitchen', isKitchenButton: true }
+            { id: 7, label: 'Hazırla', method: 'confirmKitchen', isKitchenButton: true }
           ],
           payment_type: 'cash',
           discount_amount: 0,

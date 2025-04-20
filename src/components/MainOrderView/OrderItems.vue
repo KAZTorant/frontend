@@ -24,9 +24,12 @@
           :show-dropdown="showDropdown === mainOrder.pk"
           :order-items="orderItems"
           :total-price="totalPrice"
+          :order-id="mainOrder?.pk"
+          :table-id="tableId"
           :check-view-permission-for-admin="checkViewPermissionForAdmin"
           :increment-quantity="incrementQuantity"
           :decrement-quantity="decrementQuantity"
+          @transfer-success="fetchOrderItems"
         />
       </div>
 
@@ -54,9 +57,12 @@
             :show-dropdown="showDropdown === item.pk"
             :order-items="orderItems"
             :total-price="totalPrice"
+            :order-id="item?.pk"
+            :table-id="tableId"
             :check-view-permission-for-admin="checkViewPermissionForAdmin"
             :increment-quantity="incrementQuantity"
             :decrement-quantity="decrementQuantity"
+            @transfer-success="fetchOrderItems"
           />
         </div>
       </div>
@@ -79,9 +85,12 @@
           :show-dropdown="showDropdown !== 'default'"
           :order-items="orderItems"
           :total-price="totalPrice"
+          :order-id="order?.id"
+          :table-id="tableId"
           :check-view-permission-for-admin="checkViewPermissionForAdmin"
           :increment-quantity="incrementQuantity"
           :decrement-quantity="decrementQuantity"
+          @transfer-success="fetchOrderItems"
         />
       </div>
     </div>

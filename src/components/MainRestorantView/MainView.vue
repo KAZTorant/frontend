@@ -146,7 +146,7 @@ export default {
   width: 100%;
   height: 100%;
   background: linear-gradient(135deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.4));
-  backdrop-filter: blur(1.3px);
+  backdrop-filter: blur(1px);
   z-index: 1;
 }
 
@@ -269,8 +269,8 @@ export default {
   bottom: 0;
   left: 0;
   right: 0;
-  background: linear-gradient(135deg, #ffffff, #f8f9fa);
-  padding: 15px;
+  background: #e9ecef;
+  padding: 0;
   box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.08);
   z-index: 2;
   border-top: 1px solid #e9ecef;
@@ -293,7 +293,7 @@ export default {
   min-width: 150px;
   text-align: center;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  border: 1px solid #e9ecef;
+  border: 1px solid #000;
 }
 
 .hall:hover {
