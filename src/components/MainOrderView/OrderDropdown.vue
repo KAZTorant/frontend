@@ -43,8 +43,8 @@
       >
         <span>{{ item.meal.name }}</span>
         <div class="quantity">{{ item.quantity }}</div>
-        <span>{{ item.meal.price }} azn</span>
-        <span>{{ (item.quantity * item.meal.price) }} azn</span>
+        <span>{{ item.meal.price.toFixed(2) }} azn</span>
+        <span>{{ (item.quantity * item.meal.price).toFixed(2) }} azn</span>
         <span
           class="status-indicator"
           :class="item.confirmed ? 'confirmed' : 'waiting'"
@@ -76,7 +76,7 @@
                 class="btn-increment"
               ><font-awesome-icon icon="plus" /></button>
             </div>
-            <span>Cəm: {{ transferQuantity * selectedItem.meal.price }} azn</span>
+            <span>Cəm: {{ transferQuantity * selectedItem.meal.price.toFixed(2) }} azn</span>
           </div>
 
           <div>
