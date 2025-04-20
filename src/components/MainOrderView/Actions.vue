@@ -320,7 +320,7 @@
           if (this.role === 'admin' || this.role === 'restaurant') {
             return this.actions;
           } else if (this.role === 'waitress') {
-            return this.actions.filter(action => action.id === 7);
+            return this.actions.filter(action => (action.id === 7 || action.id === 1));
           }
           return [];
         }
@@ -413,9 +413,10 @@
         },
 
         async handleAction(methodName, actionId) {
-          if (this.role === 'waitress' && actionId !== 7) {
+          if (this.role === 'waitress' && !(actionId === 1 || actionId === 7)) {
             return;
           }
+
           if (actionId === 1 || actionId === 5 || actionId === 7) {
             this.isLoading = true;
           }
