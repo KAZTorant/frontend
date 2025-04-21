@@ -150,33 +150,6 @@ export default {
   z-index: 1;
 }
 
-.check-printed {
-  background: linear-gradient(135deg, #2ecc71, #27ae60);
-  color: white;
-  border: none;
-}
-
-.waitress-id-zero {
-  background: linear-gradient(135deg, #ffffff, #f8f9fa);
-  border: 2px solid #e9ecef;
-}
-
-.waitress-id-not-zero {
-  background: linear-gradient(135deg, #fff3cd, #ffeeba);
-  border: 2px solid #ffeeba;
-}
-
-.hall.clicked {
-  background: linear-gradient(135deg, #2ecc71, #27ae60) !important;
-  color: white;
-}
-
-.not-current-waitress {
-  background: linear-gradient(135deg, #6c757d, #495057);
-  color: white;
-  pointer-events: none;
-}
-
 .logout-head {
   display: flex;
   justify-content: space-between;
@@ -256,12 +229,44 @@ export default {
   margin: 5px 0;
 }
 
+.table.check-printed div{
+  color: #f8f9fa;
+}
+
 .table div:first-child {
   font-size: 1.4em;
   font-weight: 600;
   background: linear-gradient(135deg, #2ecc71, #27ae60);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+.table.check-printed div:first-child {
+  background: none;
+  -webkit-background-clip: unset;
+  -webkit-text-fill-color: white;
+  color: white;
+}
+
+.waitress-id-zero {
+  background: #f1f3f5;
+  border: 1px solid #ccc;
+}
+
+.waitress-id-not-zero {
+  background: #ffedb3;
+  border: 1px solid #ffdc80;
+}
+
+.check-printed {
+  background: linear-gradient(135deg, #2ecc71, #27ae60); 
+  border: 1px solid #81c7b4;
+}
+
+.not-current-waitress {
+  background: #d1d7e0;
+  pointer-events: none;
+  opacity: 0.9;
 }
 
 .halls-container {
@@ -296,6 +301,11 @@ export default {
   border: 1px solid #000;
 }
 
+.hall.clicked {
+  background: linear-gradient(135deg, #2ecc71, #27ae60) !important;
+  color: white;
+}
+
 .hall:hover {
   background: linear-gradient(135deg, #e9ecef, #dee2e6);
   transform: translateY(-2px);
@@ -306,7 +316,6 @@ export default {
   font-weight: 600;
   font-size: 1.1em;
   margin-bottom: 5px;
-  color: #2c3e50;
 }
 
 .hall div:last-child {
