@@ -174,17 +174,23 @@ export default {
     },
     
     async decrementQuantity(item) {
-      if (item.quantity > 0) {
-        try {
-          await backendServices.deleteOrderItem(this.tableId, item.meal.id, 1, item.orderId);
-          item.quantity--;
-          this.fetchOrderItems(item.orderId); 
-          EventBus.emit('orderItemAdded');
-        } catch (error) {
-          console.error('Error deleting order item:', error);
-        }
-      }
-    },
+  if (item.quantity > 0) {
+    try {
+      const payload = {
+        order_id: item.orderId,
+        meal_id: item.meal.id,
+        quantity: 1,
+      };
+      await backendServices.deleteOrderItem(this.tableId, payload);
+      item.quantity--;
+      this.fetchOrderItems(item.orderId); 
+      EventBus.emit('orderItemAdded');
+    } catch (error) {
+      console.error('Error deleting order item:', error);
+    }
+  }
+},
+
     async fetchOrders() {
       try {
         const orders = await backendServices.listOrders(this.tableId);

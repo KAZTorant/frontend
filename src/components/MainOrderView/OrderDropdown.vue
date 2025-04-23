@@ -1,7 +1,21 @@
 <template>
   <div class="order-dropdown" v-if="showDropdown">
-    <div class="selected-controls" v-if="selectedItem">
+    <div class="selected-controls" v-if="selectedItem && selectedItem.quantity > 0">
+      <div>
+        <div v-if="selectedItem.comment" class="controls-comment">
+          <font-awesome-icon icon="comment" class="comment-icon" />
+          <span class="comment-text">{{ selectedItem.comment }}</span>
+        </div>
+      </div>
       <div class="quantity-container">
+        <button
+          v-if="!selectedItem.confirmed"
+          @click="openCustomizationModal(selectedItem)"
+          class="btn-customize"
+        >
+        <font-awesome-icon icon="comment" />
+        </button>
+        <!-- Transfer button for confirmed items -->
         <button
           v-if="checkViewPermissionForAdmin() && selectedItem.confirmed"
           @click="openTransferPopup(selectedItem)"
@@ -9,9 +23,15 @@
         >
           <font-awesome-icon icon="arrow-right-arrow-left" />
         </button>
-        <button v-if="checkViewPermissionForAdmin()" @click="decrementQuantity(selectedItem)" class="btn-decrement">
+        <!-- Decrement button: opens return modal for confirmed, otherwise decrements directly -->
+        <button
+          v-if="checkViewPermissionForAdmin()"
+          @click="selectedItem.confirmed ? openReturnPopup(selectedItem) : decrementQuantity(selectedItem)"
+          class="btn-decrement"
+        >
           <font-awesome-icon icon="minus" />
         </button>
+        <!-- Increment button remains unchanged -->
         <button
           @click="incrementQuantity(selectedItem)"
           class="btn-increment"
@@ -41,7 +61,12 @@
         @click="selectItem(item)"
         :class="{ active: selectedItem && selectedItem.meal.id === item.meal.id }"
       >
-        <span>{{ item.meal.name }}</span>
+        <span>
+          <div v-if="item.comment" class="item-comment">
+            <font-awesome-icon icon="comment" class="comment-icon" :title="item.comment" />
+          </div>
+          {{ item.meal.name }}
+        </span>
         <div class="quantity">{{ item.quantity }}</div>
         <span>{{ item.meal.price.toFixed(2) }} azn</span>
         <span>{{ (item.quantity * item.meal.price).toFixed(2) }} azn</span>
@@ -55,6 +80,43 @@
     </div>
   </div>
 
+<!-- Customize Modal -->
+<Teleport to="body">
+  <div v-if="showCustomizationModal" class="modal-container">
+    <div class="modal-overlay" @click="cancelCustomization"></div>
+    <div class="confirmation-dialog">
+      <h2 class="modal-title">Xüsusi Qeyd</h2>
+
+      <div class="modal-content-main hall">
+        <div v-if="selectedItem && !selectedItem.confirmed">
+          <div class="item-name">{{ selectedItem.meal.name }}</div>
+
+          <div class="quantity-selector">
+            <div class="quantity-input">{{ customQuantity }}</div>
+          </div>
+          <div class="description">
+            <label for="custom-note" class="section-title">
+            Müştərinin Əlavə İstəkləri:
+          </label>
+            <textarea
+            v-model="customDescription"
+            class="message-textarea"
+            placeholder='Məsələn: "2 porsiya soğansız", "2 porsiya soğanlı"...'
+          ></textarea>
+          </div>
+          
+        </div>
+      </div>
+      <div class="confirmation-buttons">
+        <button class="confirm-btn" @click="confirmCustomization">Təsdiqlə</button>
+        <button class="cancel-btn" @click="cancelCustomization">Ləğv et</button>
+      </div>
+    </div>
+  </div>
+</Teleport>
+
+
+  <!-- Transfer Modal -->
   <Teleport to="body">
     <div v-if="showTransferItemsModal" class="modal-container">
       <div class="modal-overlay" @click="cancelTransfer"></div>
@@ -62,7 +124,7 @@
         <h2 class="modal-title">Məhsul köçür</h2>
         <div class="modal-content-main hall">
           <div v-if="selectedItem">
-            <div for="quantity">{{ selectedItem.meal.name }}</div>
+            <div>{{ selectedItem.meal.name }}</div>
             <div class="quantity-selector">
               <button
                 @click="decreaseQuantity"
@@ -76,9 +138,10 @@
                 class="btn-increment"
               ><font-awesome-icon icon="plus" /></button>
             </div>
-            <span>Cəm: {{ transferQuantity * selectedItem.meal.price.toFixed(2) }} azn</span>
+            <div class="total-price">
+              Cəm: <strong>{{ (transferQuantity * selectedItem.meal.price).toFixed(2) }} AZN</strong>
+            </div>
           </div>
-
           <div>
             <label for="hall">Zal Seç:</label>
             <select id="hall" v-model="selectedHall" @change="fetchTablesForHall">
@@ -89,8 +152,8 @@
             <label for="table">Masa seç:</label>
             <select id="table" v-model="selectedTable">
               <option
-              v-for="table in tables.filter(t => t.id !== this.tableId)"
-              :key="table.id"
+                v-for="table in tables.filter(t => t.id !== tableId)"
+                :key="table.id"
                 :value="table.id"
               >
                 {{ table.number }}{{ table.waitress.id !== 0 ? ' (Dolu)' : '' }}
@@ -105,20 +168,70 @@
       </div>
     </div>
   </Teleport>
+
+  <!-- Return/Defective Modal -->
+  <Teleport to="body">
+  <div v-if="showReturnItemsModal" class="modal-container">
+    <div class="modal-overlay" @click="cancelReturn"></div>
+    <div class="confirmation-dialog">
+      <h2 class="modal-title">Məhsulu geri qaytar</h2>
+      <div class="modal-content-main hall">
+        <div v-if="selectedItem" class="selected-item">
+          <div class="item-name">{{ selectedItem.meal.name }}</div>
+
+          <div class="quantity-selector">
+            <div class="quantity-input">{{ returnQuantity }}</div>
+          </div>
+
+          <div class="total-price">
+            Cəm: <strong>{{ (returnQuantity * selectedItem.meal.price).toFixed(2) }} AZN</strong>
+          </div>
+        </div>
+
+        <div class="action-type">
+          <label for="reasonSelect" class="section-title">Silinmə səbəbini seçin:</label>
+          <select
+            v-model="selectedReturnAction"
+            id="reasonSelect"
+            class="reason-select"
+          >
+            <option value="return">Anbara qaytar</option>
+            <option value="waste">Yararsız məhsul</option>
+          </select>
+        </div>
+
+        <div class="message-field">
+          <label for="returnMessage" class="section-title">Səbəbini yazın:</label>
+          <textarea
+            id="returnMessage"
+            v-model="returnMessage"
+            class="message-textarea"
+            placeholder="Mesajınızı daxil edin..."
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="confirmation-buttons">
+        <button class="confirm-btn" @click="confirmReturn">Təsdiqlə</button>
+        <button class="cancel-btn" @click="cancelReturn">Ləğv et</button>
+      </div>
+    </div>
+  </div>
+</Teleport>
+
+
 </template>
 
 <script>
 import backendServices from '@/backend-services/backend-services';
+import { EventBus } from '@/EventBus';
 
 export default {
   props: {
     showDropdown: { type: Boolean, required: true },
     orderItems: { type: Array, required: true },
     orderId: { type: Number, required: true },
-    tableId: {
-    type: Number,
-    required: true
-  },
+    tableId: { type: Number, required: true },
     totalPrice: { type: Number, required: true },
     checkViewPermissionForAdmin: { type: Function, required: true },
     incrementQuantity: { type: Function, required: true },
@@ -128,30 +241,41 @@ export default {
     return {
       selectedItem: null,
       transferQuantity: 1,
+      customQuantity: 1,
       showTransferItemsModal: false,
       selectedHall: null,
       selectedTable: null,
       halls: [],
       tables: [],
       maxQuantity: 0,
+      showReturnItemsModal: false,
+      returnQuantity: 1,
+      maxReturnQuantity: 0,
+      selectedReturnAction: 'return',
+      returnMessage: '',
       localOrderItems: [],
       localTotalPrice: 0,
+      localComment: '',
+      showCustomizationModal: false,
+      customDescription: '',
     };
   },
   created() {
-  this.localOrderItems = this.orderItems;
-  this.localTotalPrice = this.totalPrice;
-},
+    this.localOrderItems = this.orderItems;
+    this.localTotalPrice = this.totalPrice;
+    this.localComment = this.comment;
+  },
   methods: {
     async fetchOrderItems() {
-    try {
-      const response = await backendServices.listOrderItems(this.tableId);
-      this.localOrderItems = response.items;
-      this.localTotalPrice = response.total_price;
-    } catch (error) {
-      console.error('Məhsullar gətirilə bilmədi:', error);
-    }
-  },
+      try {
+        const response = await backendServices.listOrderItems(this.tableId);
+        this.localOrderItems = response.items;
+        this.localTotalPrice = response.total_price;
+        this.localComment = response.comment;
+      } catch (error) {
+        console.error('Məhsullar gətirilə bilmədi:', error);
+      }
+    },
     selectItem(item) {
       this.selectedItem = item;
     },
@@ -176,14 +300,13 @@ export default {
       }
       try {
         const order_id = this.orderId || this.selectedItem.order_id || this.selectedItem.id;
-        const payload = {
+        const	payload = {
           order_id,
           meal_id: this.selectedItem.meal.id,
           quantity: this.transferQuantity,
           target_table_id: this.selectedTable,
         };
         const result = await backendServices.transferOrderItems(payload, this.tableId);
-        // Optionally update UI based on result
         this.$emit('transfer-success', result);
         await this.fetchOrderItems();
         this.cancelTransfer();
@@ -225,9 +348,85 @@ export default {
         this.showError('Masaları yükləmək mümkün olmadı. Zəhmət olmasa sonra cəhd edin.');
       }
     },
+
+    // New methods for return/defective flow
+    openReturnPopup(item) {
+      this.selectedItem = item;
+      this.returnQuantity = 1;
+      this.maxReturnQuantity = item.quantity;
+      this.selectedReturnAction = 'return';
+      this.returnMessage = '';
+      this.showReturnItemsModal = true;
+    },
+    cancelReturn() {
+      this.showReturnItemsModal = false;
+    },
+    async confirmReturn() {
+      if (!this.selectedReturnAction) {
+        return this.showError('Zəhmət olmasa anbara qaytar və ya yararsız məhsul olaraq seçin.');
+      }
+      try {
+        const payload = {
+          order_id: this.orderId,
+          meal_id: this.selectedItem.meal.id,
+          quantity: this.returnQuantity,
+          reason: this.selectedReturnAction,
+          reason_comment: this.returnMessage,
+          confirmed: true,
+        };
+        const result = await backendServices.deleteOrderItem(this.tableId, payload);
+        this.$emit('return-success', result);
+        await this.fetchOrderItems();
+        EventBus.emit('orderItemAdded', () => {
+          this.fetchOrderItems;
+        });
+        this.cancelReturn();
+      } catch (error) {
+        console.error('Return failed:', error);
+        this.showError('Əməliyyat uğursuz oldu. Yenidən cəhd edin.');
+      }
+    },
+
+  // Customize btn
+    openCustomizationModal(item) {
+    this.selectedItem = item;
+    this.customDescription = item.customDescription || '';
+    this.showCustomizationModal = true;
+    this.customQuantity = item.quantity;
+  },
+
+  async confirmCustomization() {
+    if (!this.selectedItem) return;
+
+    try {
+      await backendServices.commentOrderItem(
+        this.tableId,
+        this.selectedItem.meal.id,
+        this.customDescription,
+        this.selectedItem.orderId
+      );
+
+      this.selectedItem.customDescription = this.customDescription;
+
+      this.$emit('customization-success', this.selectedItem);
+      await this.fetchOrderItems(this.selectedItem.orderId);
+      EventBus.emit('orderItemAdded', () => {
+          this.fetchOrderItems;
+        });
+      this.showCustomizationModal = false;
+    } catch (error) {
+      console.error('Error saving customization:', error);
+      this.showError('Xüsusi qeydi yadda saxlamaq alınmadı. Yenidən cəhd edin.');
+    }
+  },
+
+  cancelCustomization() {
+    this.showCustomizationModal = false;
+  },
+
     showError(msg) {
       alert(msg);
-    }
+    },
   },
 };
 </script>
@@ -302,6 +501,10 @@ export default {
   color: #222;
 }
 
+.total-price{
+  margin-top: 5px;
+}
+
 .confirmation-buttons {
   display: flex;
   justify-content: center;
@@ -363,6 +566,50 @@ export default {
   border: 1px solid #e0e0e0;
   margin-bottom: 15px;
 }
+.action-type {
+  margin-top: 20px;
+}
+
+.section-title {
+  font-weight: 600;
+  margin-bottom: 6px;
+  display: block;
+  color: #333;
+  font-size: 15px;
+}
+
+.message-field {
+  margin-top: 0px;
+}
+
+.message-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #444;
+}
+
+.description{
+  padding-top: 10px;
+}
+
+.message-textarea {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #4caf50;
+  resize: vertical;
+  font-size: 14px;
+  font-family: inherit;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.message-textarea:focus {
+  border-color: #4caf50;
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+  outline: none;
+}
 
 .order-dropdown {
   background: linear-gradient(135deg, #ffffff, #f8f9fa);
@@ -414,6 +661,22 @@ export default {
   background: linear-gradient(135deg, #2ecc71, #27ae60);
 }
 
+.btn-customize {
+  background-color: #f8a023;
+  color: white;
+}
+
+.btn-transfer {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white;
+}
+
+.btn-transfer:hover {
+  background: linear-gradient(135deg, #2980b9, #2471a3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(41, 128, 185, 0.3);
+}
+
 .btn-decrement:hover {
   background: linear-gradient(135deg, #ff5252, #ff1744);
   transform: translateY(-2px);
@@ -425,6 +688,13 @@ export default {
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(46, 204, 113, 0.3);
 }
+
+.btn-customize:hover {
+  background-color: #e6891b;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(248, 160, 35, 0.3);
+}
+
 
 .sticky {
   position: sticky;
@@ -549,6 +819,9 @@ export default {
 }
 
 .selected-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   padding: 8px 15px 15px; 
   text-align: center;
   border-bottom: 1px solid #e9ecef;
@@ -594,13 +867,22 @@ export default {
   z-index: 99999999;
 }
 
-.btn-transfer {
-  background: linear-gradient(135deg, #3498db, #2980b9);
-  color: white;
+.item-comment {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.85em;
+  color: #555;
 }
-.btn-transfer:hover {
-  background: linear-gradient(135deg, #2980b9, #2471a3);
+.comment-icon {
+  margin-right: 6px;
+  color: #2471a3;
 }
+.comment-text {
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
 @media (max-width: 500px) {
   .order-items-header,
   .order-item {

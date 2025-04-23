@@ -14,7 +14,7 @@
           <button v-for="n in 9" :key="n" class="btn number" @click="pressKey(n)">{{ n }}</button>
           <button class="btn number zero" @click="pressKey(0)">0</button>
           <button class="btn control clear" @click="clearusername">Təmizlə</button>
-          <button class="btn control enter" type="submit" @click="login()">Daxil ol</button>
+          <button class="btn control enter" @click="login()">Daxil ol</button>
         </div>
         
       </div>
@@ -28,7 +28,6 @@
 <script>
 import Qrcode from 'vue-qrcode';
 import backendServices from '../backend-services/backend-services'; // Update the path accordingly
-import router from '@/router/'; // Import the router instance
 
 export default {
   name: 'LoginView',
@@ -52,7 +51,7 @@ export default {
       return networkAddress;
     },
     async getLocalIP() {
-      const result = await await backendServices.getNetworkAddress();
+      const result = await backendServices.getNetworkAddress();
       return result.network_ip;
     },
     pressKey(n) {
@@ -92,7 +91,7 @@ export default {
     this.networkAddress = await this.getNetworkAddress();
     window.addEventListener('resize', this.handleResize);
   },
-  beforeDestroy() {
+  beforeUnmount() {
     window.removeEventListener('resize', this.handleResize);
   }
 }

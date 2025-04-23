@@ -135,6 +135,27 @@ const backendServices = {
     }
   },
 
+  async commentOrderItem(tableId, mealId, comment, orderId) {
+    try {
+      const response = await axiosInstance.post(`/api/orders/${tableId}/comment/`, {
+        meal_id: mealId,
+        comment: comment,
+        order_id: orderId
+      }, {
+        headers: {
+          'accept': 'application/json',
+          'X-PIN': store.getters['auth/GET_USERNAME'],
+          'Content-Type': 'application/json',
+        }
+      });
+      return response.data;
+    } catch (error) {
+      // Handle error
+      console.error(`Error adding order item for order ID ${orderId}:`, error);
+      throw error;
+    }
+  },
+
   async addOrderItem(tableId, mealId, quantity, orderId) {
     try {
       const response = await axiosInstance.post(`/api/orders/${tableId}/add-order-item/`, {
@@ -156,7 +177,7 @@ const backendServices = {
     }
   },
 
-  async deleteOrderItem(tableId, mealId, quantity, orderId) {
+  async deleteOrderItem(tableId, {meal_id, quantity, order_id, reason, reason_comment, confirmed}) {
     try {
       const response = await axiosInstance.delete(`/api/orders/${tableId}/delete-order-item/`, {
         headers: {
@@ -165,15 +186,18 @@ const backendServices = {
           'Content-Type': 'application/json',
         },
         data: {
-          meal_id: mealId,
+          meal_id,
           quantity: quantity,
-          order_id: orderId
+          order_id,
+          reason: reason,
+          reason_comment: reason_comment,
+          confirmed
         }
       });
       return response.data;
     } catch (error) {
       // Handle error
-      console.error(`Error deleting order item for order ID ${orderId}:`, error);
+      console.error(`Error deleting order item for order ID ${order_id}:`, error);
       throw error;
     }
   },

@@ -1,48 +1,63 @@
 <!-- App.vue -->
 <template>
   <div class="main-container">
-    <div class="header-container">
-      <div class="header-content">
-        <div class="left-section">
-          <div class="user-info">
-            <div class="role-badge">{{roleDisplayName}}</div>
-            <div class="user-name">{{waitressName}}</div>
+    <div :class="['header-toggle', { 
+        'header-toggle--active': isHeaderVisible,
+        'header-toggle--collapsed': !isHeaderVisible 
+      }]">
+      <transition name="fade-slide">
+        <div class="header-container" v-if="isHeaderVisible">
+          <div class="header-content" >
+            <div class="left-section" >
+              <div class="user-info">
+                <div class="role-badge">{{ roleDisplayName }}</div>
+                <div class="user-name">{{ waitressName }}</div>
+              </div>
+              <div class="table-info">
+                <div class="table-label">Masa</div>
+                <div class="table-number">{{ tableName }}</div>
+              </div>
+              <div class="table-info">
+                <div class="table-label">Ümumi məbləğ:</div>
+                <div class="table-number">₼ {{ total_price }}</div>
+              </div>
+            </div>
+
+            <div class="right-section">
+              <div class="action-buttons">
+                <button class="action-btn tables-btn" @click="goToTablesView()">
+                  <font-awesome-icon icon="fa-solid fa-table" />
+                  <span>Masalar</span>
+                </button>
+                <button class="action-btn logout-btn" @click="logout">
+                  <font-awesome-icon icon="fa-solid fa-right-from-bracket" />
+                  <span>Çıxış</span>
+                </button>
+              </div>
+            </div>
           </div>
-          <div class="table-info">
-            <div class="table-label">Masa</div>
-            <div class="table-number">{{tableName}}</div>
+
+          <div class="admin-actions">
+            <Actions 
+              :table-id="tableId" 
+              :selected-order-id="selectedOrderId"
+              :role="role"
+              @show-confirmation="showConfirmationPopup = true"
+              @show-waitress-modal="showWaitressModal = true"
+              @show-transfer-modal="showTransferModal = true"
+              @show-close-modal="showCloseModal = true"
+              @order-confirmed="handleOrderConfirmed"
+            />
           </div>
-          <div class="table-info">
-            <div class="table-label">Ümumi məbləğ:</div>
-            <div class="table-number">₼ {{ total_price }}</div>
-          </div>
+          
         </div>
-        <div class="right-section">
-          <div class="action-buttons">
-            <button class="action-btn tables-btn" @click="goToTablesView()">
-              <font-awesome-icon icon="fa-solid fa-table" />
-              <span>Masalar</span>
-            </button>
-            <button class="action-btn logout-btn" @click="logout">
-              <font-awesome-icon icon="fa-solid fa-right-from-bracket" />
-              <span>Çıxış</span>
-            </button>
-          </div>
-        </div>
-      </div>
-      <div class="admin-actions">
-        <Actions 
-          :table-id="tableId" 
-          :selected-order-id="selectedOrderId"
-          :role="role"
-          @show-confirmation="showConfirmationPopup = true"
-          @show-waitress-modal="showWaitressModal = true"
-          @show-transfer-modal="showTransferModal = true"
-          @show-close-modal="showCloseModal = true"
-          @order-confirmed="handleOrderConfirmed"
-        />
-      </div>
+      </transition>
+      
+      <button class="toggle-header-btn" @click="isHeaderVisible = !isHeaderVisible">
+        <font-awesome-icon :icon="isHeaderVisible ? 'fa-angle-up' : 'fa-angle-down'" />
+      </button>
     </div>
+    
     
     <div class="content-container">
       <OrderItems class="order-section" :tableId="parseInt(tableId)" @table-click="handleTableClick" />
@@ -94,7 +109,8 @@ export default {
       showWaitressModal: false,
       showTransferModal: false,
       showCloseModal: false,
-      orders: []
+      orders: [],
+      isHeaderVisible: true,
     }
   },
   async mounted() {
@@ -124,13 +140,10 @@ export default {
       router.back();
     },
     async handleTableClick(table) {
-      console.log('Table clicked in MainOrderView:', table); // Debug log
       if (table.status === 'empty') {
-        console.log('Table is empty, showing popup'); // Debug log
         this.selectedTableId = table.id;
         this.showCustomerCountPopup = true;
       } else {
-        console.log('Table is not empty, updating details'); // Debug log
         this.tableId = table.id;
         try {
           const tableResponse = await backendServices.fetchTableDetails(table.id);
@@ -144,7 +157,7 @@ export default {
     },
     async handleCustomerCountConfirm(customerCount) {
       try {
-        const order = await backendServices.createOrder(this.selectedTableId, customerCount);
+        await backendServices.createOrder(this.selectedTableId, customerCount);
         this.tableId = this.selectedTableId;
         const tableResponse = await backendServices.fetchTableDetails(this.selectedTableId);
         this.waitressName = tableResponse.waitress.name;
@@ -213,15 +226,72 @@ export default {
   position: relative;
 }
 
+.header-toggle {
+  position: relative;
+}
+
+.header-toggle--collapsed {
+  padding: 13px 0;
+}
+
+.header-toggle--collapsed .toggle-header-btn{
+  border-radius: 0 0 0 50%;
+}
+
+.toggle-header-btn {
+  position: absolute;
+  bottom: -19px;
+  right: 0;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50% 0 0 50%;
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  z-index: 20;
+}
+
+.toggle-header-btn:hover {
+  background-color: linear-gradient(135deg, #2980b9, #1c6ea4);
+}
 .header-container {
-  background: linear-gradient(135deg, #ffffff, #f8f9fa);
+  background-color: linear-gradient(135deg, #ffffff, #f8f9fa);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
   border-bottom: 1px solid #e9ecef;
   padding: 20px;
   position: relative;
   z-index: 10;
+  overflow: hidden;
 }
 
+/* Header container animation */
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: all 0.4s ease;
+}
+
+.fade-slide-enter-from,
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+  max-height: 0;
+  overflow: hidden;
+}
+
+.fade-slide-enter-to,
+.fade-slide-leave-from {
+  opacity: 1;
+  transform: translateY(0);
+  max-height: 500px;
+}
+
+/* Header content */
 .header-content {
   display: flex;
   justify-content: space-between;
@@ -231,6 +301,7 @@ export default {
 
 .left-section {
   display: flex;
+  justify-content: center;
   align-items: center;
   gap: 30px;
 }
@@ -370,9 +441,9 @@ export default {
   }
 
   .left-section {
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
-    gap: 15px;
+    gap: 20px;
     width: 100%;
   }
 
@@ -417,7 +488,7 @@ export default {
 
 @media (max-width: 768px) {
   .header-container {
-    padding: 15px 10px;
+    padding: 10px;
   }
 
   .admin-actions {
@@ -438,19 +509,27 @@ export default {
 }
 
 @media (max-width: 480px) {
-  .header-container {
-    padding: 10px 8px;
+  .header-container { 
+    padding: 6px;
   }
 
-  .admin-actions {
-    gap: 6px;
+  .user-info {
+    gap: 4px;
   }
 
-  .action-btn {
-    padding: 8px 12px;
-    font-size: 0.9em;
-    min-width: 120px;
+  .table-info {
+    gap: 4px;
   }
+
+  .header-content {
+    gap: 10px;
+  }
+
+  .left-section {
+    flex-direction: row;
+    gap: 10px;
+  }
+
 
   .content-container {
     padding: 8px;
