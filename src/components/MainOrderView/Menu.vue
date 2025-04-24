@@ -40,10 +40,41 @@
             <div class="menu-item" 
                  v-for="item in filteredMenuItems" 
                  :key="item.id" 
-                 @click="addOrderItem(tableId, item.id, 1, null, item.extra_item_description='maa qelyan fetch from popup', item.extra_item_price=0.2342)"
+                 @click="handleItemClick(item)"
                  :class="{ 'disabled': loading }">
                 <div class="menu-item-name">{{ item.name }}</div>
                 <div v-if="!item.is_extra" class="menu-item-price">{{ item.price }} azn</div>
+                <div v-else class="menu-item-extra-badge">Extra</div>
+            </div>
+        </div>
+
+        <!-- Extra Item Popup -->
+        <div class="popup-overlay" v-if="showExtraPopup" @click.self="cancelExtraPopup">
+            <div class="extra-popup">
+                <h3>Extra məlumatlar</h3>
+                <div class="form-group">
+                    <label for="extraDescription">Təsvir:</label>
+                    <input 
+                        type="text" 
+                        id="extraDescription" 
+                        v-model="extraItemDescription" 
+                        placeholder="Təsvir daxil edin..."
+                    />
+                </div>
+                <div class="form-group">
+                    <label for="extraPrice">Qiymət (AZN):</label>
+                    <input 
+                        type="number" 
+                        id="extraPrice" 
+                        v-model="extraItemPrice" 
+                        step="0.01" 
+                        placeholder="0.00"
+                    />
+                </div>
+                <div class="popup-buttons">
+                    <button class="cancel-btn" @click="cancelExtraPopup">Ləğv et</button>
+                    <button class="confirm-btn" @click="confirmExtraItem">Təsdiq et</button>
+                </div>
             </div>
         </div>
     </div>
@@ -72,7 +103,12 @@ export default {
             orderCreatedAlready: false,
             searchQuery: '',
             orderId: null,
-            showAllMeals: false
+            showAllMeals: false,
+            // New properties for extra item popup
+            showExtraPopup: false,
+            extraItemDescription: '',
+            extraItemPrice: null,
+            selectedItem: null
         };
     },
     async created() {
@@ -142,11 +178,46 @@ export default {
             this.selectedCategory = null;
             this.menuItems = [];
         },
-        async addOrderItem(categoryId, mealId, quantity, orderId, extraItemDescription = null, extraItemPrice = null) {
+        // New method to handle item click
+        handleItemClick(item) {
+            if (item.is_extra) {
+                this.selectedItem = item;
+                this.showExtraPopup = true;
+                // Initialize with default values if needed
+                this.extraItemDescription = '';
+                this.extraItemPrice = null;
+            } else {
+                // For regular items, add directly
+                this.addOrderItem(this.tableId, item.id, 1, null, null, null);
+            }
+        },
+        // New method to cancel the popup
+        cancelExtraPopup() {
+            this.showExtraPopup = false;
+            this.selectedItem = null;
+            this.extraItemDescription = '';
+            this.extraItemPrice = null;
+        },
+        // New method to confirm extra item details
+        confirmExtraItem() {
+            if (this.selectedItem) {
+                this.addOrderItem(
+                    this.tableId, 
+                    this.selectedItem.id, 
+                    1, 
+                    null, 
+                    this.extraItemDescription,
+                    this.extraItemPrice
+                );
+                this.showExtraPopup = false;
+                this.selectedItem = null;
+            }
+        },
+        async addOrderItem(tableId, mealId, quantity, orderId, extraItemDescription = null, extraItemPrice = null) {
             try {
                 await this.checkOrderIfCreated();
                 this.loading = true;
-                await backendServices.addOrderItem(categoryId, mealId, quantity, this.orderId || orderId, extraItemDescription, extraItemPrice);
+                await backendServices.addOrderItem(tableId, mealId, quantity, this.orderId || orderId, extraItemDescription, extraItemPrice);
                 EventBus.emit('orderItemAdded');
             } catch (error) {
                 console.error('Sifarişi əlavə edərkən xəta baş verdi:', error);
@@ -270,6 +341,17 @@ document.addEventListener('DOMContentLoaded', function () {
     color: #2ecc71;
 }
 
+.menu-item-extra-badge {
+    font-size: 0.9em;
+    font-weight: 700;
+    color: #ffffff;
+    background-color: #f39c12;
+    padding: 3px 8px;
+    border-radius: 8px;
+    align-self: flex-start;
+    margin-top: 5px;
+}
+
 .search-input {
     width: 100%;
     padding: 12px 15px;
@@ -303,6 +385,103 @@ document.addEventListener('DOMContentLoaded', function () {
     background: linear-gradient(135deg, #e9ecef, #dee2e6);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Popup Styles */
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.extra-popup {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    animation: popup-appear 0.3s ease;
+}
+
+@keyframes popup-appear {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.extra-popup h3 {
+    text-align: center;
+    margin-bottom: 15px;
+    color: #2c3e50;
+    font-size: 1.3em;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #2c3e50;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    font-size: 1em;
+    transition: border-color 0.3s;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #2ecc71;
+    box-shadow: 0 0 0 2px rgba(46, 204, 113, 0.2);
+}
+
+.popup-buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.popup-buttons button {
+    flex: 1;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s;
+    border: none;
+}
+
+.cancel-btn {
+    background-color: #e9ecef;
+    color: #2c3e50;
+}
+
+.confirm-btn {
+    background: linear-gradient(135deg, #2ecc71, #27ae60);
+    color: white;
+}
+
+.cancel-btn:hover {
+    background-color: #dee2e6;
+}
+
+.confirm-btn:hover {
+    background: linear-gradient(135deg, #27ae60, #219653);
 }
 
 @media (max-width: 1024px) {
@@ -339,6 +518,11 @@ document.addEventListener('DOMContentLoaded', function () {
         padding: 12px;
         min-height: 90px;
     }
+    
+    .extra-popup {
+        width: 95%;
+        padding: 15px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -368,6 +552,18 @@ document.addEventListener('DOMContentLoaded', function () {
         padding: 10px;
         min-height: 80px;
         border-radius: 10px;
+    }
+    
+    .extra-popup {
+        padding: 12px;
+    }
+    
+    .form-group input {
+        padding: 10px;
+    }
+    
+    .popup-buttons button {
+        padding: 10px;
     }
 }
 

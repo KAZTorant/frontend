@@ -52,9 +52,9 @@
       <div
         class="order-item"
         v-for="item in orderItems"
-        :key="item.order_item_id == null ? item.meal.id : item.order_item_id"
+        :key="`${item.order_item_id}_${item.meal.id}`"
         @click="selectItem(item)"
-        :class="{ active: selectedItem && selectedItem.meal.id === item.meal.id }"
+        :class="{ active: selectedItem && `${selectedItem.order_item_id}_${selectedItem.meal.id}` === `${item.order_item_id}_${item.meal.id}`}"
       >
         <span class="meal-name-with-comment">
           <button
@@ -585,7 +585,7 @@ export default {
  margin: 0 auto;
 }
 
-.btn-transfer-comment{
+.meal-name-with-comment .btn-transfer-comment{
   position: absolute;
   top: -15px;
   right: -15px;
