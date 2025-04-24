@@ -541,7 +541,7 @@ export default {
 /* Add support for landscape mode */
 @media (max-width: 900px) and (orientation: landscape) {
   .content-container {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     height: calc(100vh - 200px);
   }
 

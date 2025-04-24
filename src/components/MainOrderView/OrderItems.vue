@@ -14,9 +14,6 @@
 
             Sifariş {{ mainOrder.pk }}
           </button>
-          <button class="table-button" @click="handleTableClick(mainOrder.table)">
-            <font-awesome-icon icon="fa-solid fa-table" />
-          </button>
         </div>
 
         <OrderDropdown
@@ -46,9 +43,6 @@
               </span>
 
               Sifariş {{ item.pk }}
-            </button>
-            <button class="table-button" @click="handleTableClick(item.table)">
-              <font-awesome-icon icon="fa-solid fa-table" />
             </button>
           </div>
 
@@ -302,6 +296,7 @@ export default {
   background: linear-gradient(135deg, #ffffff, #f8f9fa);
   border: 2px solid #2ecc71;
   position: relative;
+  
 }
 
 .main-order::before {
@@ -316,6 +311,7 @@ export default {
   font-size: 1em;
   font-weight: 600;
   box-shadow: 0 2px 8px rgba(46, 204, 113, 0.2);
+  z-index: 9999;
 }
 
 .button-container {
@@ -443,7 +439,7 @@ export default {
 
 @media (max-width: 768px) {
   .order-button {
-    padding: 12px 15px;
+    padding: 15px;
     font-size: 1em;
     min-height: 45px;
   }
@@ -462,8 +458,14 @@ export default {
 }
 
 @media (max-width: 480px) {
+  .order-container{
+    padding: 10px;
+  }
+  .order-item-header{
+    padding:15px 10px;
+  }
   .order-button {
-    padding: 10px 12px;
+    padding: 15px 12px;
     font-size: 0.95em;
     min-height: 40px;
   }

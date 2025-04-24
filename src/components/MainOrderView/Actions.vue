@@ -279,12 +279,12 @@
         return {
           actions: [
             { id: 1, label: 'Hesab Çeki', method: 'printOrder' },
-            { id: 2, label: 'Ofsianti dəyiş', method: 'changeWaitress' },
-            { id: 3, label: 'Masanı bağla', method: 'cancelOrder' },
-            { id: 4, label: 'Masanı köçür', method: 'openTransferModal' },
             { id: 5, label: 'Çeki ləğv et', method: 'cancelPrintOrder' },
+            { id: 7, label: 'Hazırla', method: 'confirmKitchen', isKitchenButton: true },
+            { id: 3, label: 'Ödəniş', method: 'cancelOrder' },
+            { id: 2, label: 'Ofsianti dəyiş', method: 'changeWaitress' },
+            { id: 4, label: 'Masanı köçür', method: 'openTransferModal' },
             { id: 6, label: 'Masanı birləşdir', method: 'openCombine' },
-            { id: 7, label: 'Hazırla', method: 'confirmKitchen', isKitchenButton: true }
           ],
           payment_type: 'cash',
           discount_amount: 0,

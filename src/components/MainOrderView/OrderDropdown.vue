@@ -1,24 +1,18 @@
 <template>
   <div class="order-dropdown" v-if="showDropdown">
     <div class="selected-controls" v-if="selectedItem && selectedItem.quantity > 0">
-      <div>
-        <div v-if="selectedItem.comment" class="controls-comment">
-          <font-awesome-icon icon="comment" class="comment-icon" />
-          <span class="comment-text">{{ selectedItem.comment }}</span>
-        </div>
-      </div>
       <div class="quantity-container">
         <button
           v-if="!selectedItem.confirmed"
           @click="openCustomizationModal(selectedItem)"
           class="btn-customize"
         >
-        <font-awesome-icon icon="comment" />
+        <font-awesome-icon icon="comment-medical" />
         </button>
         <!-- Transfer button for confirmed items -->
         <button
           v-if="checkViewPermissionForAdmin() && selectedItem.confirmed"
-          @click="openTransferPopup(selectedItem)"
+          @click="openTransferModal(selectedItem)"
           class="btn-transfer"
         >
           <font-awesome-icon icon="arrow-right-arrow-left" />
@@ -26,7 +20,7 @@
         <!-- Decrement button: opens return modal for confirmed, otherwise decrements directly -->
         <button
           v-if="checkViewPermissionForAdmin()"
-          @click="selectedItem.confirmed ? openReturnPopup(selectedItem) : decrementQuantity(selectedItem)"
+          @click="selectedItem.confirmed ? openReturnModal(selectedItem) : decrementQuantity(selectedItem)"
           class="btn-decrement"
         >
           <font-awesome-icon icon="minus" />
@@ -61,12 +55,18 @@
         @click="selectItem(item)"
         :class="{ active: selectedItem && selectedItem.meal.id === item.meal.id }"
       >
-        <span>
-          <div v-if="item.comment" class="item-comment">
-            <font-awesome-icon icon="comment" class="comment-icon" :title="item.comment" />
-          </div>
-          {{ item.meal.name }}
+        <span class="meal-name-with-comment">
+          <button
+            v-if="item.comment"
+            @click="openModal(item.comment)"
+            class="btn-comment"
+          >
+            <font-awesome-icon icon="comment-dots" />
+          </button>
+          <span>{{ item.meal.name }}</span>
         </span>
+
+
         <div class="quantity">{{ item.quantity }}</div>
         <span>{{ item.meal.price.toFixed(2) }} azn</span>
         <span>{{ (item.quantity * item.meal.price).toFixed(2) }} azn</span>
@@ -79,6 +79,40 @@
       </div>
     </div>
   </div>
+
+  <!-- Commit Modal -->
+  <Teleport to="body">
+  <div v-if="showModal" class="modal-container">
+    <div class="modal-overlay" @click="closeModal"></div>
+    <div class="confirmation-dialog">
+      <h2 class="modal-title">Şərh</h2>
+      <div class="modal-content-main hall">
+        <div v-if="selectedItem">
+          <div class="item-name">{{ selectedItem.meal.name }}</div>
+          <div class="quantity-selector">
+            <div class="quantity-input">{{ selectedItem.quantity }}</div>
+          </div>
+        </div>
+
+        <div class="description">
+          <label for="custom-note" class="section-title">
+            Müştərinin Əlavə İstəkləri:
+          </label>
+          <textarea
+            id="custom-note"
+            v-model="selectedComment"
+            class="message-textarea"
+            :disabled="isDisabled"
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="confirmation-buttons">
+        <button class="cancel-btn" @click="closeModal">Bağla</button>
+      </div>
+    </div>
+  </div>
+</Teleport>
 
 <!-- Customize Modal -->
 <Teleport to="body">
@@ -99,10 +133,10 @@
             Müştərinin Əlavə İstəkləri:
           </label>
             <textarea
-            v-model="customDescription"
-            class="message-textarea"
-            placeholder='Məsələn: "2 porsiya soğansız", "2 porsiya soğanlı"...'
-          ></textarea>
+              v-model="customDescription"
+              class="message-textarea"
+              placeholder='Məsələn: "2 porsiya soğansız", "2 porsiya soğanlı"...'
+            ></textarea>
           </div>
           
         </div>
@@ -258,6 +292,9 @@ export default {
       localComment: '',
       showCustomizationModal: false,
       customDescription: '',
+      showModal: false,
+      selectedComment: '',
+      isDisabled: true,
     };
   },
   created() {
@@ -279,7 +316,43 @@ export default {
     selectItem(item) {
       this.selectedItem = item;
     },
-    openTransferPopup(item) {
+    async fetchHalls() {
+      try {
+        this.halls = await backendServices.fetchRooms();
+        if (this.halls.length > 0) {
+          this.selectedHall = this.halls[0].id;
+          await this.fetchTablesForHall();
+        }
+      } catch (error) {
+        console.error('Error fetching halls:', error);
+        this.showError('Zalları yükləmək mümkün olmadı. Zəhmət olmasa sonra cəhd edin.');
+      }
+    },
+    async fetchTablesForHall() {
+      if (!this.selectedHall) return;
+      try {
+        const tables = await backendServices.fetchTablesByHallId(this.selectedHall);
+        this.tables = tables;
+        this.selectedTable = this.tables.length ? this.tables[0].id : null;
+      } catch (error) {
+        console.error('Error fetching tables:', error);
+        this.showError('Masaları yükləmək mümkün olmadı. Zəhmət olmasa sonra cəhd edin.');
+      }
+    },
+
+    // Comment Modal
+    openModal(comment, item) {
+      this.selectedComment = comment;
+      this.showModal = true;
+      this.maxQuantity = item.maxQuantity || item.quantity || 1;
+    },
+    closeModal() {
+      this.showModal = false;
+      this.selectedComment = '';
+    },
+
+    // Transfer Modal
+    openTransferModal(item) {
       this.selectedItem = item;
       this.transferQuantity = 1;
       this.maxQuantity = item.quantity;
@@ -325,32 +398,9 @@ export default {
         this.transferQuantity += 1;
       }
     },
-    async fetchHalls() {
-      try {
-        this.halls = await backendServices.fetchRooms();
-        if (this.halls.length > 0) {
-          this.selectedHall = this.halls[0].id;
-          await this.fetchTablesForHall();
-        }
-      } catch (error) {
-        console.error('Error fetching halls:', error);
-        this.showError('Zalları yükləmək mümkün olmadı. Zəhmət olmasa sonra cəhd edin.');
-      }
-    },
-    async fetchTablesForHall() {
-      if (!this.selectedHall) return;
-      try {
-        const tables = await backendServices.fetchTablesByHallId(this.selectedHall);
-        this.tables = tables;
-        this.selectedTable = this.tables.length ? this.tables[0].id : null;
-      } catch (error) {
-        console.error('Error fetching tables:', error);
-        this.showError('Masaları yükləmək mümkün olmadı. Zəhmət olmasa sonra cəhd edin.');
-      }
-    },
 
-    // New methods for return/defective flow
-    openReturnPopup(item) {
+    // Return Modal
+    openReturnModal(item) {
       this.selectedItem = item;
       this.returnQuantity = 1;
       this.maxReturnQuantity = item.quantity;
@@ -387,10 +437,10 @@ export default {
       }
     },
 
-  // Customize btn
+  // Customize Modal
     openCustomizationModal(item) {
     this.selectedItem = item;
-    this.customDescription = item.customDescription || '';
+    this.customDescription = item.comment || '';
     this.showCustomizationModal = true;
     this.customQuantity = item.quantity;
   },
@@ -500,6 +550,54 @@ export default {
   text-align: center;
   color: #222;
 }
+.meal-name-with-comment{
+  display: flex;
+  justify-content: flex-start !important;
+  position: relative;
+}
+.meal-name-with-comment .btn-comment{
+  position: absolute;
+  top: -15px;
+  right: -15px;
+  width: 30px !important;
+  background: none !important;
+  box-shadow: none;
+  color: #f8a023;
+}
+.meal-name-with-comment span{
+ margin: 0 auto;
+}
+
+.btn-comment{
+  background: #f8a023;
+  border: none;
+  cursor: pointer;
+  color: #4b5563;
+  font-size: 18px;
+  padding: 4px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.close-btn,
+.ok-btn {
+  background-color: #4f46e5;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.close-btn {
+  background-color: #ef4444;
+}
+
 
 .total-price{
   margin-top: 5px;
@@ -603,6 +701,11 @@ export default {
   font-family: inherit;
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
   transition: border-color 0.3s, box-shadow 0.3s;
+}
+.message-textarea:disabled {
+  background-color: #f0f0f0;       
+  color: #444;
+  cursor: not-allowed;
 }
 
 .message-textarea:focus {
@@ -820,7 +923,7 @@ export default {
 
 .selected-controls {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   padding: 8px 15px 15px; 
   text-align: center;
@@ -884,9 +987,13 @@ export default {
 }
 
 @media (max-width: 500px) {
+  .order-dropdown{
+    margin: 5px;
+  }
   .order-items-header,
   .order-item {
-    grid-template-columns: repeat(5, minmax(50px, 1fr));
+    padding: 0 5px;
+    grid-template-columns: 90px repeat(4, minmax(50px, 1fr));
   }
 }
 </style>
