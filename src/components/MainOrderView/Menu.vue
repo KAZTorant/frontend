@@ -40,10 +40,10 @@
             <div class="menu-item" 
                  v-for="item in filteredMenuItems" 
                  :key="item.id" 
-                 @click="addOrderItem(tableId, item.id, 1)"
+                 @click="addOrderItem(tableId, item.id, 1, null, item.extra_item_description='maa qelyan fetch from popup', item.extra_item_price=0.2342)"
                  :class="{ 'disabled': loading }">
                 <div class="menu-item-name">{{ item.name }}</div>
-                <div class="menu-item-price">{{ item.price }} azn</div>
+                <div v-if="!item.is_extra" class="menu-item-price">{{ item.price }} azn</div>
             </div>
         </div>
     </div>
@@ -142,11 +142,11 @@ export default {
             this.selectedCategory = null;
             this.menuItems = [];
         },
-        async addOrderItem(categoryId, mealId, quantity, orderId) {
+        async addOrderItem(categoryId, mealId, quantity, orderId, extraItemDescription = null, extraItemPrice = null) {
             try {
                 await this.checkOrderIfCreated();
                 this.loading = true;
-                await backendServices.addOrderItem(categoryId, mealId, quantity, this.orderId || orderId);
+                await backendServices.addOrderItem(categoryId, mealId, quantity, this.orderId || orderId, extraItemDescription, extraItemPrice);
                 EventBus.emit('orderItemAdded');
             } catch (error) {
                 console.error('Sifarişi əlavə edərkən xəta baş verdi:', error);

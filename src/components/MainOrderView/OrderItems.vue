@@ -174,6 +174,7 @@ export default {
         order_id: item.orderId,
         meal_id: item.meal.id,
         quantity: 1,
+        order_item_id: item.order_item_id,
       };
       await backendServices.deleteOrderItem(this.tableId, payload);
       item.quantity--;

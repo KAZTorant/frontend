@@ -156,12 +156,14 @@ const backendServices = {
     }
   },
 
-  async addOrderItem(tableId, mealId, quantity, orderId) {
+  async addOrderItem(tableId, mealId, quantity, orderId, extraItemDescription = null, extraItemPrice = null) {
     try {
       const response = await axiosInstance.post(`/api/orders/${tableId}/add-order-item/`, {
         meal_id: mealId,
         quantity: quantity,
-        order_id: orderId
+        order_id: orderId,
+        description: extraItemDescription,
+        price: extraItemPrice
       }, {
         headers: {
           'accept': 'application/json',
@@ -177,7 +179,7 @@ const backendServices = {
     }
   },
 
-  async deleteOrderItem(tableId, {meal_id, quantity, order_id, reason, reason_comment, confirmed}) {
+  async deleteOrderItem(tableId, {meal_id, quantity, order_id, reason, reason_comment, confirmed, order_item_id}) {
     try {
       const response = await axiosInstance.delete(`/api/orders/${tableId}/delete-order-item/`, {
         headers: {
@@ -191,7 +193,8 @@ const backendServices = {
           order_id,
           reason: reason,
           reason_comment: reason_comment,
-          confirmed
+          confirmed,
+          order_item_id
         }
       });
       return response.data;
@@ -202,9 +205,9 @@ const backendServices = {
     }
   },
 
-  async transferOrderItems({ order_id, meal_id, quantity, target_table_id },tableId) {
+  async transferOrderItems({ order_id, meal_id, quantity, target_table_id, transfer_comment, order_item_id=0 },tableId) {
     const response = await axiosInstance.post(`/api/orders/${tableId}/tranfer-order-items/`,
-    { order_id, meal_id, quantity, target_table_id },
+    { order_id, meal_id, quantity, target_table_id, transfer_comment, order_item_id },
       {
         headers: {
           accept: 'application/json',

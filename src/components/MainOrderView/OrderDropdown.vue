@@ -27,6 +27,7 @@
         </button>
         <!-- Increment button remains unchanged -->
         <button
+          v-if="selectItem.order_item_id === 0"
           @click="incrementQuantity(selectedItem)"
           class="btn-increment"
         >
@@ -51,7 +52,7 @@
       <div
         class="order-item"
         v-for="item in orderItems"
-        :key="item.meal.id"
+        :key="item.order_item_id == null ? item.meal.id : item.order_item_id"
         @click="selectItem(item)"
         :class="{ active: selectedItem && selectedItem.meal.id === item.meal.id }"
       >
@@ -60,6 +61,13 @@
             v-if="item.comment"
             @click="openModal(item.comment)"
             class="btn-comment"
+          >
+            <font-awesome-icon icon="comment-dots" />
+          </button>
+          <button
+            v-if="item.transfer_comment"
+            @click="openModal(item.transfer_comment)"
+            class="btn-transfer-comment"
           >
             <font-awesome-icon icon="comment-dots" />
           </button>
@@ -194,6 +202,11 @@
               </option>
             </select>
           </div>
+          <textarea
+              v-model="transferComment"
+              class="message-textarea"
+              placeholder='Məsələn: Transfer haqqinda comment yazin'
+            ></textarea>
         </div>
         <div class="confirmation-buttons">
           <button class="confirm-btn" @click="confirmTransfer">Təsdiqlə</button>
@@ -295,6 +308,7 @@ export default {
       showModal: false,
       selectedComment: '',
       isDisabled: true,
+      transferComment: '',
     };
   },
   created() {
@@ -378,6 +392,8 @@ export default {
           meal_id: this.selectedItem.meal.id,
           quantity: this.transferQuantity,
           target_table_id: this.selectedTable,
+          transfer_comment: this.transferComment,
+          order_item_id: this.selectedItem.order_item_id,
         };
         const result = await backendServices.transferOrderItems(payload, this.tableId);
         this.$emit('transfer-success', result);
@@ -423,6 +439,7 @@ export default {
           reason: this.selectedReturnAction,
           reason_comment: this.returnMessage,
           confirmed: true,
+          order_item_id: this.selectedItem.order_item_id,
         };
         const result = await backendServices.deleteOrderItem(this.tableId, payload);
         this.$emit('return-success', result);
@@ -568,13 +585,14 @@ export default {
  margin: 0 auto;
 }
 
-.btn-comment{
-  background: #f8a023;
-  border: none;
-  cursor: pointer;
-  color: #4b5563;
-  font-size: 18px;
-  padding: 4px;
+.btn-transfer-comment{
+  position: absolute;
+  top: -15px;
+  right: -15px;
+  width: 30px !important;
+  background: none !important;
+  box-shadow: none;
+  color: #2a97db;
 }
 
 .modal-header {
