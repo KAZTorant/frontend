@@ -27,7 +27,7 @@
         </button>
         <!-- Increment button remains unchanged -->
         <button
-          v-if="selectItem.order_item_id === 0"
+          v-if="selectedItem.order_item_id === 0"
           @click="incrementQuantity(selectedItem)"
           class="btn-increment"
         >
