@@ -243,6 +243,7 @@ export default {
 .order-items-container {
   display: flex;
   flex-direction: column;
+  height: 100%;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(245, 245, 245, 0.98));
   border-radius: 20px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
@@ -255,9 +256,10 @@ export default {
 .order-container {
   display: flex;
   flex-direction: column;
-  flex: 1;
-  min-height: 0;
+  gap: 15px;
   padding: 15px;
+  height: 100%;
+  overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: #2ecc71 #f8f9fa;
 }
@@ -283,10 +285,7 @@ export default {
   border: 1px solid #e9ecef;
   transition: all 0.3s ease;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
+  flex-shrink: 0;
 }
 
 .order-item-box:hover {

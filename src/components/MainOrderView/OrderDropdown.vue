@@ -735,11 +735,7 @@ export default {
 .order-dropdown {
   background: linear-gradient(135deg, #ffffff, #f8f9fa);
   position: relative;
-  display: flex;
-  flex-direction: column;
   overflow: hidden;
-  flex: 1;
-  min-height: 0; 
 }
 .quantity-selector{
   display: flex;
@@ -827,8 +823,7 @@ export default {
 }
 
 .order-items-list {
-  flex: 1;
-  min-height: 0;
+  max-height: 400px;
   padding: 15px 0;
   overflow-y: auto;
 }
