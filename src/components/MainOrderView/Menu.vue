@@ -298,6 +298,7 @@ document.addEventListener('DOMContentLoaded', function () {
 .menu-items-container {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    place-content: start;
     gap: 15px;
     padding: 15px;
     flex: 1;
@@ -398,7 +399,7 @@ document.addEventListener('DOMContentLoaded', function () {
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 2000;
+    z-index: 99999;
 }
 
 .extra-popup {

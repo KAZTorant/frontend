@@ -1,6 +1,6 @@
 <template>
   <div class="order-dropdown" v-if="showDropdown">
-    <div class="selected-controls" v-if="selectedItem && selectedItem.quantity > 0">
+    <div class="selected-controls sticky" v-if="selectedItem && selectedItem.quantity > 0">
       <div class="quantity-container">
         <button
           v-if="!selectedItem.confirmed"
@@ -734,14 +734,13 @@ export default {
 
 .order-dropdown {
   background: linear-gradient(135deg, #ffffff, #f8f9fa);
-  margin: 10px 15px 15px;
-  border-radius: 16px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-  border: 1px solid #2ecc71;
-  overflow: hidden;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex: 1;
+  min-height: 0; 
 }
-
 .quantity-selector{
   display: flex;
   align-items: center;
@@ -828,9 +827,10 @@ export default {
 }
 
 .order-items-list {
-  overflow-y: auto;
-  max-height: 400px;
+  flex: 1;
+  min-height: 0;
   padding: 15px 0;
+  overflow-y: auto;
 }
 
 .empty-message {
@@ -1005,9 +1005,6 @@ export default {
 }
 
 @media (max-width: 500px) {
-  .order-dropdown{
-    margin: 5px;
-  }
   .order-items-header,
   .order-item {
     padding: 0 5px;
