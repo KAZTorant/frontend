@@ -312,7 +312,8 @@
           selectedWaitress: null,
           halls: [],
           tables: [],
-          waitresses: []
+          waitresses: [],
+          orderItemAddedHandler: null,
         };
       },
       computed: {
@@ -326,24 +327,33 @@
         }
       },
       async mounted() {
-        if (this.role !== 'waitress') {
-          await this.fetchTableDetailsAndUpdateButtonColor();
-          await this.fetchHalls();
-          await this.fetchTablesForHall();
-          await this.fetchTablesForCombine();
-          await this.fetchWaitresses();
-        }
-        document.addEventListener('click', this.handleClickOutsideDiscount);
-        document.addEventListener('click', this.handleClickOutsidePaid);
-        EventBus.on('orderItemAdded', () => {
-          this.fetchTableDetailsAndUpdateButtonColor();
-        });
-      },
+  if (this.role !== 'waitress') {
+    await this.fetchTableDetailsAndUpdateButtonColor();
+    await this.fetchHalls();
+    await this.fetchTablesForHall();
+    await this.fetchTablesForCombine();
+    await this.fetchWaitresses();
+  }
+  document.addEventListener('click', this.handleClickOutsideDiscount);
+  document.addEventListener('click', this.handleClickOutsidePaid);
+  
+  // Store the handler function reference
+  this.orderItemAddedHandler = () => {
+    this.fetchTableDetailsAndUpdateButtonColor();
+  };
+  
+  // Use the stored reference
+  EventBus.on('orderItemAdded', this.orderItemAddedHandler);
+},
       
-      beforeUnmount() {
-        document.removeEventListener('click', this.handleClickOutsideDiscount);
-        document.removeEventListener('click', this.handleClickOutsidePaid);
-      },
+beforeUnmount() {
+  document.removeEventListener('click', this.handleClickOutsideDiscount);
+  document.removeEventListener('click', this.handleClickOutsidePaid);
+  
+  // Use the same reference to unsubscribe
+  EventBus.off('orderItemAdded', this.orderItemAddedHandler);
+},
+
       methods: {
         // Data fetching methods
         async fetchTableDetailsAndUpdateButtonColor() {

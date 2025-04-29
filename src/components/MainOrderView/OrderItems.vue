@@ -122,19 +122,19 @@ export default {
     };
   },
   async created() {
-    await this.fetchOrders(); 
-    await this.fetchOrderItems(); 
-    
-    if (this.mainOrder) {
-      this.showDropdown = this.mainOrder.pk; 
-    }
-    EventBus.on('orderItemAdded', this.handleOrderItemAdded); 
-    EventBus.on('order-confirmed', this.handleOrderItemAdded);
-  },
-  beforeUnmount() {
-    EventBus.off('orderItemAdded', this.handleOrderItemAdded);
-    EventBus.off('order-confirmed', this.handleOrderItemAdded);
-  },
+  await this.fetchOrders(); 
+  await this.fetchOrderItems(); 
+  
+  if (this.mainOrder) {
+    this.showDropdown = this.mainOrder.pk; 
+  }
+  EventBus.on('orderItemAdded', this.handleOrderItemAdded); 
+  EventBus.on('order-confirmed', this.handleOrderItemAdded);
+},
+beforeUnmount() {
+  EventBus.off('orderItemAdded', this.handleOrderItemAdded);
+  EventBus.off('order-confirmed', this.handleOrderItemAdded);
+},
   methods: {
     checkViewPermissionForAdmin() {
       const role = store.getters['auth/GET_ROLE'];

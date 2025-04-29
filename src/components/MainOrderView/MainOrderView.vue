@@ -111,15 +111,27 @@ export default {
       showCloseModal: false,
       orders: [],
       isHeaderVisible: true,
+      orderItemAddedHandler: null,
     }
   },
   async mounted() {
-    await this.fetchTableDetailsAndUpdateButtonColor();
+  await this.fetchTableDetailsAndUpdateButtonColor();
 
-    EventBus.on('orderItemAdded', () => {
+  // Store the handler function reference
+  this.orderItemAddedHandler = () => {
     this.fetchTableDetailsAndUpdateButtonColor();
-  });
-  },
+  };
+  
+  // Use the stored reference
+  EventBus.on('orderItemAdded', this.orderItemAddedHandler);
+},
+beforeUnmount() {
+  // Add cleanup to prevent memory leaks and duplicate handlers
+  if (this.orderItemAddedHandler) {
+    EventBus.off('orderItemAdded', this.orderItemAddedHandler);
+  }
+},
+
   methods: {
     async fetchTableDetailsAndUpdateButtonColor() {
     try {
