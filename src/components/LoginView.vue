@@ -44,6 +44,14 @@ export default {
       isDesktop: window.innerWidth >= 1024 // initial value
     }
   },
+  watch: {
+    // Add a watcher for the username to automatically login when length is 4
+    'input.username': function(newVal) {
+      if (newVal.length === 4) {
+        this.login();
+      }
+    }
+  },
   methods: {
     async getNetworkAddress() {
       const privateIpAddress = await this.getLocalIP();
@@ -55,10 +63,14 @@ export default {
       return result.network_ip;
     },
     pressKey(n) {
-      this.input.username += n.toString();
+      // Only add digit if less than 4 characters
+      if (this.input.username.length < 4) {
+        this.input.username += n.toString();
+      }
     },
     clearusername() {
       this.input.username = "";
+      this.output = ""; // Also clear any error messages
     },
     async login() {
       if (this.input.username != "") {
