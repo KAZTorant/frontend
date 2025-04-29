@@ -168,6 +168,7 @@ beforeUnmount() {
     },
     
     async decrementQuantity(item) {
+   
   if (item.quantity > 0) {
     try {
       const payload = {
@@ -184,6 +185,11 @@ beforeUnmount() {
       console.error('Error deleting order item:', error);
     }
   }
+
+  if(item.quantity === 0){
+        window.location.reload();
+        return;
+      }
 },
 
     async fetchOrders() {
