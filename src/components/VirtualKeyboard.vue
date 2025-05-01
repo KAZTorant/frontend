@@ -3,6 +3,7 @@
       <div class="keyboard-container">
         <div class="keyboard-row">
           <button v-for="key in row1" :key="key" @click="addChar(key)" class="keyboard-key">{{ key }}</button>
+          <button @click="addChar('.')" class="keyboard-key" v-if="isNumberInput">.</button>
         </div>
         <div class="keyboard-row">
           <button v-for="key in row2" :key="key" @click="addChar(key)" class="keyboard-key">{{ key }}</button>
@@ -80,6 +81,9 @@
       },
       themeClass() {
         return `theme-${this.theme}`;
+      },
+      isNumberInput() {
+        return this.targetElement && this.targetElement.type === 'number';
       }
     },
     mounted() {
@@ -114,19 +118,22 @@
       addChar(char) {
         if (!this.targetElement) return;
         
-        const start = this.targetElement.selectionStart;
-        const end = this.targetElement.selectionEnd;
-        const text = this.targetElement.value;
-        
-        // Check if the input is a number type
-        if (this.targetElement.type === 'number') {
-          // For number inputs, always append to the end
-          this.targetElement.value = text + char;
+        if (this.isNumberInput) {
+          const currentValue = this.targetElement.value;
+          
+          // Handle decimal point
+          if (char === '.' && currentValue.includes('.')) {
+            return; // Prevent multiple decimal points
+          }
+          
+          this.targetElement.value = currentValue + char;
         } else {
-          // For text inputs, use the existing insertion logic
+          const start = this.targetElement.selectionStart;
+          const end = this.targetElement.selectionEnd;
+          const text = this.targetElement.value;
+          
           this.targetElement.value = text.substring(0, start) + char + text.substring(end);
           
-          // Set cursor position after inserted character
           this.$nextTick(() => {
             this.targetElement.selectionStart = start + char.length;
             this.targetElement.selectionEnd = start + char.length;
@@ -134,10 +141,8 @@
           });
         }
         
-        // Emit input event to trigger v-model updates
         this.targetElement.dispatchEvent(new Event('input'));
         
-        // Add haptic feedback if available
         if (navigator.vibrate) {
           navigator.vibrate(15);
         }
@@ -145,34 +150,35 @@
       backspace() {
         if (!this.targetElement) return;
         
-        const start = this.targetElement.selectionStart;
-        const end = this.targetElement.selectionEnd;
-        const text = this.targetElement.value;
-        
-        if (start === end && start > 0) {
-          // If no selection, delete character before cursor
-          this.targetElement.value = text.substring(0, start - 1) + text.substring(end);
+        if (this.isNumberInput) {
+          const currentValue = this.targetElement.value;
+          this.targetElement.value = currentValue.slice(0, -1);
+        } else {
+          const start = this.targetElement.selectionStart;
+          const end = this.targetElement.selectionEnd;
+          const text = this.targetElement.value;
           
-          this.$nextTick(() => {
-            this.targetElement.selectionStart = start - 1;
-            this.targetElement.selectionEnd = start - 1;
-            this.targetElement.focus();
-          });
-        } else if (start !== end) {
-          // If text is selected, delete selection
-          this.targetElement.value = text.substring(0, start) + text.substring(end);
-          
-          this.$nextTick(() => {
-            this.targetElement.selectionStart = start;
-            this.targetElement.selectionEnd = start;
-            this.targetElement.focus();
-          });
+          if (start === end && start > 0) {
+            this.targetElement.value = text.substring(0, start - 1) + text.substring(end);
+            
+            this.$nextTick(() => {
+              this.targetElement.selectionStart = start - 1;
+              this.targetElement.selectionEnd = start - 1;
+              this.targetElement.focus();
+            });
+          } else if (start !== end) {
+            this.targetElement.value = text.substring(0, start) + text.substring(end);
+            
+            this.$nextTick(() => {
+              this.targetElement.selectionStart = start;
+              this.targetElement.selectionEnd = start;
+              this.targetElement.focus();
+            });
+          }
         }
         
-        // Emit input event to trigger v-model updates
         this.targetElement.dispatchEvent(new Event('input'));
         
-        // Add haptic feedback if available
         if (navigator.vibrate) {
           navigator.vibrate(20);
         }

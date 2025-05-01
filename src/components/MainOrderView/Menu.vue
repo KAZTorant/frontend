@@ -34,6 +34,7 @@
                 v-model="searchQuery" 
                 placeholder="Axtarış..." 
                 class="search-input"
+                @click="showVirtualKeyboard($event)"
             />
         </div>
         <div class="menu-items-container">
@@ -68,7 +69,7 @@
                         type="number" 
                         id="extraPrice"
                         v-model="extraItemPrice" 
-                        step="0.01" 
+                        step="0.1"
                         placeholder="0.00"
                         @click="showVirtualKeyboard($event)"
                     />
