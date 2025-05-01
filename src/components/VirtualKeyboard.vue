@@ -118,14 +118,21 @@
         const end = this.targetElement.selectionEnd;
         const text = this.targetElement.value;
         
-        this.targetElement.value = text.substring(0, start) + char + text.substring(end);
-        
-        // Set cursor position after inserted character
-        this.$nextTick(() => {
-          this.targetElement.selectionStart = start + char.length;
-          this.targetElement.selectionEnd = start + char.length;
-          this.targetElement.focus();
-        });
+        // Check if the input is a number type
+        if (this.targetElement.type === 'number') {
+          // For number inputs, always append to the end
+          this.targetElement.value = text + char;
+        } else {
+          // For text inputs, use the existing insertion logic
+          this.targetElement.value = text.substring(0, start) + char + text.substring(end);
+          
+          // Set cursor position after inserted character
+          this.$nextTick(() => {
+            this.targetElement.selectionStart = start + char.length;
+            this.targetElement.selectionEnd = start + char.length;
+            this.targetElement.focus();
+          });
+        }
         
         // Emit input event to trigger v-model updates
         this.targetElement.dispatchEvent(new Event('input'));
@@ -247,7 +254,6 @@
   background: #3a3a40;
   color: #ffffff;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.2);
-  border: 1px solid #4c4c52;
 }
 
 .theme-blue .keyboard-key {
