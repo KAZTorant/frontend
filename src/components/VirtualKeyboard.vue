@@ -118,29 +118,30 @@
       addChar(char) {
         if (!this.targetElement) return;
         
-        if (this.isNumberInput) {
-          const currentValue = this.targetElement.value;
-          
-          // Handle decimal point
-          if (char === '.' && currentValue.includes('.')) {
-            return; // Prevent multiple decimal points
+        const currentValue = this.targetElement.value;
+        
+        // Handle number input fields
+        if (this.targetElement.type === 'number' || this.targetElement.inputMode === 'decimal') {
+          // Handle decimal input
+          if (char === '.') {
+            if (currentValue.includes('.')) return;
+            if (currentValue === '') {
+              this.targetElement.value = '0.';
+              this.targetElement.dispatchEvent(new Event('input'));
+              return;
+            }
           }
           
-          this.targetElement.value = currentValue + char;
+          // Only allow numbers and decimal point for number fields
+          if (!/^[0-9.]+$/.test(char)) return;
+          
         } else {
-          const start = this.targetElement.selectionStart;
-          const end = this.targetElement.selectionEnd;
-          const text = this.targetElement.value;
-          
-          this.targetElement.value = text.substring(0, start) + char + text.substring(end);
-          
-          this.$nextTick(() => {
-            this.targetElement.selectionStart = start + char.length;
-            this.targetElement.selectionEnd = start + char.length;
-            this.targetElement.focus();
-          });
+          // For text inputs, allow all characters
+          if (char === '\n') return; // Prevent newlines in text inputs
         }
         
+        // Add the character
+        this.targetElement.value = currentValue + char;
         this.targetElement.dispatchEvent(new Event('input'));
         
         if (navigator.vibrate) {

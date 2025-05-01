@@ -66,10 +66,11 @@
                 <div class="form-group">
                     <label for="extraPrice">Qiymət (AZN):</label>
                     <input 
-                        type="number" 
+                        type="text"
+                        inputmode="decimal"
+                        pattern="[0-9]*[.,]?[0-9]*"
                         id="extraPrice"
                         v-model="extraItemPrice" 
-                        step="0.1"
                         placeholder="0.00"
                         @click="showVirtualKeyboard($event)"
                     />
