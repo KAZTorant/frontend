@@ -433,6 +433,10 @@ export default {
         this.$emit('transfer-success', result);
         await this.fetchOrderItems();
         this.cancelTransfer();
+        console.log(this.localOrderItems)
+        if(this.localOrderItems === undefined || this.localOrderItems.length === 0){
+          window.location.reload();
+        }
       } catch (error) {
         console.error('Transfer failed:', error);
         this.showError('Köçürmə uğursuz oldu. Yenidən cəhd edin.');
