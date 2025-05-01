@@ -486,6 +486,9 @@ export default {
           this.fetchOrderItems;
         });
         this.cancelReturn();
+        if(this.localOrderItems === undefined || this.localOrderItems.length === 0){
+          window.location.reload();
+        }
       } catch (error) {
         console.error('Return failed:', error);
         this.showError('Əməliyyat uğursuz oldu. Yenidən cəhd edin.');
