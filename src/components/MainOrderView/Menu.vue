@@ -34,6 +34,7 @@
                 v-model="searchQuery" 
                 placeholder="Axtarış..." 
                 class="search-input"
+                @click="showVirtualKeyboard($event)"
             />
         </div>
         <div class="menu-items-container">
@@ -59,16 +60,19 @@
                         id="extraDescription" 
                         v-model="extraItemDescription" 
                         placeholder="Təsvir daxil edin..."
+                        @click="showVirtualKeyboard($event)"
                     />
                 </div>
                 <div class="form-group">
                     <label for="extraPrice">Qiymət (AZN):</label>
                     <input 
-                        type="number" 
-                        id="extraPrice" 
+                        type="text"
+                        inputmode="decimal"
+                        pattern="[0-9]*[.,]?[0-9]*"
+                        id="extraPrice"
                         v-model="extraItemPrice" 
-                        step="0.01" 
                         placeholder="0.00"
+                        @click="showVirtualKeyboard($event)"
                     />
                 </div>
                 <div class="popup-buttons">
@@ -78,15 +82,31 @@
             </div>
         </div>
     </div>
+
+    <!-- Virtual Keyboard Component -->
+    <Teleport to="body">
+        <div class="keyboard-container">
+            <VirtualKeyboard 
+            :isVisible="showKeyboard" 
+            :targetElement="activeTextarea"
+            @hide-keyboard="hideVirtualKeyboard"
+        />
+        </div>
+    </Teleport>
+
 </template>
 
 
 <script>
 import backendServices from '../../backend-services/backend-services';
 import { EventBus } from '../../EventBus';
+import VirtualKeyboard from '@/components/VirtualKeyboard.vue';
 
 export default {
     name: 'Menu',
+    components: {
+      VirtualKeyboard
+    },
     props: {
         tableId: {
             type: Number,
@@ -108,7 +128,10 @@ export default {
             showExtraPopup: false,
             extraItemDescription: '',
             extraItemPrice: null,
-            selectedItem: null
+            selectedItem: null,
+            // Virtual keyboard related data
+            showKeyboard: false,
+            activeTextarea: null
         };
     },
     async created() {
@@ -130,6 +153,17 @@ export default {
         }
     },
     methods: {
+    // Virtual keyboard methods
+    showVirtualKeyboard(event) {
+    // Set the active textarea to the one that was clicked
+      this.activeTextarea = event.target;
+      this.showKeyboard = true;
+    },
+    
+    hideVirtualKeyboard() {
+      this.showKeyboard = false;
+      this.activeTextarea = null;
+    },
         async checkOrderIfCreated() {
             if (!this.orderCreatedAlready) {
                 await this.createOrder();
@@ -244,6 +278,12 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 
 <style scoped>
+.keyboard-container {
+  position: fixed;
+  background-color: #fff;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 9999999;
+}
 .menu {
     display: flex;
     flex-direction: column;
@@ -298,6 +338,7 @@ document.addEventListener('DOMContentLoaded', function () {
 .menu-items-container {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    place-content: start;
     gap: 15px;
     padding: 15px;
     flex: 1;
@@ -398,10 +439,12 @@ document.addEventListener('DOMContentLoaded', function () {
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 2000;
+    z-index: 9999999;
 }
 
 .extra-popup {
+    position: relative;
+    transform: translateY(-15%);
     background: white;
     border-radius: 12px;
     padding: 20px;

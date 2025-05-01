@@ -262,8 +262,8 @@ beforeUnmount() {
 .order-container {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  padding: 20px;
+  gap: 15px;
+  padding: 15px;
   height: 100%;
   overflow-y: auto;
   scrollbar-width: thin;
@@ -421,10 +421,6 @@ beforeUnmount() {
     border-radius: 15px;
   }
 
-  .order-container {
-    padding: 15px;
-    gap: 15px;
-  }
 
   .order-button {
     padding: 15px 20px;

@@ -122,7 +122,7 @@
 
                 <label>
                   Endirim səbəbi və ya qeydi
-                  <input type="text" v-model="discount_comment" placeholder="Səbəb yazın..." />
+                  <input type="text" v-model="discount_comment" placeholder="Səbəb yazın..." @click="showVirtualKeyboard($event)" />
                 </label>
                 <div ref="paidNumpadContainer" class="paid-container">
                   <label>
@@ -237,6 +237,18 @@
           </div>
         </Teleport>
       </div>
+
+       <!-- Virtual Keyboard Component -->
+    <Teleport to="body">
+        <div class="keyboard-container">
+            <VirtualKeyboard 
+            :isVisible="showKeyboard" 
+            :targetElement="activeTextarea"
+            @hide-keyboard="hideVirtualKeyboard"
+        />
+        </div>
+    </Teleport>
+
     </template>
 
     <script>
@@ -248,14 +260,15 @@
     import { faPrint, faUser, faExchangeAlt, faTimes, faUtensils } from '@fortawesome/free-solid-svg-icons';
     import { EventBus } from '@/EventBus';
     import PrinterLoading from '@/components/PrinterLoading.vue';
-
+    import VirtualKeyboard from '@/components/VirtualKeyboard.vue';
     library.add(faPrint, faUser, faExchangeAlt, faTimes, faUtensils);
 
     export default {
       components: {
         ErrorPopup,
         SuccessPopup,
-        PrinterLoading
+        PrinterLoading,
+        VirtualKeyboard
       },
       name: 'Actions',
       props: {
@@ -314,6 +327,9 @@
           tables: [],
           waitresses: [],
           orderItemAddedHandler: null,
+          // Virtual keyboard related data
+          showKeyboard: false,
+          activeTextarea: null
         };
       },
       computed: {
@@ -355,6 +371,17 @@ beforeUnmount() {
 },
 
       methods: {
+        // Virtual keyboard methods
+        showVirtualKeyboard(event) {
+        // Set the active textarea to the one that was clicked
+          this.activeTextarea = event.target;
+          this.showKeyboard = true;
+        },
+        
+        hideVirtualKeyboard() {
+          this.showKeyboard = false;
+          this.activeTextarea = null;
+        },
         // Data fetching methods
         async fetchTableDetailsAndUpdateButtonColor() {
           try {
@@ -776,6 +803,12 @@ beforeUnmount() {
     </script>
 
 <style scoped>
+.keyboard-container {
+  position: fixed;
+  background-color: #fff;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 9999999;
+}
 .loading-overlay {
   position: fixed;
   top: 0;
