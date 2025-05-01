@@ -144,6 +144,7 @@
               v-model="customDescription"
               class="message-textarea"
               placeholder='Məsələn: "2 porsiya soğansız", "2 porsiya soğanlı"...'
+              @click="showVirtualKeyboard($event)"
             ></textarea>
           </div>
           
@@ -206,6 +207,7 @@
               v-model="transferComment"
               class="message-textarea"
               placeholder='Məsələn: Transfer haqqinda comment yazin'
+              @click="showVirtualKeyboard($event)"
             ></textarea>
         </div>
         <div class="confirmation-buttons">
@@ -254,6 +256,7 @@
             v-model="returnMessage"
             class="message-textarea"
             placeholder="Mesajınızı daxil edin..."
+            @click="showVirtualKeyboard($event)"
           ></textarea>
         </div>
       </div>
@@ -266,14 +269,29 @@
   </div>
 </Teleport>
 
+<!-- Virtual Keyboard Component -->
+ <Teleport to="body">
+  <div class="keyboard-container">
+    <VirtualKeyboard 
+    :isVisible="showKeyboard" 
+    :targetElement="activeTextarea"
+    @hide-keyboard="hideVirtualKeyboard"
+  />
+  </div>
+ </Teleport>
+
 
 </template>
 
 <script>
 import backendServices from '@/backend-services/backend-services';
 import { EventBus } from '@/EventBus';
+import VirtualKeyboard from '@/components/VirtualKeyboard.vue';
 
 export default {
+  components: {
+    VirtualKeyboard
+  },
   props: {
     showDropdown: { type: Boolean, required: true },
     orderItems: { type: Array, required: true },
@@ -309,6 +327,10 @@ export default {
       selectedComment: '',
       isDisabled: true,
       transferComment: '',
+      
+      // Virtual keyboard related data
+      showKeyboard: false,
+      activeTextarea: null
     };
   },
   created() {
@@ -317,6 +339,18 @@ export default {
     this.localComment = this.comment;
   },
   methods: {
+    // Virtual keyboard methods
+    showVirtualKeyboard(event) {
+      // Set the active textarea to the one that was clicked
+      this.activeTextarea = event.target;
+      this.showKeyboard = true;
+    },
+    
+    hideVirtualKeyboard() {
+      this.showKeyboard = false;
+      this.activeTextarea = null;
+    },
+    
     async fetchOrderItems() {
       try {
         const response = await backendServices.listOrderItems(this.tableId);
@@ -470,7 +504,7 @@ export default {
         this.tableId,
         this.selectedItem.meal.id,
         this.customDescription,
-        this.selectedItem.orderId
+        this.orderId
       );
 
       this.selectedItem.customDescription = this.customDescription;
@@ -500,6 +534,12 @@ export default {
 
 
 <style scoped>
+.keyboard-container {
+  position: fixed;
+  background-color: #fff;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 9999999;
+}
 .modal-container {
   position: fixed;
   top: 0;
@@ -524,6 +564,8 @@ export default {
 
 .confirmation-dialog {
   position: relative;
+  top:0;
+  transform: translateY(-15%);
   background: #ffffff;
   padding: 30px;
   border-radius: 15px;
@@ -734,10 +776,6 @@ export default {
 
 .order-dropdown {
   background: linear-gradient(135deg, #ffffff, #f8f9fa);
-  margin: 10px 15px 15px;
-  border-radius: 16px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-  border: 1px solid #2ecc71;
   overflow: hidden;
   position: relative;
 }
@@ -1005,9 +1043,6 @@ export default {
 }
 
 @media (max-width: 500px) {
-  .order-dropdown{
-    margin: 5px;
-  }
   .order-items-header,
   .order-item {
     padding: 0 5px;
