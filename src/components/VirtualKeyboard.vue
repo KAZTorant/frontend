@@ -346,9 +346,18 @@
   font-size: 0.95em;
 }
 
-@media (max-width: 1500px) {
-  .virtual-keyboard{
-    display: none;
+/* Remove all previous media queries related to hiding the keyboard */
+
+@media (max-width: 430px) {
+  .virtual-keyboard {
+    display: none !important; /* Force hide on mobile devices */
+  }
+}
+
+/* You can also add a check for mobile/tablet devices */
+@media (hover: none) and (pointer: coarse) {
+  .virtual-keyboard {
+    display: none !important; /* Hide on touch devices */
   }
 }
 
@@ -371,6 +380,23 @@
 
   .keyboard-row {
     margin-bottom: 3px;
+  }
+}
+
+@media (max-width: 768px) {
+  .virtual-keyboard {
+    display: none;
+  }
+}
+
+@media (max-width: 1500px) {
+  .virtual-keyboard {
+    width: 90%; /* Make it wider on smaller screens */
+  }
+  
+  .keyboard-key {
+    min-width: 45px; /* Smaller keys */
+    font-size: 1.2em;
   }
 }
 
