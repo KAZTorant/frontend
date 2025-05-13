@@ -490,6 +490,7 @@ beforeUnmount() {
 
   .order-section, .menu-section {
     min-height: 300px;
+    max-height: 400px;
     height: auto;
   }
 
