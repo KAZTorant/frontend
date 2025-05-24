@@ -1,4 +1,3 @@
-<!-- App.vue -->
 <template>
   <div class="main-container">
     <div :class="['header-toggle', { 
@@ -58,10 +57,36 @@
       </button>
     </div>
     
+    <div class="mobile-tabs" v-if="isMobileView">
+      <button 
+        :class="['tab-button', { active: activeTab === 'orders' }]" 
+        @click="activeTab = 'orders'"
+      >
+        <font-awesome-icon icon="fa-solid fa-list-check" />
+        <span>Sifarişlər</span>
+      </button>
+      <button 
+        :class="['tab-button', { active: activeTab === 'menu' }]" 
+        @click="activeTab = 'menu'"
+      >
+        <font-awesome-icon icon="fa-solid fa-utensils" />
+        <span>Menyu</span>
+      </button>
+    </div>
     
-    <div class="content-container">
-      <OrderItems class="order-section" :tableId="parseInt(tableId)" @table-click="handleTableClick" />
-      <Menu class="menu-section" :tableId="parseInt(tableId)" />
+    <div class="content-container" :class="{ 'mobile-view': isMobileView }">
+      <OrderItems 
+        class="order-section" 
+        :tableId="parseInt(tableId)" 
+        @table-click="handleTableClick"
+        ref="orderSection"
+        v-show="!isMobileView || activeTab === 'orders'"
+      />
+      <Menu 
+        class="menu-section" 
+        :tableId="parseInt(tableId)"
+        v-show="!isMobileView || activeTab === 'menu'"
+      />
     </div>
     <CustomerCountPopup 
       :show="showCustomerCountPopup"
@@ -80,10 +105,10 @@ import store from '../../store';
 import router  from '../../router';
 import CustomerCountPopup from './CustomerCountPopup.vue';
 import { library } from '@fortawesome/fontawesome-svg-core';
-import { faTable, faRightFromBracket } from '@fortawesome/free-solid-svg-icons';
+import { faTable, faRightFromBracket, faListCheck, faUtensils } from '@fortawesome/free-solid-svg-icons';
 import { EventBus } from '../../EventBus';
 
-library.add(faTable, faRightFromBracket);
+library.add(faTable, faRightFromBracket, faListCheck, faUtensils);
 
 export default {
   name: 'MainOrderView',
@@ -112,36 +137,82 @@ export default {
       orders: [],
       isHeaderVisible: true,
       orderItemAddedHandler: null,
+      activeTab: 'orders', // Default active tab
+      isMobileView: false, // Tracks if we're in mobile view
+      windowWidth: window.innerWidth, // Current window width
+      lastScrollTop: 0, // To track scroll direction
+      scrollThreshold: 100, // Threshold to change tabs
     }
   },
   async mounted() {
-  await this.fetchTableDetailsAndUpdateButtonColor();
+    await this.fetchTableDetailsAndUpdateButtonColor();
 
-  // Store the handler function reference
-  this.orderItemAddedHandler = () => {
-    this.fetchTableDetailsAndUpdateButtonColor();
-  };
-  
-  // Use the stored reference
-  EventBus.on('orderItemAdded', this.orderItemAddedHandler);
-},
-beforeUnmount() {
-  // Add cleanup to prevent memory leaks and duplicate handlers
-  if (this.orderItemAddedHandler) {
-    EventBus.off('orderItemAdded', this.orderItemAddedHandler);
-  }
-},
-
-  methods: {
-    async fetchTableDetailsAndUpdateButtonColor() {
-    try {
-      const tableResponse = await backendServices.fetchTableDetails(this.tableId);
-      this.total_price = tableResponse.total_price.toFixed(2); 
-    } catch (error) {
-      console.error('Error fetching table details:', error);
-      this.showError('Error fetching table details. Please try again later.');
+    // Store the handler function reference
+    this.orderItemAddedHandler = () => {
+      this.fetchTableDetailsAndUpdateButtonColor();
+    };
+    
+    // Use the stored reference
+    EventBus.on('orderItemAdded', this.orderItemAddedHandler);
+    
+    // Add resize event listener
+    window.addEventListener('resize', this.handleResize);
+    // Initial check
+    this.handleResize();
+    
+    // Add scroll event listener to order section
+    this.$nextTick(() => {
+      if (this.$refs.orderSection && this.$refs.orderSection.$el) {
+        this.$refs.orderSection.$el.addEventListener('scroll', this.handleOrderSectionScroll);
+      }
+    });
+  },
+  beforeUnmount() {
+    // Add cleanup to prevent memory leaks and duplicate handlers
+    if (this.orderItemAddedHandler) {
+      EventBus.off('orderItemAdded', this.orderItemAddedHandler);
+    }
+    
+    // Remove resize event listener
+    window.removeEventListener('resize', this.handleResize);
+    
+    // Remove scroll event listener
+    if (this.$refs.orderSection && this.$refs.orderSection.$el) {
+      this.$refs.orderSection.$el.removeEventListener('scroll', this.handleOrderSectionScroll);
     }
   },
+
+  methods: {
+    handleResize() {
+      this.windowWidth = window.innerWidth;
+      this.isMobileView = this.windowWidth <= 1024; // Set breakpoint for mobile view
+    },
+    
+    handleOrderSectionScroll(event) {
+      if (!this.isMobileView) return; // Only apply in mobile view
+      
+      const el = event.target;
+      const scrollTop = el.scrollTop;
+      const scrollHeight = el.scrollHeight;
+      const clientHeight = el.clientHeight;
+      const scrollPosition = scrollTop + clientHeight;
+      
+      // If we've scrolled near the bottom of the orders section
+      if (scrollPosition >= scrollHeight - this.scrollThreshold) {
+        // Switch to the menu tab
+        this.activeTab = 'menu';
+      }
+    },
+    
+    async fetchTableDetailsAndUpdateButtonColor() {
+      try {
+        const tableResponse = await backendServices.fetchTableDetails(this.tableId);
+        this.total_price = tableResponse.total_price.toFixed(2); 
+      } catch (error) {
+        console.error('Error fetching table details:', error);
+        this.showError('Error fetching table details. Please try again later.');
+      }
+    },
     logout() {
       this.$store.commit(`auth/SET_AUTHENTICATION`, null);
       this.$store.commit(`auth/SET_ROLE`, null);
@@ -220,6 +291,21 @@ beforeUnmount() {
       this.print_check = tableResponse.print_check;
     } catch (error) {
       console.error('Error fetching waitress details:', error);
+    }
+  },
+  
+  watch: {
+    // Re-attach scroll listener when active tab changes to orders
+    activeTab(newTab) {
+      if (newTab === 'orders') {
+        this.$nextTick(() => {
+          if (this.$refs.orderSection && this.$refs.orderSection.$el) {
+            // Make sure we're listening for scroll events
+            this.$refs.orderSection.$el.removeEventListener('scroll', this.handleOrderSectionScroll);
+            this.$refs.orderSection.$el.addEventListener('scroll', this.handleOrderSectionScroll);
+          }
+        });
+      }
     }
   }
 }
@@ -434,6 +520,37 @@ beforeUnmount() {
   overflow: hidden;
 }
 
+/* Mobile Tabs */
+.mobile-tabs {
+  display: none;
+  background: #fff;
+  padding: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+.tab-button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #f8f9fa;
+  border: none;
+  border-radius: 12px;
+  color: #6c757d;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.tab-button.active {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white;
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.25);
+}
+
 .order-section, .menu-section {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(245, 245, 245, 0.98));
   border-radius: 20px;
@@ -445,6 +562,7 @@ beforeUnmount() {
   overflow: hidden;
 }
 
+/* Responsive Styles */
 @media (max-width: 1024px) {
   .header-content {
     flex-direction: column;
@@ -490,6 +608,7 @@ beforeUnmount() {
 
   .order-section, .menu-section {
     min-height: 300px;
+    max-height: 400px;
     height: auto;
   }
 
@@ -514,6 +633,7 @@ beforeUnmount() {
   }
 
   .content-container {
+    grid-template-columns: 1fr;
     padding: 10px;
     gap: 10px;
     height: calc(100vh - 260px);
@@ -521,40 +641,44 @@ beforeUnmount() {
 }
 
 @media (max-width: 480px) {
-  .header-container { 
-    padding: 6px;
-  }
-
-  .user-info {
-    gap: 4px;
-  }
-
-  .table-info {
-    gap: 4px;
-  }
-
-  .header-content {
-    gap: 10px;
-  }
-
-  .left-section {
-    flex-direction: row;
-    gap: 10px;
-  }
-
-
   .content-container {
-    padding: 8px;
-    gap: 8px;
-    height: calc(100vh - 240px);
+    display: block;
+    height: auto;
+  }
+
+  .order-section,
+  .menu-section {
+    width: 100%;
+  }
+
+  .mobile-tabs {
+    display: flex;
+    justify-content: space-around;
+    padding: 6px 8px;
+  }
+
+  .tab-button {
+    padding: 8px 10px;
+    font-size: 0.85em;
+    background-color: #eee;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    &.active {
+      background-color: #007bff;
+      color: white;
+    }
   }
 }
 
 /* Add support for landscape mode */
 @media (max-width: 900px) and (orientation: landscape) {
-  .content-container {
-    grid-template-columns: 1fr;
-    height: calc(100vh - 200px);
+  .mobile-tabs {
+    display: flex;
   }
 
   .header-content {

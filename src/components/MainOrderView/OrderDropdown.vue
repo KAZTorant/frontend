@@ -46,12 +46,12 @@
     </div>
 
     <div class="order-items-list">
-      <div v-if="orderItems.length === 0" class="empty-message">
+      <div v-if="sortedOrderItems.length === 0" class="empty-message">
         <p>Yemək əlavə etməmisiniz.</p>
       </div>
       <div
         class="order-item"
-        v-for="item in orderItems"
+        v-for="item in sortedOrderItems"
         :key="`${item.order_item_id}_${item.meal.id}`"
         @click="selectItem(item)"
         :class="{ active: selectedItem && `${selectedItem.order_item_id}_${selectedItem.meal.id}` === `${item.order_item_id}_${item.meal.id}`}"
@@ -333,6 +333,20 @@ export default {
       activeTextarea: null
     };
   },
+  computed: {
+    // Sort order items to show unconfirmed items first, then confirmed items
+    sortedOrderItems() {
+      // Make a copy of orderItems to avoid modifying the original array
+      return [...this.orderItems].sort((a, b) => {
+        // Sort by confirmed status (unconfirmed first)
+        if (a.confirmed !== b.confirmed) {
+          return a.confirmed ? 1 : -1;
+        }
+        // If both have the same confirmed status, maintain original order
+        return 0;
+      });
+    }
+  },
   created() {
     this.localOrderItems = this.orderItems;
     this.localTotalPrice = this.totalPrice;
@@ -392,7 +406,7 @@ export default {
     openModal(comment, item) {
       this.selectedComment = comment;
       this.showModal = true;
-      this.maxQuantity = item.maxQuantity || item.quantity || 1;
+      this.maxQuantity = item?.maxQuantity || item?.quantity || 1;
     },
     closeModal() {
       this.showModal = false;

@@ -79,28 +79,26 @@
                     
                     <div>
                       <label class="label">Endirim Faizi %</label>
-                    <input
-                      type="text"
-                      v-model="discountPercentInput"
-                      readonly
-                      placeholder="0 %"
-                      @click="activateDiscountInput('percent')"
-                      :class="{ active: activeDiscountInput === 'percent' }"
-                      class="input"
-                    />
+                      <input
+                        type="text"
+                        v-model="discountPercentInput"
+                        readonly
+                        placeholder="0 %"
+                        @click="activateDiscountInput('percent')"
+                        :class="{ active: activeDiscountInput === 'percent'}"
+                        class="input"
+                      />
                     </div>
-                    
                     <div>
                       <label class="label">Endirim Miqdari ₼</label>
                       <input
                         type="text"
-                        :value="'₼ ' + (discount_amount || 0)"
+                        v-model="discountAmountInput"
                         readonly
-                        placeholder="Miqdar"
+                        placeholder="0 ₼"
                         class="input amount-input"
                         :class="{ active: activeDiscountInput === 'amount' }"
                         @click="activateDiscountInput('amount')"
-                        @input="handleAmountInput"
                       />
                     </div>
                     
@@ -111,6 +109,7 @@
                       <button v-for="n in 9" :key="n" @click="appendToDiscountPercent(n)">
                         {{ n }}
                       </button>
+                      <button @click="appendToDiscountPercent('.')">.</button>
                       <button @click="appendToDiscountPercent(0)">0</button>
                       <button @click="deleteLastDigitFromDiscount">
                         <font-awesome-icon icon="arrow-left" />
@@ -146,6 +145,7 @@
                       <button v-for="n in 9" :key="n" @click="appendToPaidAmount(n)">
                         {{ n }}
                       </button>
+                      <button @click="appendToPaidAmount('.')">.</button>
                       <button @click="appendToPaidAmount(0)">0</button>
                       <button @click="deleteLastDigit">
                         <font-awesome-icon icon="arrow-left" />
@@ -450,7 +450,7 @@ beforeUnmount() {
         },
 
         async handleAction(methodName, actionId) {
-          if (this.role === 'waitress' && !(actionId === 1 || actionId === 7)) {
+          if ((this.role === 'waitress' || this.role === 'captain_waitress') && !(actionId === 1 || actionId === 7)) {
             return;
           }
 
@@ -623,49 +623,73 @@ beforeUnmount() {
         },
         
         appendToPaidAmount(num) {
-          this.paid_amount += num.toString();
-          this.paid_amount = parseFloat(this.paid_amount);
+          if (num === '.' && String(this.paid_amount).includes('.')) {
+            return;
+          }
+
+          if (this.paid_amount === 0 || this.paid_amount === '') {
+            if (num === '.') {
+              this.paid_amount = '0.';
+            } else {
+              this.paid_amount = num.toString();
+            }
+          } else {
+            this.paid_amount = this.paid_amount.toString() + num.toString();
+          }
         },
         deleteLastDigit() {
-          this.paid_amount = this.paid_amount.slice(0, -1);
-          this.paid_amount = parseFloat(this.paid_amount) || 0;
+          let paidStr = this.paid_amount.toString();
+
+          if (paidStr.length > 0) {
+            paidStr = paidStr.slice(0, -1);
+          }
+          
+          if (paidStr === '' || paidStr === '0.') {
+            this.paid_amount = 0;
+          } else {
+            this.paid_amount = paidStr;
+          }
         },
         clearPaidAmount() {
-          this.paid_amount = '';
           this.paid_amount = 0;
         },
 
         activateDiscountInput(type) {
-          this.discountPercentInput = '';
-          this.discountAmountInput = '';
-          this.discount_percent = 0;
-          this.discount_amount = 0;
-
           this.activeDiscountInput = type;
-
           this.showDiscountNumpad = true;
+          
+          if (type === 'percent') {
+            this.discountPercentInput = this.discount_percent > 0 ? this.discount_percent.toString() : '';
+          } else if (type === 'amount') {
+            this.discountAmountInput = this.discount_amount > 0 ? this.discount_amount.toString() : '';
+          }
         },
 
         appendToDiscountPercent(num) {
+          if (num === '.' && this.activeDiscountInput === 'percent' && this.discountPercentInput.includes('.')) return;
+          if (num === '.' && this.activeDiscountInput === 'amount' && this.discountAmountInput.includes('.')) return;
+          
           if (this.activeDiscountInput === 'percent') {
-            if (this.discountPercentInput.length < 3) {
-              if (this.discountPercentInput === '0') {
-                this.discountPercentInput = '';
-              }
-              this.discountPercentInput += num.toString();
-              this.discount_percent = parseFloat(this.discountPercentInput) || 0;
 
-              if (this.discount_percent > 100) {
-                this.discount_percent = 100;
-                this.discountPercentInput = '100';
-              }
-
-              this.calculateAmountFromPercent();
+            if (this.discountPercentInput === '0' && num !== '.') {
+              this.discountPercentInput = '';
             }
+            
+            this.discountPercentInput += num.toString();
+            this.discount_percent = parseFloat(this.discountPercentInput) || 0;
+
+            if (this.discount_percent > 100) {
+              this.discount_percent = 100;
+              this.discountPercentInput = '100';
+            }
+
+            this.calculateAmountFromPercent();
           } else if (this.activeDiscountInput === 'amount') {
-            if (this.discountAmountInput === '0') {
+
+            if (this.discountAmountInput === '0' && num !== '.') {
               this.discountAmountInput = '';
             }
+            
             this.discountAmountInput += num.toString();
             this.discount_amount = parseFloat(this.discountAmountInput) || 0;
 
@@ -698,7 +722,6 @@ beforeUnmount() {
 
         calculatePercentFromAmount() {
           if (this.discount_amount && this.total_price) {
-
             if (this.discount_amount > this.total_price) {
               this.discount_amount = this.total_price;
               this.discountAmountInput = this.discount_amount.toFixed(2);
@@ -706,9 +729,10 @@ beforeUnmount() {
 
             const percent = (this.discount_amount / this.total_price) * 100;
             this.discount_percent = parseFloat(percent.toFixed(2));
-            this.discountPercentInput = this.discount_percent;
+            this.discountPercentInput = this.discount_percent.toString();
           }
         },
+
         deleteLastDigitFromDiscount() {
           if (this.activeDiscountInput === 'percent') {
             if (this.discountPercentInput.length <= 1) {
@@ -743,8 +767,17 @@ beforeUnmount() {
         },
 
         fillWithRemainingAmount() {
-          const remaining = (this.total_price - this.discount_amount).toFixed(2);
-          this.paid_amount = remaining.endsWith('.00') ? remaining.slice(0, -3) : remaining;
+          const remaining = (this.total_price - this.discount_amount);
+          
+          let formattedRemaining = remaining.toFixed(2);
+
+          if (formattedRemaining.endsWith('.00')) {
+            formattedRemaining = formattedRemaining.slice(0, -3);
+          } else if (formattedRemaining.endsWith('0')) {
+            formattedRemaining = formattedRemaining.slice(0, -1);
+          }
+          
+          this.paid_amount = formattedRemaining;
         },
 
         handleClickOutsideDiscount(event) {
@@ -1165,12 +1198,12 @@ beforeUnmount() {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   margin-top: 8px;
 }
 
 .numpad-buttons button {
-  padding: 10px 10px;
+  padding:10px;
   font-size: 16px;
   background-color: #eee;
   border: 1px solid #ccc;
