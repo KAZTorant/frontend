@@ -98,8 +98,7 @@
                         readonly
                         placeholder="₼0"
                         @click.stop="activatePaymentInput('cash')"
-                        :class="{ active: activePaymentInput === 'cash' }"
-                        class="input amount-input"
+                        :class="['input amount-input', { active: activePaymentInput === 'cash', 'border-red-500': paymentNeedsReset }]"
                       />
                     </div>
                     <div class="payment-column">
@@ -109,8 +108,7 @@
                         readonly
                         placeholder="₼0"
                         @click.stop="activatePaymentInput('card')"
-                        :class="{ active: activePaymentInput === 'card' }"
-                        class="input amount-input"
+                        :class="['input amount-input', { active: activePaymentInput === 'card', 'border-red-500': paymentNeedsReset }]"
                       />
                     </div>
                     <div class="payment-column">
@@ -120,8 +118,7 @@
                         readonly
                         placeholder="₼0"
                         @click.stop="activatePaymentInput('other')"
-                        :class="{ active: activePaymentInput === 'other' }"
-                        class="input amount-input"
+                        :class="['input amount-input', { active: activePaymentInput === 'other', 'border-red-500': paymentNeedsReset }]"
                       />
                     </div>
                   </div>
@@ -412,7 +409,8 @@
             other: 0
           },
           activePaymentInput: 'cash',
-          showPaymentNumpad: false
+          showPaymentNumpad: false,
+          paymentNeedsReset: false,
         };
       },
       computed: {
@@ -690,10 +688,12 @@ beforeUnmount() {
           };
           this.activePaymentInput = 'cash';
           this.showPaymentNumpad = false;
+          this.paymentNeedsReset = false; 
         },
 
         async confirmAction() {
           this.loading = true;
+          this.paymentNeedsReset = false
 
           // Build payment_methods array from payment types with non-zero amounts
           const payment_methods = [];
@@ -760,6 +760,8 @@ beforeUnmount() {
         },
 
         activateDiscountInput(type) {
+          this.paymentAmounts = { cash: 0, card: 0, other: 0 };
+          this.paymentNeedsReset = true;
           this.activeDiscountInput = type;
           this.showDiscountNumpad = true;
           
@@ -775,6 +777,10 @@ beforeUnmount() {
           if (num === '.' && this.activeDiscountInput === 'amount' && this.discountAmountInput.includes('.')) return;
           
           if (this.activeDiscountInput === 'percent') {
+            if (!this.paymentNeedsReset) {
+              this.paymentAmounts = { cash: 0, card: 0, other: 0 };
+              this.paymentNeedsReset = true;
+            }
 
             if (this.discountPercentInput === '0' && num !== '.') {
               this.discountPercentInput = '';
@@ -790,6 +796,10 @@ beforeUnmount() {
 
             this.calculateAmountFromPercent();
           } else if (this.activeDiscountInput === 'amount') {
+            if (!this.paymentNeedsReset) {
+              this.paymentAmounts = { cash: 0, card: 0, other: 0 };
+              this.paymentNeedsReset = true;
+            }
 
             if (this.discountAmountInput === '0' && num !== '.') {
               this.discountAmountInput = '';
@@ -956,6 +966,7 @@ beforeUnmount() {
 
         activatePaymentInput(type) {
           this.activePaymentInput = type;
+          this.paymentNeedsReset = false;
           
           // Ensure the payment amount is initialized
           if (this.paymentAmounts[type] === undefined || this.paymentAmounts[type] === null) {
@@ -1002,6 +1013,9 @@ beforeUnmount() {
     </script>
 
 <style scoped>
+.border-red-500 {
+  border-color: #f56565 !important;
+}
 .keyboard-container {
   position: fixed;
   background-color: #fff;
@@ -1388,9 +1402,12 @@ beforeUnmount() {
 
 /* Payment Numpad Container */
 .payment-numpad-container {
-  margin-top: 15px;
+  margin-top: 10px;
   overflow: hidden;
   transition: all 0.3s ease;
+  max-width: 250px; /* konteynerin maksimum eni */
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .payment-numpad-container:not(:has(.numpad-buttons)) {
@@ -1398,26 +1415,27 @@ beforeUnmount() {
   height: 0;
 }
 
+/* Düymələr konteyneri */
 .numpad-buttons {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  margin-top: 8px;
-  padding: 15px;
-  border-radius: 8px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  padding: 10px;
+  border-radius: 6px;
   background-color: #f9f9f9;
-  max-width: 300px;
+  max-width: 250px;
   margin: 8px auto;
 }
 
+/* Düymələr */
 .numpad-buttons button {
-  padding: 15px;
-  font-size: 18px;
+  padding: 10px;
+  font-size: 14px;
   background-color: #eee;
   border: 1px solid #ccc;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
-  height: 50px;
+  height: 40px;
   transition: background-color 0.2s;
 }
 
@@ -1425,11 +1443,13 @@ beforeUnmount() {
   background-color: #ddd;
 }
 
+/* Bağlama düyməsi */
 .close-numpad-btn {
   background-color: #f44336 !important;
   color: white !important;
   grid-column: span 2;
 }
+
 
 .close-numpad-btn:hover {
   background-color: #d32f2f !important;
