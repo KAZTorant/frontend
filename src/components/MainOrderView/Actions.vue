@@ -53,10 +53,19 @@
                   />
                 </div>
                 <div>
+                  <label class="label">Cəmi ödəniş (₼)</label>
+                  <input
+                    type="text"
+                    :value="'₼ ' + totalPaidAmount.toFixed(2).replace(/\.00$/, '')"
+                    readonly
+                    class="input amount-input total-amount"
+                  />
+                </div>
+                <div>
                   <label class="label">Qalıq məbləğ ₼</label>
                   <input
                     type="text"
-                    :value="'₼ ' + (paid_amount - (total_price - discount_amount)).toFixed(2).replace(/\.00$/, '')"
+                    :value="'₼ ' + (totalPaidAmount - (total_price - discount_amount)).toFixed(2).replace(/\.00$/, '')"
                     readonly
                     placeholder="Miqdar"
                     class="input amount-input"
@@ -65,42 +74,139 @@
               </div>
 
               <div class="modal-form hall">
-                <label>
-                  Ödəniş növü*
-                  <select v-model="payment_type" required>
-                    <option value="cash">Nağd</option>
-                    <option value="card">Kart</option>
-                    <option value="other">Digər</option>
-                  </select>
-                </label>
+                <!-- Payment Amounts Section -->
+                <div class="payment-amounts-section">
+                  <!-- Payment Type Labels -->
+                  <div class="payment-labels-row">
+                    <div class="payment-column">
+                      <span class="payment-label">Nagd</span>
+                    </div>
+                    <div class="payment-column">
+                      <span class="payment-label">Kart</span>
+                    </div>
+                    <div class="payment-column">
+                      <span class="payment-label">Diger</span>
+                    </div>
+                  </div>
+
+                  <!-- Payment Input Row -->
+                  <div class="payment-inputs-row">
+                    <div class="payment-column">
+                      <input
+                        type="text"
+                        v-model="paymentAmounts.cash"
+                        readonly
+                        placeholder="₼0"
+                        @click.stop="activatePaymentInput('cash')"
+                        :class="{ active: activePaymentInput === 'cash' }"
+                        class="input amount-input"
+                      />
+                    </div>
+                    <div class="payment-column">
+                      <input
+                        type="text"
+                        v-model="paymentAmounts.card"
+                        readonly
+                        placeholder="₼0"
+                        @click.stop="activatePaymentInput('card')"
+                        :class="{ active: activePaymentInput === 'card' }"
+                        class="input amount-input"
+                      />
+                    </div>
+                    <div class="payment-column">
+                      <input
+                        type="text"
+                        v-model="paymentAmounts.other"
+                        readonly
+                        placeholder="₼0"
+                        @click.stop="activatePaymentInput('other')"
+                        :class="{ active: activePaymentInput === 'other' }"
+                        class="input amount-input"
+                      />
+                    </div>
+                  </div>
+
+                  <!-- Payment Button Row -->
+                  <div class="payment-buttons-row">
+                    <div class="payment-column">
+                      <button 
+                        v-if="getButtonTextForType('cash')" 
+                        class="fill-button" 
+                        @click="fillPaymentWithRemaining('cash')"
+                      >
+                        {{ getButtonTextForType('cash') }}
+                      </button>
+                    </div>
+                    <div class="payment-column">
+                      <button 
+                        v-if="getButtonTextForType('card')" 
+                        class="fill-button" 
+                        @click="fillPaymentWithRemaining('card')"
+                      >
+                        {{ getButtonTextForType('card') }}
+                      </button>
+                    </div>
+                    <div class="payment-column">
+                      <button 
+                        v-if="getButtonTextForType('other')" 
+                        class="fill-button" 
+                        @click="fillPaymentWithRemaining('other')"
+                      >
+                        {{ getButtonTextForType('other') }}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Payment Numpad -->
+                <div ref="paymentNumpadContainer" class="payment-numpad-container">
+                  <transition name="fade-slide">
+                    <div v-if="showPaymentNumpad" class="numpad-buttons">
+                      <button v-for="n in 4" :key="n" @click="appendToPaymentAmount(n)">
+                        {{ n }}
+                      </button>
+                      <button v-for="n in 4" :key="n+4" @click="appendToPaymentAmount(n+4)">
+                        {{ n+4 }}
+                      </button>
+                      <button @click="appendToPaymentAmount(9)">9</button>
+                      <button @click="appendToPaymentAmount('.')">.</button>
+                      <button @click="appendToPaymentAmount(0)">0</button>
+                      <button @click="deleteLastDigitFromPayment">
+                        <font-awesome-icon icon="arrow-left" />
+                      </button>
+                      <button @click="clearPaymentAmount">x</button>
+                      <button @click="closeNumpad" class="close-numpad-btn">
+                        <font-awesome-icon icon="times" />
+                      </button>
+                    </div>
+                  </transition>
+                </div>
 
                 <div ref="discountNumpadContainer" class="discount-group">
                   <div class="input-container">
                     
                     <div>
                       <label class="label">Endirim Faizi %</label>
-                    <input
-                      type="text"
-                      v-model="discountPercentInput"
-                      readonly
-                      placeholder="0 %"
-                      @click="activateDiscountInput('percent')"
-                      :class="{ active: activeDiscountInput === 'percent' }"
-                      class="input"
-                    />
+                      <input
+                        type="text"
+                        v-model="discountPercentInput"
+                        readonly
+                        placeholder="0 %"
+                        @click="activateDiscountInput('percent')"
+                        :class="{ active: activeDiscountInput === 'percent'}"
+                        class="input"
+                      />
                     </div>
-                    
                     <div>
                       <label class="label">Endirim Miqdari ₼</label>
                       <input
                         type="text"
-                        :value="'₼ ' + (discount_amount || 0)"
+                        v-model="discountAmountInput"
                         readonly
-                        placeholder="Miqdar"
+                        placeholder="0 ₼"
                         class="input amount-input"
                         :class="{ active: activeDiscountInput === 'amount' }"
                         @click="activateDiscountInput('amount')"
-                        @input="handleAmountInput"
                       />
                     </div>
                     
@@ -111,6 +217,7 @@
                       <button v-for="n in 9" :key="n" @click="appendToDiscountPercent(n)">
                         {{ n }}
                       </button>
+                      <button @click="appendToDiscountPercent('.')">.</button>
                       <button @click="appendToDiscountPercent(0)">0</button>
                       <button @click="deleteLastDigitFromDiscount">
                         <font-awesome-icon icon="arrow-left" />
@@ -124,38 +231,6 @@
                   Endirim səbəbi və ya qeydi
                   <input type="text" v-model="discount_comment" placeholder="Səbəb yazın..." @click="showVirtualKeyboard($event)" />
                 </label>
-                <div ref="paidNumpadContainer" class="paid-container">
-                  <label>
-                    Müştərinin verdiyi məbləğ (₼)*
-                    <div class="input-button-group">
-                      <input
-                        type="text"
-                        v-model="paid_amount"
-                        readonly
-                        placeholder="₼0"
-                        @click="showNumpad = true"
-                      />
-                      <button class="fill-button" @click="fillWithRemainingAmount">
-                        tam
-                      </button>
-                    </div>
-                  </label>
-
-                  <transition name="fade-slide">
-                    <div v-if="showNumpad" class="numpad-buttons">
-                      <button v-for="n in 9" :key="n" @click="appendToPaidAmount(n)">
-                        {{ n }}
-                      </button>
-                      <button @click="appendToPaidAmount(0)">0</button>
-                      <button @click="deleteLastDigit">
-                        <font-awesome-icon icon="arrow-left" />
-                      </button>
-                      <button @click="clearPaidAmount">x</button>
-                    </div>
-                  </transition>
-                </div>
-
-                
               </div>
               <div class="confirmation-buttons">
                 <button class="confirm-btn" @click="confirmAction" :disabled="loading">Təsdiqlə</button>
@@ -257,11 +332,11 @@
     import backendServices from '@/backend-services/backend-services';
     import router from '@/router/';
     import { library } from '@fortawesome/fontawesome-svg-core';
-    import { faPrint, faUser, faExchangeAlt, faTimes, faUtensils } from '@fortawesome/free-solid-svg-icons';
+    import { faPrint, faUser, faExchangeAlt, faTimes, faUtensils, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
     import { EventBus } from '@/EventBus';
     import PrinterLoading from '@/components/PrinterLoading.vue';
     import VirtualKeyboard from '@/components/VirtualKeyboard.vue';
-    library.add(faPrint, faUser, faExchangeAlt, faTimes, faUtensils);
+    library.add(faPrint, faUser, faExchangeAlt, faTimes, faUtensils, faArrowLeft);
 
     export default {
       components: {
@@ -329,7 +404,15 @@
           orderItemAddedHandler: null,
           // Virtual keyboard related data
           showKeyboard: false,
-          activeTextarea: null
+          activeTextarea: null,
+          // New payment system data
+          paymentAmounts: {
+            cash: 0,
+            card: 0,
+            other: 0
+          },
+          activePaymentInput: 'cash',
+          showPaymentNumpad: false
         };
       },
       computed: {
@@ -340,6 +423,11 @@
             return this.actions.filter(action => (action.id === 7 || action.id === 1));
           }
           return [];
+        },
+        totalPaidAmount() {
+          return parseFloat(this.paymentAmounts.cash || 0) + 
+                 parseFloat(this.paymentAmounts.card || 0) + 
+                 parseFloat(this.paymentAmounts.other || 0);
         }
       },
       async mounted() {
@@ -450,7 +538,7 @@ beforeUnmount() {
         },
 
         async handleAction(methodName, actionId) {
-          if (this.role === 'waitress' && !(actionId === 1 || actionId === 7)) {
+          if ((this.role === 'waitress' || this.role === 'captain_waitress') && !(actionId === 1 || actionId === 7)) {
             return;
           }
 
@@ -590,27 +678,44 @@ beforeUnmount() {
 
         // Modal confirm methods
         resetForm() {
-          this.payment_type = 'cash';
           this.discount_amount = 0;
           this.discount_comment = '';
-          this.paid_amount = 0;
           this.discountPercentInput = 0;
           this.discountAmountInput = 0;
-          this.showNumpad = false;
+          this.showDiscountNumpad = false;
+          this.paymentAmounts = {
+            cash: 0,
+            card: 0,
+            other: 0
+          };
+          this.activePaymentInput = 'cash';
+          this.showPaymentNumpad = false;
         },
 
         async confirmAction() {
           this.loading = true;
 
+          // Build payment_methods array from payment types with non-zero amounts
+          const payment_methods = [];
+          ['cash', 'card', 'other'].forEach(type => {
+            const amount = parseFloat(this.paymentAmounts[type]) || 0;
+            if (amount > 0) {
+              payment_methods.push({
+                payment_type: type,
+                amount: amount
+              });
+            }
+          });
+
           const payload = {
-            payment_type: this.payment_type,
+            payment_methods: payment_methods,
+            paid_amount: this.totalPaidAmount,
             discount_amount: this.discount_amount,
-            discount_comment: this.discount_comment,
-            paid_amount: this.paid_amount
+            discount_comment: this.discount_comment
           };
+
           try {
             await backendServices.cancelPayment(this.tableId, payload);
-
             router.back();
           } catch (error) {
             console.error('Xəta baş verdi:', error);
@@ -622,50 +727,74 @@ beforeUnmount() {
           this.showConfirmation = false;
         },
         
-        appendToPaidAmount(num) {
-          this.paid_amount += num.toString();
-          this.paid_amount = parseFloat(this.paid_amount);
+        appendToPaymentAmount(num) {
+          if (num === '.' && String(this.paymentAmounts[this.activePaymentInput]).includes('.')) {
+            return;
+          }
+
+          if (this.paymentAmounts[this.activePaymentInput] === 0 || this.paymentAmounts[this.activePaymentInput] === '') {
+            if (num === '.') {
+              this.paymentAmounts[this.activePaymentInput] = '0.';
+            } else {
+              this.paymentAmounts[this.activePaymentInput] = num.toString();
+            }
+          } else {
+            this.paymentAmounts[this.activePaymentInput] = this.paymentAmounts[this.activePaymentInput].toString() + num.toString();
+          }
         },
-        deleteLastDigit() {
-          this.paid_amount = this.paid_amount.slice(0, -1);
-          this.paid_amount = parseFloat(this.paid_amount) || 0;
+        deleteLastDigitFromPayment() {
+          let paymentStr = this.paymentAmounts[this.activePaymentInput].toString();
+
+          if (paymentStr.length > 0) {
+            paymentStr = paymentStr.slice(0, -1);
+          }
+          
+          if (paymentStr === '' || paymentStr === '0.') {
+            this.paymentAmounts[this.activePaymentInput] = 0;
+          } else {
+            this.paymentAmounts[this.activePaymentInput] = paymentStr;
+          }
         },
-        clearPaidAmount() {
-          this.paid_amount = '';
-          this.paid_amount = 0;
+        clearPaymentAmount() {
+          this.paymentAmounts[this.activePaymentInput] = 0;
         },
 
         activateDiscountInput(type) {
-          this.discountPercentInput = '';
-          this.discountAmountInput = '';
-          this.discount_percent = 0;
-          this.discount_amount = 0;
-
           this.activeDiscountInput = type;
-
           this.showDiscountNumpad = true;
+          
+          if (type === 'percent') {
+            this.discountPercentInput = this.discount_percent > 0 ? this.discount_percent.toString() : '';
+          } else if (type === 'amount') {
+            this.discountAmountInput = this.discount_amount > 0 ? this.discount_amount.toString() : '';
+          }
         },
 
         appendToDiscountPercent(num) {
+          if (num === '.' && this.activeDiscountInput === 'percent' && this.discountPercentInput.includes('.')) return;
+          if (num === '.' && this.activeDiscountInput === 'amount' && this.discountAmountInput.includes('.')) return;
+          
           if (this.activeDiscountInput === 'percent') {
-            if (this.discountPercentInput.length < 3) {
-              if (this.discountPercentInput === '0') {
-                this.discountPercentInput = '';
-              }
-              this.discountPercentInput += num.toString();
-              this.discount_percent = parseFloat(this.discountPercentInput) || 0;
 
-              if (this.discount_percent > 100) {
-                this.discount_percent = 100;
-                this.discountPercentInput = '100';
-              }
-
-              this.calculateAmountFromPercent();
+            if (this.discountPercentInput === '0' && num !== '.') {
+              this.discountPercentInput = '';
             }
+            
+            this.discountPercentInput += num.toString();
+            this.discount_percent = parseFloat(this.discountPercentInput) || 0;
+
+            if (this.discount_percent > 100) {
+              this.discount_percent = 100;
+              this.discountPercentInput = '100';
+            }
+
+            this.calculateAmountFromPercent();
           } else if (this.activeDiscountInput === 'amount') {
-            if (this.discountAmountInput === '0') {
+
+            if (this.discountAmountInput === '0' && num !== '.') {
               this.discountAmountInput = '';
             }
+            
             this.discountAmountInput += num.toString();
             this.discount_amount = parseFloat(this.discountAmountInput) || 0;
 
@@ -698,7 +827,6 @@ beforeUnmount() {
 
         calculatePercentFromAmount() {
           if (this.discount_amount && this.total_price) {
-
             if (this.discount_amount > this.total_price) {
               this.discount_amount = this.total_price;
               this.discountAmountInput = this.discount_amount.toFixed(2);
@@ -706,9 +834,10 @@ beforeUnmount() {
 
             const percent = (this.discount_amount / this.total_price) * 100;
             this.discount_percent = parseFloat(percent.toFixed(2));
-            this.discountPercentInput = this.discount_percent;
+            this.discountPercentInput = this.discount_percent.toString();
           }
         },
+
         deleteLastDigitFromDiscount() {
           if (this.activeDiscountInput === 'percent') {
             if (this.discountPercentInput.length <= 1) {
@@ -742,9 +871,30 @@ beforeUnmount() {
           this.discount_amount = 0;
         },
 
-        fillWithRemainingAmount() {
-          const remaining = (this.total_price - this.discount_amount).toFixed(2);
-          this.paid_amount = remaining.endsWith('.00') ? remaining.slice(0, -3) : remaining;
+        fillPaymentWithRemaining(type) {
+          const remainingAmount = this.getRemainingAmountForType(type);
+          
+          let formattedRemaining = remainingAmount.toFixed(2);
+
+          if (formattedRemaining.endsWith('.00')) {
+            formattedRemaining = formattedRemaining.slice(0, -3);
+          } else if (formattedRemaining.endsWith('0')) {
+            formattedRemaining = formattedRemaining.slice(0, -1);
+          }
+          
+          this.paymentAmounts[type] = formattedRemaining;
+        },
+
+        getRemainingAmountForType(type) {
+          const finalPrice = this.total_price - this.discount_amount;
+          const currentTotalPaid = this.totalPaidAmount;
+          const currentTypeAmount = parseFloat(this.paymentAmounts[type]) || 0;
+          
+          // Calculate remaining amount excluding current payment type
+          const otherPaymentsTotal = currentTotalPaid - currentTypeAmount;
+          const remaining = finalPrice - otherPaymentsTotal;
+          
+          return Math.max(0, remaining);
         },
 
         handleClickOutsideDiscount(event) {
@@ -753,10 +903,15 @@ beforeUnmount() {
             this.showDiscountNumpad = false;
           }
         },
+        
         handleClickOutsidePaid(event) {
-          const numpad = this.$refs.paidNumpadContainer;
-          if (numpad && !numpad.contains(event.target)) {
-            this.showNumpad = false;
+          const paymentNumpad = this.$refs.paymentNumpadContainer;
+          const paymentSection = document.querySelector('.payment-amounts-section');
+          
+          // Don't close if clicking on payment inputs or numpad
+          if (paymentNumpad && !paymentNumpad.contains(event.target) && 
+              paymentSection && !paymentSection.contains(event.target)) {
+            this.showPaymentNumpad = false;
           }
         },
 
@@ -797,6 +952,50 @@ beforeUnmount() {
               this.showError('Error combining tables. Please try again later.');
             }
           }
+        },
+
+        activatePaymentInput(type) {
+          this.activePaymentInput = type;
+          
+          // Ensure the payment amount is initialized
+          if (this.paymentAmounts[type] === undefined || this.paymentAmounts[type] === null) {
+            this.paymentAmounts[type] = 0;
+          }
+          
+          // Use nextTick to ensure proper DOM update
+          this.$nextTick(() => {
+            this.showPaymentNumpad = true;
+          });
+        },
+
+        getButtonTextForType(type) {
+          const finalPrice = this.total_price - this.discount_amount; // Son məbləğ ₼
+          const currentTotalPaid = this.totalPaidAmount; // Cəmi ödəniş (₼)
+          const currentTypeAmount = parseFloat(this.paymentAmounts[type]) || 0;
+          const otherPaymentsTotal = currentTotalPaid - currentTypeAmount;
+          const remainingToPay = finalPrice - otherPaymentsTotal;
+          
+          // No button if already paid in full or overpaid
+          if (remainingToPay <= 0) {
+            return null;
+          }
+          
+          // Show "Tam" if no other payments have been made (first payment for full amount)
+          if (otherPaymentsTotal === 0) {
+            return 'Tam';
+          }
+          
+          // Show "Qaliq" if there are other payments and still remaining amount to pay
+          if (otherPaymentsTotal > 0 && remainingToPay > 0) {
+            return 'Qaliq';
+          }
+          
+          return null;
+        },
+
+        closeNumpad() {
+          this.showPaymentNumpad = false;
+          this.activePaymentInput = null;
         },
       }
     };
@@ -935,16 +1134,17 @@ beforeUnmount() {
   box-shadow: 0 12px 48px rgba(0, 0, 0, 0.3);
   border: 2px solid #2ecc71;
   text-align: center;
-  min-width: 400px;
+  min-width: 700px;
+  max-width: 800px;
   z-index: 99999999;
 }
 
 .confirmation-message {
-  max-width: 380px;
+  max-width: 650px;
   width: 100%;
   margin: 0 auto 20px;
-  display: flex;
-  flex-wrap: wrap ;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
   justify-content: center;
   gap: 10px;
 }
@@ -952,7 +1152,6 @@ beforeUnmount() {
 .confirmation-message > div {
   display: flex;
   flex-direction: column;
-
 }
 
 .confirmation-message label {
@@ -963,12 +1162,12 @@ beforeUnmount() {
 }
 
 .confirmation-message .input {
-  max-width: 120px;
+  max-width: 140px;
   width: 100%;
   padding: 10px;
   border: 1px solid #2ecc71;
   border-radius: 6px;
-  font-size: 16px;
+  font-size: 14px;
   background-color: #f9f9f9;
   text-align: center;
   color: #222;
@@ -1038,7 +1237,7 @@ beforeUnmount() {
 
 /* Cancel Action */
 .modal-form {
-  max-width: 380px;
+  max-width: 600px;
   margin: 0 auto;
   padding: 20px 30px;
   border-radius: 8px;
@@ -1065,12 +1264,14 @@ beforeUnmount() {
 .discount-group {
   margin-bottom: 16px;
 }
+
 .input-button-group {
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.input-button-group input{
+
+.input-button-group input {
   border-radius: 6px 0 0 6px;
 }
 
@@ -1120,7 +1321,7 @@ beforeUnmount() {
 }
 
 .input.active {
-  border: 1px solid #2ecc71; 
+  border: 1px solid #2ecc71;
 }
 
 .amount-input {
@@ -1128,64 +1329,124 @@ beforeUnmount() {
   font-weight: bold;
 }
 
-.confirmation-buttons {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 1.5rem;
+/* Payment Amounts Section */
+.payment-amounts-section {
+  margin-bottom: 20px;
 }
 
-.confirm-btn,
-.cancel-btn {
-  padding: 10px 20px;
-  border-radius: 6px;
+.payment-labels-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 5px;
+}
+
+.payment-label {
   font-weight: 600;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
+  color: #333;
+  font-size: 14px;
+  text-align: center;
 }
 
-.confirm-btn {
-  background-color: #4caf50;
-  color: white;
-}
-
-.confirm-btn:hover {
-  background-color: #45a045;
-}
-
-.cancel-btn {
-  background-color: #f44336;
-  color: white;
-}
-
-.cancel-btn:hover {
-  background-color: #d7372b;
-}
-.numpad-buttons {
+.payment-inputs-row {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+  gap: 10px;
+}
+
+.payment-buttons-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.payment-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.payment-column .input {
+  width: 100%;
+  text-align: center;
+}
+
+.payment-column .fill-button {
+  background-color: #4caf50;
+  border: none;
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  margin-top: 5px;
+}
+
+.payment-column .fill-button:hover {
+  background-color: #2ecc71;
+}
+
+/* Payment Numpad Container */
+.payment-numpad-container {
+  margin-top: 15px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.payment-numpad-container:not(:has(.numpad-buttons)) {
+  margin-top: 0;
+  height: 0;
+}
+
+.numpad-buttons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: 8px;
   margin-top: 8px;
+  padding: 15px;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  max-width: 300px;
+  margin: 8px auto;
 }
 
 .numpad-buttons button {
-  padding: 10px 10px;
-  font-size: 16px;
+  padding: 15px;
+  font-size: 18px;
   background-color: #eee;
   border: 1px solid #ccc;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
-  width: 40px;
+  height: 50px;
+  transition: background-color 0.2s;
+}
+
+.numpad-buttons button:hover {
+  background-color: #ddd;
+}
+
+.close-numpad-btn {
+  background-color: #f44336 !important;
+  color: white !important;
+  grid-column: span 2;
+}
+
+.close-numpad-btn:hover {
+  background-color: #d32f2f !important;
 }
 
 .fade-slide-enter-active, .fade-slide-leave-active {
   transition: all 0.3s ease;
 }
+
 .fade-slide-enter-from, .fade-slide-leave-to {
   opacity: 0;
-  transform: translateY(10px);
+  transform: translateY(-10px);
+  height: 0;
+  margin: 0;
+  padding: 0;
 }
+
 .fade-slide-enter-to, .fade-slide-leave-from {
   opacity: 1;
   transform: translateY(0);
