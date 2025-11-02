@@ -55,7 +55,9 @@ export default {
   methods: {
     async getNetworkAddress() {
       const privateIpAddress = await this.getLocalIP();
-      const networkAddress = `http://${privateIpAddress}:8080/`; // Example static IP
+      const frontendPort = process.env.VUE_APP_FRONTEND_PORT || '8080';
+      const frontendProtocol = process.env.VUE_APP_FRONTEND_PROTOCOL || 'http';
+      const networkAddress = `${frontendProtocol}://${privateIpAddress}:${frontendPort}/`;
       return networkAddress;
     },
     async getLocalIP() {
