@@ -1,7 +1,7 @@
 <template>
   <div class="login-container">
     <div v-if="networkAddress" class="qr-code">
-      <qrcode :value="networkAddress" :size="200" style="width: 300px; border: 10px solid transparent; outline: 10px dashed var(--primary-color); height: 300px;"></qrcode>
+      <qrcode :value="networkAddress" :size="200" color="#000000" type="image/png" style="width: 300px; border: 10px solid transparent; outline: 10px dashed var(--primary-color); height: 300px;"></qrcode>
       <p>Ofisiant kimi daxil ol</p>
     </div>
     <div>
@@ -55,9 +55,11 @@ export default {
   methods: {
     async getNetworkAddress() {
       const privateIpAddress = await this.getLocalIP();
+      // Remove any existing port from the IP address (only if backend returns IP:PORT)
+      const cleanIp = privateIpAddress.includes(':') ? privateIpAddress.split(':')[0] : privateIpAddress;
       const frontendPort = process.env.VUE_APP_FRONTEND_PORT || '8080';
       const frontendProtocol = process.env.VUE_APP_FRONTEND_PROTOCOL || 'http';
-      const networkAddress = `${frontendProtocol}://${privateIpAddress}:${frontendPort}/`;
+      const networkAddress = `${frontendProtocol}://${cleanIp}:${frontendPort}/`;
       return networkAddress;
     },
     async getLocalIP() {
