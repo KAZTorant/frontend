@@ -1,3 +1,9 @@
+// iOS 12.5.7 Safari compatibility polyfills
+import 'core-js/stable'
+import 'core-js/es/promise'
+import 'core-js/es/object'
+import 'core-js/es/array'
+
 import { createApp } from 'vue'
 import App from './App.vue'
 import store from './store'
