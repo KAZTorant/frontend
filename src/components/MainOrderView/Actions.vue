@@ -419,7 +419,7 @@
         filteredActions() {
           if (this.role === 'admin' || this.role === 'restaurant') {
             return this.actions;
-          } else if (this.role === 'waitress') {
+          } else if (this.role === 'waitress' || this.role === 'captain_waitress') {
             return this.actions.filter(action => (action.id === 7 || action.id === 1));
           }
           return [];
