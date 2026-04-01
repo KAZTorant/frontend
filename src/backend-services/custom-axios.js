@@ -3,7 +3,7 @@ import store from '../store';
 
 // Construct API base URL from separate host and port
 const apiHost = process.env.VUE_APP_API_HOST || '0.0.0.0';
-const apiPort = process.env.VUE_APP_API_PORT || '8000';
+const apiPort = process.env.VUE_APP_API_PORT || '8005';
 const apiProtocol = process.env.VUE_APP_API_PROTOCOL || 'http';
 const apiBaseURL = `${apiProtocol}://${apiHost}:${apiPort}`;
 
