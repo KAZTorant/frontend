@@ -1,0 +1,19 @@
+[Unit]
+Description=KAZZA Vue.js Frontend Service
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/aykhan/Desktop/KAZZA/frontend
+ExecStart=/bin/bash -c "npm run serve -- --host 0.0.0.0 --port 8086"
+Restart=always
+RestartSec=5
+Environment=PATH=/usr/bin:/usr/local/bin
+User=aykhan
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+
+sudo nano /etc/systemd/system/kazza-frontend.service
