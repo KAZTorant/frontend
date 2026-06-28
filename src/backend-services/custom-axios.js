@@ -6,8 +6,8 @@ function buildApiBaseURL() {
     return process.env.VUE_APP_API_BASE_URL.replace(/\/$/, '');
   }
 
-  const apiHost = process.env.VUE_APP_API_HOST || '192.168.1.121';
-  const apiPort = process.env.VUE_APP_API_PORT || '8000';
+  const apiHost = process.env.VUE_APP_API_HOST || '192.168.1.106';
+  const apiPort = process.env.VUE_APP_API_PORT || '8005';
   const apiProtocol = process.env.VUE_APP_API_PROTOCOL || 'http';
   const defaultPort = apiProtocol === 'https' ? '443' : '80';
   const portSuffix = apiPort && apiPort !== defaultPort ? `:${apiPort}` : '';
