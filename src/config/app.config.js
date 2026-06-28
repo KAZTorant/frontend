@@ -1,5 +1,5 @@
 export const PRODUCTION_API_URL = 'https://kazza.qr-menu.cc';
-export const PRODUCTION_FRONTEND_URL = 'https://kazza.qr-menu.cc';
+export const PRODUCTION_FRONTEND_URL = 'https://kazza-front.qr-menu.cc';
 
 export const DEV_API_HOST = '192.168.1.106';
 export const DEV_API_PORT = '8005';

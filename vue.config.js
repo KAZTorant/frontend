@@ -16,7 +16,7 @@ module.exports = {
             process.env.VUE_APP_API_BASE_URL || 'https://kazza.qr-menu.cc'
           ),
           'process.env.VUE_APP_FRONTEND_URL': JSON.stringify(
-            process.env.VUE_APP_FRONTEND_URL || 'https://kazza.qr-menu.cc'
+            process.env.VUE_APP_FRONTEND_URL || 'https://kazza-front.qr-menu.cc'
           ),
         });
         return definitions;
