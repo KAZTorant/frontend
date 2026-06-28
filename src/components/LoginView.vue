@@ -28,6 +28,7 @@
 <script>
 import Qrcode from 'vue-qrcode';
 import backendServices from '../backend-services/backend-services'; // Update the path accordingly
+import { getFrontendUrl } from '../config/app.config';
 
 export default {
   name: 'LoginView',
@@ -54,9 +55,9 @@ export default {
   },
   methods: {
     async getNetworkAddress() {
-      const frontendUrl = process.env.VUE_APP_FRONTEND_URL;
-      if (frontendUrl) {
-        return frontendUrl.endsWith('/') ? frontendUrl : `${frontendUrl}/`;
+      const configuredUrl = getFrontendUrl();
+      if (configuredUrl) {
+        return configuredUrl;
       }
 
       const privateIpAddress = await this.getLocalIP();
