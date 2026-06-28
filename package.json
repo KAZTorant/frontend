@@ -5,6 +5,7 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
+    "start": "serve -s dist -l ${PORT:-8080}",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
@@ -18,7 +19,8 @@
     "vue": "^3.2.13",
     "vue-qrcode": "^2.2.2",
     "vue-router": "^4.1.6",
-    "vuex": "^4.0.2"
+    "vuex": "^4.0.2",
+    "serve": "^14.2.4"
   },
   "devDependencies": {
     "@babel/core": "^7.12.16",

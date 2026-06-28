@@ -54,12 +54,19 @@ export default {
   },
   methods: {
     async getNetworkAddress() {
+      const frontendUrl = process.env.VUE_APP_FRONTEND_URL;
+      if (frontendUrl) {
+        return frontendUrl.endsWith('/') ? frontendUrl : `${frontendUrl}/`;
+      }
+
       const privateIpAddress = await this.getLocalIP();
       // Remove any existing port from the IP address (only if backend returns IP:PORT)
       const cleanIp = privateIpAddress.includes(':') ? privateIpAddress.split(':')[0] : privateIpAddress;
       const frontendPort = process.env.VUE_APP_FRONTEND_PORT || '8080';
       const frontendProtocol = process.env.VUE_APP_FRONTEND_PROTOCOL || 'http';
-      const networkAddress = `${frontendProtocol}://${cleanIp}:${frontendPort}/`;
+      const defaultPort = frontendProtocol === 'https' ? '443' : '80';
+      const portSuffix = frontendPort && frontendPort !== defaultPort ? `:${frontendPort}` : '';
+      const networkAddress = `${frontendProtocol}://${cleanIp}${portSuffix}/`;
       return networkAddress;
     },
     async getLocalIP() {
